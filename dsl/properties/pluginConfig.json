@@ -1,0 +1,1055 @@
+{
+   "get a work item" : {
+      "resultProperty" : {
+         "show" : "true",
+         "format" : [
+            "json",
+            "propertySheet"
+         ],
+         "default" : "/myJob/workItem"
+      },
+      "name" : "Get a Work Item",
+      "description" : "Returns the content of the work item",
+      "stepName" : "get a work item",
+      "parameters" : [
+         {
+            "required" : "1",
+            "in" : "path",
+            "documentation" : "ID of the work item to retrieve.",
+            "label" : "ID",
+            "type" : "entry",
+            "property" : "itemId"
+         },
+         {
+            "value" : "none",
+            "in" : "query",
+            "documentation" : "Gets work item relationships (work item links, hyperlinks and file attachements).",
+            "option" : [
+               {
+                  "value" : "all",
+                  "name" : "All"
+               },
+               {
+                  "value" : "relations",
+                  "name" : "Relations"
+               },
+               {
+                  "value" : "none",
+                  "name" : "None"
+               }
+            ],
+            "label" : "Expand",
+            "type" : "select",
+            "property" : "$expand"
+         }
+      ],
+      "fields" : [
+         "itemId",
+         "$expand"
+      ],
+      "basicAuth" : "true",
+      "hasConfig" : "true",
+      "method" : "GET",
+      "documentationLinks" : [
+         "https://www.visualstudio.com/en-us/docs/integrate/api/wit/work-items#get-a-work-item"
+      ],
+      "contentType" : "application/json",
+      "endpoint" : "#{{endpoint}}/#{{collection}}/_apis/wit/workitems/#{itemId}",
+      "attachCredentials" : "true"
+   },
+   "get a list of work items" : {
+      "resultProperty" : {
+         "show" : "true",
+         "format" : [
+            "json",
+            "propertySheet"
+         ],
+         "default" : "/myJob/workItemsList"
+      },
+      "name" : "Get a List of Work Items",
+      "description" : "Retrieves a list of the work items.",
+      "stepName" : "get a list of work items",
+      "parameters" : [
+         {
+            "required" : "1",
+            "in" : "query",
+            "documentation" : "A comma-separated list of up to 200 IDs of the work items to get.",
+            "label" : "IDs",
+            "type" : "textarea",
+            "property" : "ids"
+         },
+         {
+            "required" : "0",
+            "in" : "query",
+            "documentation" : "A comma-separated list of up to 100 fields to get with each work item. If not specified, all fields with values are returned. Calculated fields such as Attached File Count must be specifically queried for using this parameter.\n",
+            "label" : "Fields",
+            "type" : "textarea",
+            "property" : "fields"
+         },
+         {
+            "htmlDocumentation" : "Gets the work items as they existed at this time.",
+            "in" : "query",
+            "documentation" : "Gets the work items as they existed at this time.",
+            "label" : "As of (date)",
+            "type" : "entry",
+            "validators" : [
+               "date_time"
+            ],
+            "property" : "asOf"
+         },
+         {
+            "value" : "none",
+            "in" : "query",
+            "documentation" : "Gets work item relationships (work item links, hyperlinks, file attachements, etc.).",
+            "option" : [
+               {
+                  "value" : "all",
+                  "name" : "All"
+               },
+               {
+                  "value" : "relations",
+                  "name" : "Relations"
+               },
+               {
+                  "value" : "none",
+                  "name" : "None"
+               }
+            ],
+            "type" : "select",
+            "label" : "Expand relationships",
+            "property" : "$expand"
+         },
+         {
+            "checkedValue" : "throw",
+            "value" : "throw",
+            "uncheckedValue" : "omit",
+            "in" : "query",
+            "documentation" : "Determines if the call will throw an error when encountering a work item (default behavior) that doesn't exist or simply omit it.\n",
+            "label" : "Strict mode",
+            "type" : "checkbox",
+            "property" : "ErrorPolicy"
+         }
+      ],
+      "fields" : [
+         "ids",
+         "fields",
+         "asOf",
+         "$expand",
+         "ErrorPolicy"
+      ],
+      "basicAuth" : "true",
+      "hasConfig" : "true",
+      "method" : "GET",
+      "documentationLinks" : [
+         "https://www.visualstudio.com/en-us/docs/integrate/api/wit/work-items#get-a-list-of-work-items"
+      ],
+      "endpoint" : "#{{endpoint}}/#{{collection}}/_apis/wit/workitems",
+      "attachCredentials" : "true"
+   },
+   "options" : {
+      "noEmptyString" : "true"
+   },
+   "upload a work item attachment" : {
+      "resultProperty" : {
+         "show" : "true",
+         "format" : [
+            "json",
+            "propertySheet"
+         ],
+         "default" : "/myJob/workItemAttachment"
+      },
+      "name" : "Upload a Work Item Attachment",
+      "description" : "To attach a file to a work item, upload the attachment to the attachment store, then attach it to the work item.",
+      "stepName" : "upload a work item attachment",
+      "parameters" : [
+         {
+            "required" : "1",
+            "in" : "query",
+            "documentation" : "The name of the file in the attachment store (typically the same as the name of the source of the attachment).",
+            "type" : "entry",
+            "label" : "Attachment filename",
+            "property" : "filename"
+         },
+         {
+            "documentation" : "Default is simple. Use chunked upload type for uploading large files (>130 MB).",
+            "option" : [
+               {
+                  "value" : "simple",
+                  "name" : "Simple"
+               },
+               {
+                  "value" : "chunked",
+                  "name" : "Chunked"
+               }
+            ],
+            "label" : "Upload type",
+            "type" : "select",
+            "property" : "uploadType"
+         },
+         {
+            "in" : "body",
+            "documentation" : "Path to the file to be uploaded. Either this field or file content field must be specified.",
+            "type" : "entry",
+            "label" : "File path",
+            "property" : "filePath"
+         },
+         {
+            "in" : "body",
+            "documentation" : "File content to be uploaded. Either this field or file path field must be specified.",
+            "type" : "textarea",
+            "label" : "File content",
+            "property" : "fileContent"
+         }
+      ],
+      "fields" : [
+         "filename",
+         "uploadType",
+         "filePath",
+         "fileContent"
+      ],
+      "hasConfig" : "true",
+      "basicAuth" : "true",
+      "method" : "POST",
+      "documentationLinks" : [
+         "https://www.visualstudio.com/en-us/docs/integrate/api/wit/attachments#upload-an-attachment"
+      ],
+      "contentType" : "application/json",
+      "endpoint" : "#{{endpoint}}/#{{collection}}/_apis/wit/attachments",
+      "attachCredentials" : "true"
+   },
+   "delete a work item" : {
+      "resultProperty" : {
+         "show" : "true",
+         "format" : [
+            "json",
+            "propertySheet"
+         ],
+         "default" : "/myJob/deletedWorkItem"
+      },
+      "name" : "Delete a Work Item",
+      "description" : "Deletes the specified work item.",
+      "stepName" : "delete a work item",
+      "SkSkipAuth" : "true",
+      "parameters" : [
+         {
+            "required" : "1",
+            "in" : "path",
+            "documentation" : "ID of the work item to delete.",
+            "label" : "ID",
+            "type" : "entry",
+            "property" : "itemId"
+         },
+         {
+            "checkedValue" : "1",
+            "required" : "0",
+            "uncheckedValue" : "0",
+            "value" : "1",
+            "documentation" : "If checked, the procedure will fail in case the item does not exist.",
+            "label" : "Strict mode",
+            "type" : "checkbox",
+            "property" : "strictMode"
+         }
+      ],
+      "fields" : [
+         "itemId",
+         "strictMode"
+      ],
+      "basicAuth" : "true",
+      "hasConfig" : "true",
+      "method" : "DELETE",
+      "documentationLinks" : [
+         "https://www.visualstudio.com/en-us/docs/integrate/api/wit/work-items#delete-a-work-item"
+      ],
+      "contentType" : "application/json",
+      "endpoint" : "#{{endpoint}}/#{{collection}}/#{project}/_apis/wit/workitems/#{itemId}",
+      "attachCredentials" : "true"
+   },
+   "create a work item" : {
+      "resultProperty" : {
+         "show" : "true",
+         "format" : [
+            "json",
+            "propertySheet"
+         ],
+         "default" : "/myJob/newWorkItem"
+      },
+      "name" : "Create a Work Item",
+      "description" : "Creates a new work item.",
+      "stepName" : "create a work item",
+      "parameters" : [
+         {
+            "required" : "1",
+            "in" : "body",
+            "documentation" : "Short description of the work item.",
+            "label" : "Title",
+            "type" : "entry",
+            "property" : "title"
+         },
+         {
+            "htmlDocumentation" : "Name or ID of a <a href=\"https://www.visualstudio.com/en-us/docs/integrate/api/tfs/projects\" target=\"_blank\">team project</a> where the work item should be created.\n",
+            "required" : "1",
+            "in" : "path",
+            "documentation" : "Name or ID of a team project where the work item should be created.",
+            "label" : "Project name",
+            "type" : "entry",
+            "property" : "project"
+         },
+         {
+            "htmlDocumentation" : "Name of the <a target=\"_blank\" href=\"https://www.visualstudio.com/en-us/docs/integrate/api/wit/work-item-types\">work item type</a>.\n",
+            "required" : "1",
+            "in" : "path",
+            "documentation" : "Name of the work item type.",
+            "label" : "Type",
+            "type" : "entry",
+            "property" : "type"
+         },
+         {
+            "required" : "0",
+            "in" : "body",
+            "documentation" : "Priority for completing the work item, based on business goals",
+            "label" : "Priority",
+            "type" : "entry",
+            "property" : "priority"
+         },
+         {
+            "required" : "0",
+            "in" : "body",
+            "documentation" : "The person currently assigned to the work item.",
+            "label" : "Assign to",
+            "type" : "entry",
+            "property" : "assignTo"
+         },
+         {
+            "required" : "0",
+            "in" : "body",
+            "documentation" : "Description for the work item",
+            "label" : "Description",
+            "type" : "textarea",
+            "property" : "description"
+         },
+         {
+            "htmlDocumentation" : "Additional fields to be added, e.g. {\"Microsoft.VSTS.Common.Severity\": 2}.\nFor field names see\n<a href=\"https://www.visualstudio.com/en-us/docs/integrate/api/wit/work-item-types\" target=\"_blank\">\nhttps://www.visualstudio.com/en-us/docs/integrate/api/wit/work-item-types</a>\n",
+            "required" : "0",
+            "documentation" : "Additional fields to be added, e.g. {\"Microsoft.VSTS.Common.Severity\": 2}.\nFor field names see https://www.visualstudio.com/en-us/docs/integrate/api/wit/work-item-types\n",
+            "label" : "Additional fields",
+            "type" : "textarea",
+            "property" : "additionalFields"
+         },
+         {
+            "htmlDocumentation" : "Pre-set request body, e.g. [{\"op\": \"add\", \"path\": \"/relations/-\", \"value\": {\"rel\": \"System.LinkTypes.Hierarchy-Reverse\", \"url\": \"https://fabrikam-fiber-inc.visualstudio.com/DefaultCollection/_apis/wit/workItems/297\", \"attributes\": {\"comment\": \"decomposition of work\"} } } ]\n",
+            "required" : "0",
+            "documentation" : "Pre-set request body, e.g. [{\"op\": \"add\", \"path\": \"/relations/-\", \"value\": {\"rel\": \"System.LinkTypes.Hierarchy-Reverse\", \"url\": \"https://fabrikam-fiber-inc.visualstudio.com/DefaultCollection/_apis/wit/workItems/297\", \"attributes\": {\"comment\": \"decomposition of work\"} } } ]\n",
+            "label" : "Request body",
+            "type" : "textarea",
+            "property" : "requestBody"
+         }
+      ],
+      "fields" : [
+         "title",
+         "project",
+         "type",
+         "priority",
+         "assignTo",
+         "description",
+         "additionalFields",
+         "requestBody"
+      ],
+      "hasConfig" : "true",
+      "basicAuth" : "true",
+      "method" : "PATCH",
+      "documentationLinks" : [
+         "https://www.visualstudio.com/en-us/docs/integrate/api/wit/work-items#create-a-work-item"
+      ],
+      "contentType" : "application/json-patch+json",
+      "endpoint" : "#{{endpoint}}/#{{collection}}/#{project}/_apis/wit/workitems/#{type}",
+      "attachCredentials" : "true"
+   },
+   "updates a work item query" : {
+      "resultProperty" : {
+         "show" : "true",
+         "format" : [
+            "json",
+            "propertySheet"
+         ],
+         "default" : "/myJob/updateQueryResult"
+      },
+      "name" : "Update a Work Item Query",
+      "description" : "Updates a work item search query.",
+      "stepName" : "updates a work item query",
+      "parameters" : [
+         {
+            "required" : "1",
+            "in" : "path",
+            "documentation" : "Name or ID of a team project where the work item type is defined.",
+            "label" : "Project",
+            "type" : "entry",
+            "property" : "project"
+         },
+         {
+            "required" : "1",
+            "in" : "path",
+            "documentation" : "ID or Path to the folder you want to create the query in",
+            "label" : "Folder path",
+            "type" : "entry",
+            "property" : "folderPath"
+         },
+         {
+            "required" : "1",
+            "in" : "path",
+            "documentation" : "Name or ID the query to update.",
+            "label" : "Query ID",
+            "type" : "entry",
+            "property" : "query"
+         },
+         {
+            "htmlDocumentation" : "<a href=\"http://msdn.microsoft.com/library/bb130306.aspx\" target=\"_blank\">Query string</a>.\n",
+            "required" : "1",
+            "in" : "body",
+            "documentation" : "Query string.",
+            "type" : "textarea",
+            "label" : "Query string",
+            "property" : "wiql"
+         }
+      ],
+      "fields" : [
+         "project",
+         "folderPath",
+         "query",
+         "wiql"
+      ],
+      "basicAuth" : "true",
+      "hasConfig" : "true",
+      "method" : "PATCH",
+      "documentationLinks" : [
+         "https://www.visualstudio.com/en-us/docs/integrate/api/wit/queries#update-a-query"
+      ],
+      "contentType" : "application/json",
+      "endpoint" : "#{{endpoint}}/#{{collection}}/#{project}/_apis/wit/queries/#{folderPath}/#{query}",
+      "attachCredentials" : "true"
+   },
+   "get a build" : {
+      "resultProperty" : {
+         "show" : "true",
+         "format" : [
+            "json",
+            "propertySheet"
+         ],
+         "default" : "/myJob/build"
+      },
+      "name" : "Get a Build",
+      "description" : "Gets a specified build info",
+      "stepName" : "get a build",
+      "parameters" : [
+         {
+            "htmlDocumentation" : "ID or name of the <a href=\"https://www.visualstudio.com/en-us/docs/integrate/api/tfs/projects\">team project</a>.\n",
+            "required" : "1",
+            "in" : "path",
+            "documentation" : "ID or name of the team project.",
+            "type" : "entry",
+            "label" : "Project name",
+            "property" : "project"
+         },
+         {
+            "required" : "1",
+            "in" : "path",
+            "documentation" : "ID or number of the build.",
+            "type" : "entry",
+            "label" : "Build number or ID",
+            "property" : "buildId"
+         },
+         {
+            "checkedValue" : "1",
+            "value" : "1",
+            "uncheckedValue" : "0",
+            "documentation" : "If checked, the procedure will poll the build status until the build is finished.",
+            "type" : "checkbox",
+            "label" : "Wait for build",
+            "property" : "waitForBuild"
+         },
+         {
+            "value" : "300",
+            "documentation" : "Time (in seconds) to wait for build to be finished. Used if \"Wait for build\" flag is set.",
+            "type" : "entry",
+            "label" : "Timeout to wait",
+            "property" : "waitTimeout"
+         },
+         {
+            "checkedValue" : "1",
+            "value" : "1",
+            "uncheckedValue" : "0",
+            "documentation" : "If checked, the procedure status will mimic build status, e.g. if the build has failed, the procedure will fail too.",
+            "type" : "checkbox",
+            "label" : "Mimic build status",
+            "property" : "mimicProcedureStatus"
+         }
+      ],
+      "fields" : [
+         "project",
+         "buildId",
+         "waitForBuild",
+         "waitTimeout",
+         "mimicProcedureStatus"
+      ],
+      "hasConfig" : "true",
+      "basicAuth" : "true",
+      "method" : "GET",
+      "documentationLinks" : [
+         "https://www.visualstudio.com/en-us/docs/integrate/api/build/builds#get-a-build"
+      ],
+      "contentType" : "application/json",
+      "endpoint" : "#{{endpoint}}/#{{collection}}/#{project}/_apis/build/builds/#{buildId}",
+      "attachCredentials" : "true"
+   },
+   "delete a work item query" : {
+      "name" : "Delete a Work Item Query",
+      "description" : "Deletes the specified work item search query.",
+      "stepName" : "delete a work item query",
+      "parameters" : [
+         {
+            "required" : "1",
+            "in" : "path",
+            "documentation" : "Name or ID of a team project where the work item type is defined.",
+            "label" : "Project",
+            "type" : "entry",
+            "property" : "project"
+         },
+         {
+            "required" : "1",
+            "in" : "query",
+            "documentation" : "ID or path of the query or folder to delete.",
+            "type" : "entry",
+            "label" : "Query path",
+            "property" : "queryPath"
+         }
+      ],
+      "fields" : [
+         "project",
+         "queryPath"
+      ],
+      "hasConfig" : "true",
+      "basicAuth" : "true",
+      "method" : "DELETE",
+      "documentationLinks" : [
+         "https://www.visualstudio.com/en-us/docs/integrate/api/wit/queries#delete-a-query-or-folder"
+      ],
+      "contentType" : "application/json",
+      "endpoint" : "#{{endpoint}}/#{{collection}}/#{project}/_apis/wit/queries/#{queryPath}",
+      "attachCredentials" : "true"
+   },
+   "queue a build" : {
+      "resultProperty" : {
+         "show" : "true",
+         "format" : [
+            "json",
+            "propertySheet"
+         ],
+         "default" : "/myJob/queueBuild"
+      },
+      "name" : "Queue a build",
+      "description" : "Queues a new build.",
+      "stepName" : "queue a build",
+      "parameters" : [
+         {
+            "required" : "1",
+            "in" : "path",
+            "documentation" : "Team project ID or name.",
+            "label" : "Project",
+            "type" : "entry",
+            "property" : "project"
+         },
+         {
+            "required" : "1",
+            "in" : "body",
+            "documentation" : "The ID or the name of the definition. This is required.",
+            "type" : "entry",
+            "label" : "Definition ID or name",
+            "property" : "definition.id"
+         },
+         {
+            "noEmptyString" : "true",
+            "required" : "0",
+            "in" : "body",
+            "documentation" : "The ID or the name of the queue. This is optional. If not specified, the default queue for the definition will be used.",
+            "type" : "entry",
+            "label" : "Queue ID or name",
+            "property" : "queue.id"
+         },
+         {
+            "noEmptyString" : "true",
+            "required" : "0",
+            "in" : "body",
+            "documentation" : "The branch to build. This is optional. If not specified, the default branch for the definition will be used.",
+            "type" : "entry",
+            "label" : "Source branch",
+            "property" : "sourceBranch"
+         },
+         {
+            "required" : "0",
+            "documentation" : "If checked, the procedure will wait for build to finish.",
+            "type" : "checkbox",
+            "label" : "Wait for build",
+            "property" : "waitForBuild"
+         },
+         {
+            "required" : "0",
+            "value" : "300",
+            "documentation" : "Timeout in second to wait for build to finish. Will be used if \"Wait for build\" is checked.",
+            "type" : "entry",
+            "label" : "Wait timeout",
+            "property" : "waitTimeout"
+         },
+         {
+            "required" : "0",
+            "documentation" : "If checked, the procedure status will mimic build status. If build has failed, the procedure status will be \"Failed\", if build has succeeded, the status will be \"Success\" and \"Warning\" otherwize.",
+            "type" : "checkbox",
+            "label" : "Mimic build status",
+            "property" : "mimicProcedureStatus"
+         },
+         {
+            "htmlDocumentation" : "Parameters to pass to the build. This is optional. <br/>\nE.g., <pre>{\"system.debug\":\"true\",\"BuildConfiguration\":\"debug\",\"BuildPlatform\":\"x64\"}</pre>\n\nIf not specified, the default variables for the definition will be used.\n",
+            "required" : "0",
+            "in" : "body",
+            "type" : "textarea",
+            "label" : "Parameters",
+            "property" : "parameters"
+         }
+      ],
+      "fields" : [
+         "project",
+         "definition.id",
+         "queue.id",
+         "sourceBranch",
+         "waitForBuild",
+         "waitTimeout",
+         "mimicProcedureStatus",
+         "parameters"
+      ],
+      "basicAuth" : "true",
+      "hasConfig" : "true",
+      "method" : "POST",
+      "documentationLinks" : [
+         "https://www.visualstudio.com/en-us/docs/integrate/api/build/builds#queue-a-build"
+      ],
+      "contentType" : "application/json",
+      "endpoint" : "#{{endpoint}}/#{{collection}}/#{project}/_apis/build/builds",
+      "attachCredentials" : "true"
+   },
+   "update a work item" : {
+      "resultProperty" : {
+         "show" : "true",
+         "format" : [
+            "json",
+            "propertySheet"
+         ],
+         "default" : "/myJob/updatedWorkItem"
+      },
+      "name" : "Update a Work Item",
+      "description" : "Update a work item fields.",
+      "stepName" : "update a work item",
+      "parameters" : [
+         {
+            "required" : "1",
+            "in" : "path",
+            "documentation" : "ID of the work item to be updated.",
+            "label" : "Item ID",
+            "type" : "entry",
+            "property" : "itemId"
+         },
+         {
+            "required" : "0",
+            "in" : "body",
+            "documentation" : "Short description of the work item.",
+            "label" : "Title",
+            "type" : "entry",
+            "property" : "title"
+         },
+         {
+            "required" : "0",
+            "in" : "body",
+            "documentation" : "Priority for completing the work item, based on business goals",
+            "label" : "Priority",
+            "type" : "entry",
+            "property" : "priority"
+         },
+         {
+            "required" : "0",
+            "in" : "body",
+            "documentation" : "The person currently assigned to the work item.",
+            "label" : "Assign to",
+            "type" : "entry",
+            "property" : "assignTo"
+         },
+         {
+            "required" : "0",
+            "in" : "body",
+            "documentation" : "Description for the work item",
+            "label" : "Description",
+            "type" : "textarea",
+            "property" : "description"
+         },
+         {
+            "htmlDocumentation" : "Additional fields to be added, e.g. {\"Microsoft.VSTS.Common.Severity\": 2}. For field names see <a href=\"https://www.visualstudio.com/en-us/docs/integrate/api/wit/work-item-types\" target=\"_blank\"> https://www.visualstudio.com/en-us/docs/integrate/api/wit/work-item-types</a>\n",
+            "required" : "0",
+            "in" : "body",
+            "documentation" : "Additional fields to be added, e.g. {\"Microsoft.VSTS.Common.Severity\": 2}.\nFor field names see https://www.visualstudio.com/en-us/docs/integrate/api/wit/work-item-types\n",
+            "label" : "Additional fields",
+            "type" : "textarea",
+            "property" : "additionalFields"
+         },
+         {
+            "htmlDocumentation" : "Pre-set request body, e.g. [{\"op\": \"add\", \"path\": \"/relations/-\", \"value\": {\"rel\": \"System.LinkTypes.Hierarchy-Reverse\", \"url\": \"https://fabrikam-fiber-inc.visualstudio.com/DefaultCollection/_apis/wit/workItems/297\", \"attributes\": {\"comment\": \"decomposition of work\"} } } ]\n",
+            "required" : "0",
+            "in" : "body",
+            "documentation" : "Pre-set request body, e.g. [{\"op\": \"add\", \"path\": \"/relations/-\", \"value\": {\"rel\": \"System.LinkTypes.Hierarchy-Reverse\", \"url\": \"https://fabrikam-fiber-inc.visualstudio.com/DefaultCollection/_apis/wit/workItems/297\", \"attributes\": {\"comment\": \"decomposition of work\"} } } ]\n",
+            "label" : "Request body",
+            "type" : "textarea",
+            "property" : "requestBody"
+         }
+      ],
+      "fields" : [
+         "itemId",
+         "title",
+         "priority",
+         "assignTo",
+         "description",
+         "additionalFields",
+         "requestBody"
+      ],
+      "basicAuth" : "true",
+      "hasConfig" : "true",
+      "method" : "PATCH",
+      "documentationLinks" : [
+         "https://www.visualstudio.com/en-us/docs/integrate/api/wit/work-items#create-a-work-item"
+      ],
+      "contentType" : "application/json-patch+json",
+      "endpoint" : "#{{endpoint}}/#{{collection}}/_apis/wit/workitems/#{itemId}",
+      "attachCredentials" : "true"
+   },
+   "download an artifact from a git repository" : {
+      "resultProperty" : {
+         "show" : "true",
+         "format" : [
+            "json",
+            "propertySheet"
+         ],
+         "default" : "/myJob/downloadGitArtifact"
+      },
+      "name" : "Download an Artifact from a Git Repository",
+      "description" : "Downloads a file from a Git repository.",
+      "stepName" : "download an artifact from a git repository",
+      "parameters" : [
+         {
+            "htmlDocumentation" : "ID or name of the <a href=\"https://www.visualstudio.com/en-us/docs/integrate/api/tfs/projects\">team project</a>.\n",
+            "required" : "1",
+            "in" : "path",
+            "documentation" : "ID or name of the team project.",
+            "type" : "entry",
+            "label" : "Project name",
+            "property" : "project"
+         },
+         {
+            "htmlDocumentation" : "ID or name of the <a href=\"https://www.visualstudio.com/en-us/docs/integrate/api/git/repositories\">repository</a>.\n",
+            "required" : "1",
+            "in" : "path",
+            "documentation" : "ID or name of the repository.",
+            "type" : "entry",
+            "label" : "Repository name",
+            "property" : "repository"
+         },
+         {
+            "required" : "1",
+            "in" : "query",
+            "value" : "/",
+            "documentation" : "Path to the item in the repository. e.g. /WebSite/WebSite/Views/Home/_Home.cshtml",
+            "type" : "entry",
+            "label" : "File path",
+            "property" : "scopePath"
+         },
+         {
+            "documentation" : "Destination folder for file. If not specified, defaults to the current job workspace.",
+            "type" : "entry",
+            "label" : "Destination folder for file",
+            "property" : "destination"
+         },
+         {
+            "value" : "application/octet-stream",
+            "required" : "true",
+            "in" : "header",
+            "documentation" : "Specify the format for dowloading an artifact.",
+            "label" : "Download format",
+            "type" : "select",
+            "option" : [
+               {
+                  "value" : "application/octet-stream",
+                  "name" : "Binary"
+               },
+               {
+                  "value" : "application/zip",
+                  "name" : "Zip"
+               },
+               {
+                  "value" : "application/json",
+                  "name" : "JSON (metadata)"
+               }
+            ],
+            "property" : "Accept"
+         },
+         {
+            "checkedValue" : "true",
+            "value" : "false",
+            "uncheckedValue" : "false",
+            "in" : "query",
+            "documentation" : "Use true to include additional metadata about the item content, like the file type.\nUseful only when metadata is retrived.\n",
+            "label" : "Include content metadata",
+            "type" : "checkbox",
+            "property" : "includeContentMetadata"
+         },
+         {
+            "checkedValue" : "true",
+            "uncheckedValue" : "false",
+            "value" : "false",
+            "documentation" : "true gets the commit that contains the previous change to the retrieved version of the item.\nOf course, the root item (\"/\") has no commits associated with it, so there will not be a\ncommit returned with the root item.\nUseful only when metadata is retrived.\n",
+            "type" : "checkbox",
+            "label" : "Latest processed change",
+            "property" : "latestProcessedChange"
+         },
+         {
+            "value" : "branch",
+            "in" : "query",
+            "documentation" : "Use the versionType and version parameters together. For example, to get an item from \"mybranch\", use versionType=branch and version=mybranch.",
+            "option" : [
+               {
+                  "value" : "branch",
+                  "name" : "Branch"
+               },
+               {
+                  "value" : "commit",
+                  "name" : "Commit"
+               },
+               {
+                  "value" : "tag",
+                  "name" : "Tag"
+               }
+            ],
+            "type" : "select",
+            "label" : "Version type",
+            "property" : "versionType"
+         },
+         {
+            "htmlDocumentation" : "<table>\n<tr>\n<th>If versionType is...</th><th>Version is interpreted as...</th>\n</tr>\n<tr>\n  <td>Branch</td><td>The name of a branch.</td>\n</tr>\n<tr>\n  <td>Tag</td><td>The name of a tag.</td>\n</tr>\n<tr>\n  <td>Commit</td><td>The ID of a commit.</td>\n  </tr>\n</table>\n\nYou can also modify the version with the versionOptions parameter.\n",
+            "in" : "query",
+            "value" : "master",
+            "type" : "entry",
+            "label" : "Version",
+            "property" : "version"
+         },
+         {
+            "htmlDocumentation" : "<b>First parent</b>: The parent branch to the version specified by the versionType and version parameters.\n<br />\n<b>Previous change</b>: The last version of the item that was changed prior to the version specified by the versionType and version parameters.\n<br />\n<b>None</b>: No modification to the version specified by the versionType and version parameters.\n",
+            "value" : "None",
+            "in" : "query",
+            "option" : [
+               {
+                  "value" : "firstParent",
+                  "name" : "First parent"
+               },
+               {
+                  "value" : "previousChange",
+                  "name" : "Previous change"
+               },
+               {
+                  "value" : "None",
+                  "name" : "None"
+               }
+            ],
+            "type" : "select",
+            "label" : "Version options",
+            "property" : "versionOptions"
+         }
+      ],
+      "fields" : [
+         "project",
+         "repository",
+         "scopePath",
+         "destination",
+         "Accept",
+         "includeContentMetadata",
+         "latestProcessedChange",
+         "versionType",
+         "version",
+         "versionOptions"
+      ],
+      "hasConfig" : "true",
+      "basicAuth" : "true",
+      "method" : "GET",
+      "documentationLinks" : [
+         "https://www.visualstudio.com/en-us/docs/integrate/api/git/items#get-a-file"
+      ],
+      "contentType" : "application/json",
+      "endpoint" : "#{{endpoint}}/#{{collection}}/#{project}/_apis/git/repositories/#{repository}/items",
+      "attachCredentials" : "true"
+   },
+   "create a work item query" : {
+      "resultProperty" : {
+         "show" : "true",
+         "format" : [
+            "json",
+            "propertySheet"
+         ],
+         "default" : "/myJob/createQueryResult"
+      },
+      "name" : "Create a Work Item Query",
+      "description" : "Create a new work item search query.",
+      "stepName" : "create a work item query",
+      "parameters" : [
+         {
+            "required" : "1",
+            "in" : "path",
+            "documentation" : "Name or ID of a team project where the work item type is defined.",
+            "label" : "Project",
+            "type" : "entry",
+            "property" : "project"
+         },
+         {
+            "required" : "1",
+            "in" : "path",
+            "documentation" : "ID or Path to the folder you want to create the query in",
+            "label" : "Folder path",
+            "type" : "entry",
+            "property" : "folderPath"
+         },
+         {
+            "required" : "1",
+            "in" : "body",
+            "documentation" : "Name of the query.",
+            "label" : "Name",
+            "type" : "entry",
+            "property" : "name"
+         },
+         {
+            "htmlDocumentation" : "<a href=\"http://msdn.microsoft.com/library/bb130306.aspx\" target=\"_blank\">Query string</a>.\n",
+            "required" : "1",
+            "in" : "body",
+            "documentation" : "Query string.",
+            "type" : "textarea",
+            "label" : "Query string",
+            "property" : "wiql"
+         }
+      ],
+      "fields" : [
+         "project",
+         "folderPath",
+         "name",
+         "wiql"
+      ],
+      "basicAuth" : "true",
+      "hasConfig" : "true",
+      "method" : "POST",
+      "documentationLinks" : [
+         "https://www.visualstudio.com/en-us/docs/integrate/api/wit/queries#create-a-query"
+      ],
+      "contentType" : "application/json",
+      "endpoint" : "#{{endpoint}}/#{{collection}}/#{project}/_apis/wit/queries/#{folderPath}",
+      "attachCredentials" : "true"
+   },
+   "get default values" : {
+      "resultProperty" : {
+         "show" : "true",
+         "format" : [
+            "json",
+            "propertySheet"
+         ],
+         "default" : "/myJob/defaultValues"
+      },
+      "name" : "Get Default Values",
+      "description" : "Get the default values that will be filled in automatically when you create a new work item of a specific type.",
+      "stepName" : "get default values",
+      "parameters" : [
+         {
+            "required" : "1",
+            "in" : "path",
+            "documentation" : "Name or ID of a team project where the work item type is defined.",
+            "label" : "Project",
+            "type" : "entry",
+            "property" : "project"
+         },
+         {
+            "required" : "1",
+            "in" : "path",
+            "documentation" : "Name of the work item type.",
+            "label" : "Work item type name",
+            "type" : "entry",
+            "property" : "workItemTypeName"
+         }
+      ],
+      "fields" : [
+         "project",
+         "workItemTypeName"
+      ],
+      "basicAuth" : "true",
+      "hasConfig" : "true",
+      "method" : "GET",
+      "documentationLinks" : [
+         "https://www.visualstudio.com/en-us/docs/integrate/api/wit/work-items#get-default-values"
+      ],
+      "contentType" : "application/json",
+      "endpoint" : "#{{endpoint}}/#{{collection}}/#{project}/_apis/wit/workitems/#{workItemTypeName}",
+      "attachCredentials" : "true"
+   },
+   "run a work item query" : {
+      "resultProperty" : {
+         "show" : "true",
+         "format" : [
+            "json",
+            "propertySheet"
+         ],
+         "default" : "/myJob/runQueryResult"
+      },
+      "name" : "Run a Work Item Query",
+      "description" : "Runs a new work item search query.",
+      "stepName" : "run a work item query",
+      "parameters" : [
+         {
+            "required" : "1",
+            "in" : "path",
+            "documentation" : "Name or ID of a team project where the work item type is defined.",
+            "label" : "Project",
+            "type" : "entry",
+            "property" : "project"
+         },
+         {
+            "htmlDocumentation" : "<a href=\"http://msdn.microsoft.com/library/bb130306.aspx\" target=\"_blank\">Query string</a>.\n",
+            "required" : "1",
+            "in" : "body",
+            "documentation" : "Query string.",
+            "type" : "textarea",
+            "label" : "Query string",
+            "property" : "query"
+         },
+         {
+            "checkedValue" : "true",
+            "value" : "false",
+            "uncheckedValue" : "false",
+            "required" : "0",
+            "in" : "query",
+            "documentation" : "True if time precision is allowed in the date time comparisons.",
+            "label" : "Time precision",
+            "type" : "checkbox",
+            "property" : "timePrecision"
+         }
+      ],
+      "fields" : [
+         "project",
+         "query",
+         "timePrecision"
+      ],
+      "basicAuth" : "true",
+      "hasConfig" : "true",
+      "method" : "POST",
+      "documentationLinks" : [
+         "https://www.visualstudio.com/en-us/docs/integrate/api/wit/wiql#run-a-query"
+      ],
+      "contentType" : "application/json",
+      "endpoint" : "#{{endpoint}}/#{{collection}}/#{project}/_apis/wit/wiql",
+      "attachCredentials" : "true"
+   }
+}

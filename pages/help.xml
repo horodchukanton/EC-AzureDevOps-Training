@@ -1,0 +1,785 @@
+<!-- HELP GEN VERSION 1 -->
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta content="text/html; charset=us-ascii" http-equiv="content-type" />
+    <title><!-- TITLE BEGIN -->Electric Flow integration for TFS/VSTS<!-- TITLE END --></title>
+    <link rel="stylesheet" href="../../plugins/@PLUGIN_KEY@/pluginhelp.css" type="text/css" media="screen" />
+</head>
+<!-- REST PLUGIN WIZARD HELP -->
+<body>
+    <div class="help">
+        <h1>@PLUGIN_KEY@</h1>
+        <p>Plugin Version @PLUGIN_VERSION@</p>
+        <hr style="margin-left: -10px; margin-top: 10px; height: 1px; width: 100%; color: #5981BD;" noshade="noshade" />
+        <p>Revised on <!-- REVISION DATE BEGIN -->June 7, 2018<!-- REVISION DATE END --></p>
+        <p>
+            <!-- DESCRIPTION BEGIN -->This plugin allows to work with REST API of Visual Studio Team Services/Team Foundation Server.
+<!-- DESCRIPTION END -->
+            <br />
+            Plugin was tested on
+            <br />
+            TFS 2017 15.112.26307.0 (Update 1 RTM (released on 9 March, 2017))
+            <br />
+            TFS 2015 version 14.114.26403.0 (Tfs2015.Update4)
+        </p>
+        <h2>Links</h2>
+        <!-- LINKS BEGIN -->
+<a href="https://msdn.microsoft.com/en-us/library/ms181236(v=vs.90).aspx" target="_blank">https://msdn.microsoft.com/en-us/library/ms181236(v=vs.90).aspx</a><br /><a href="https://msdn.microsoft.com/en-us/library/hh409275(v=vs.120).aspx" target="_blank">https://msdn.microsoft.com/en-us/library/hh409275(v=vs.120).aspx</a><br /><a href="https://www.visualstudio.com/en-us/docs/work/backlogs/create-your-backlog" target="_blank">https://www.visualstudio.com/en-us/docs/work/backlogs/create-your-backlog</a>
+<!-- LINKS END -->
+        <h1>Contents</h1>
+        <ul>
+        <!-- TOC BEGIN --><li><a href="#GetaListofWorkItems">Get a List of Work Items</a></li>
+<li><a href="#CreateaWorkItem">Create a Work Item</a></li>
+<li><a href="#UpdateaWorkItem">Update a Work Item</a></li>
+<li><a href="#GetaWorkItem">Get a Work Item</a></li>
+<li><a href="#DeleteaWorkItem">Delete a Work Item</a></li>
+<li><a href="#GetDefaultValues">Get Default Values</a></li>
+<li><a href="#CreateaWorkItemQuery">Create a Work Item Query</a></li>
+<li><a href="#UpdateaWorkItemQuery">Update a Work Item Query</a></li>
+<li><a href="#RunaWorkItemQuery">Run a Work Item Query</a></li>
+<li><a href="#DeleteaWorkItemQuery">Delete a Work Item Query</a></li>
+<li><a href="#Queueabuild">Queue a build</a></li>
+<li><a href="#UploadaWorkItemAttachment">Upload a Work Item Attachment</a></li>
+<li><a href="#DownloadanArtifactfromaGitRepository">Download an Artifact from a Git Repository</a></li>
+<li><a href="#GetaBuild">Get a Build</a></li><!-- TOC END -->
+<li><a href="#QueryWorkItems">Query Work Items</a></li>
+<li><a href="#UseCases">Use Cases</a></li>
+</ul>
+        <h2>Configuration</h2>
+        <div id="CreateConfiguration">
+            <a name="CreateConfiguration" id="CreateConfigurationLink"></a>
+            <h2>Plugin Configurations</h2>
+            <p>
+                Plugin configurations are sets of parameters that apply
+                across some or all of the plugin procedures. They
+                reduce repetition of common values, create
+                predefined parameter sets for end users, and
+                securely store credentials where needed. Each configuration
+                is given a unique name that is entered in designated
+                parameters on procedures that use them.<br /><br />
+            </p>
+            <h3>Creating Plugin Configurations</h3>
+            <p>To create plugin configurations in ElectricFlow,
+            do these steps:</p>
+            <ol>
+                <li>Go to <b>Administration</b> &gt; <b>Plugins</b> to open the Plugin Manager.</li>
+                <li>Find the @PLUGIN_KEY@ row.</li>
+                <li>Click <b>Configure</b> to open the
+                @PLUGIN_KEY@ Configurations page.</li>
+                <li>Click <b>Create Configuration</b>.</li>
+                <li>To enable ElectricFlow server to communicate with the API,
+                enter the following information:<br /></li>
+                <!-- CONFIG PARAMS BEGIN -->
+    <table class="grid">
+        <thead>
+            <tr>
+                <th>Parameter</th>
+                <th>Description</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td class="required">
+                    Configuration:
+                </td>
+                <td>
+                    Unique name for the plugin configuration.
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    Description:
+                </td>
+                <td>
+                    Description for the plugin configuration.
+                </td>
+            </tr>
+            <tr>
+                <td class="required">
+                    VSTS/TFS endpoint:
+                </td>
+                <td>
+                    VS Team Services endpoint (https://myaccount.visualstudio.com) or TFS server (scheme://server:port/tfs).
+                </td>
+            </tr>
+            <tr>
+                <td class="required">
+                    Collection name for TFS:
+                </td>
+                <td>
+                    Collection name. If not defined, DefaultCollection will be used.
+                </td>
+            </tr>
+            <tr>
+                <td class="required">
+                    Credentials:
+                </td>
+                <td>
+                    Username and password to connect to VSTS/TFS.
+                </td>
+            </tr>
+            <tr>
+                <td class="required">
+                    API versions:
+                </td>
+                <td>
+                    Versions for different APIs, one version per line. API names can look like wit/workitems, wit/wiql, git/repositories - generally, part of the API endpoint after the _apis part. If no version is provided, version 1.0 will be used.
+                </td>
+            </tr>
+        </tbody>
+    </table><!-- CONFIG PARAMS END -->
+            </ol>
+            <p>The @PLUGIN_KEY@ Configurations page now shows the new configuration.</p>
+            <h3>Editing Plugin Configurations</h3>
+            <p>To edit plugin configurations in ElectricFlow,
+            do these steps:</p>
+            <ol>
+                <li>Go to <b>Administration</b> &gt; <b>Plugins</b> to open the Plugin Manager.</li>
+                <li>Find the @PLUGIN_KEY@ row.</li>
+                <li>Click <b>Configure</b> to open the Configurations page.</li>
+                <li>Find the configuration that you want to edit.</li>
+                <li>Click <b>Edit</b>.</li>
+                <li>Edit the parameters in the configuration.</li>
+                <li>Click <b>OK</b> to save the modified configuration.</li>
+            </ol>
+        </div>
+        <h1>Procedures</h1>
+        <!-- PROCEDURES BEGIN -->
+                <div id="GetaListofWorkItems">
+                <!-- GetaListofWorkItems METADATA BEGIN -->
+            <h3>Get a List of Work Items</h3>
+            <p>Retrieves a list of the work items.</p>
+        <p>This procedure is a wrapper around REST API. See <a href="https://www.visualstudio.com/en-us/docs/integrate/api/wit/work-items#get-a-list-of-work-items" target="_blank">Get a List of Work Items</a> for reference.</p><!-- GetaListofWorkItems METADATA END -->
+                <!-- GetaListofWorkItems BEGIN -->
+            <table class="grid">
+                <thead>
+                    <tr>
+                        <th>Parameter</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                <tr>
+                    <td class="required">IDs</td>
+                    <td>A comma-separated list of up to 200 IDs of the work items to get.</td>
+                </tr>
+                <tr>
+                    <td>Fields</td>
+                    <td>A comma-separated list of up to 100 fields to get with each work item. If not specified, all fields with values are returned. Calculated fields such as Attached File Count must be specifically queried for using this parameter.
+</td>
+                </tr>
+                <tr>
+                    <td>As of (date)</td>
+                    <td>Gets the work items as they existed at this time.</td>
+                </tr>
+                <tr>
+                    <td>Expand relationships</td>
+                    <td>Gets work item relationships (work item links, hyperlinks, file attachements, etc.).</td>
+                </tr>
+                <tr>
+                    <td>Strict mode</td>
+                    <td>Determines if the call will throw an error when encountering a work item (default behavior) that doesn't exist or simply omit it.
+</td>
+                </tr>
+                 </tbody>
+            </table>
+        <!-- GetaListofWorkItems END -->
+        <img src="../../plugins/@PLUGIN_NAME@/images/GetWorkItems.png" />
+            </div>
+                <div id="CreateaWorkItem">
+                <!-- CreateaWorkItem METADATA BEGIN -->
+            <h3>Create a Work Item</h3>
+            <p>Creates a new work item.</p>
+        <p>This procedure is a wrapper around REST API. See <a href="https://www.visualstudio.com/en-us/docs/integrate/api/wit/work-items#create-a-work-item" target="_blank">Create a Work Item</a> for reference.</p><!-- CreateaWorkItem METADATA END -->
+                <!-- CreateaWorkItem BEGIN -->
+            <table class="grid">
+                <thead>
+                    <tr>
+                        <th>Parameter</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                <tr>
+                    <td class="required">Title</td>
+                    <td>Short description of the work item.</td>
+                </tr>
+                <tr>
+                    <td class="required">Project name</td>
+                    <td>Name or ID of a <a href="https://www.visualstudio.com/en-us/docs/integrate/api/tfs/projects" target="_blank" >team project</a> where the work item should be created.
+</td>
+                </tr>
+                <tr>
+                    <td class="required">Type</td>
+                    <td>Name of the <a href="https://www.visualstudio.com/en-us/docs/integrate/api/wit/work-item-types" target="_blank" >work item type</a>.
+</td>
+                </tr>
+                <tr>
+                    <td>Priority</td>
+                    <td>Priority for completing the work item, based on business goals</td>
+                </tr>
+                <tr>
+                    <td>Assign to</td>
+                    <td>The person currently assigned to the work item.</td>
+                </tr>
+                <tr>
+                    <td>Description</td>
+                    <td>Description for the work item</td>
+                </tr>
+                <tr>
+                    <td>Additional fields</td>
+                    <td>Additional fields to be added, e.g. {"Microsoft.VSTS.Common.Severity": 2}.
+For field names see
+<a href="https://www.visualstudio.com/en-us/docs/integrate/api/wit/work-item-types" target="_blank" >
+https://www.visualstudio.com/en-us/docs/integrate/api/wit/work-item-types</a>
+</td>
+                </tr>
+                <tr>
+                    <td>Request body</td>
+                    <td>Pre-set request body, e.g. [{"op": "add", "path": "/relations/-", "value": {"rel": "System.LinkTypes.Hierarchy-Reverse", "url": "https://fabrikam-fiber-inc.visualstudio.com/DefaultCollection/_apis/wit/workItems/297", "attributes": {"comment": "decomposition of work"} } } ]
+</td>
+                </tr>
+                 </tbody>
+            </table>
+        <!-- CreateaWorkItem END -->
+        <img src="../../plugins/@PLUGIN_NAME@/images/CreateWorkItem.png" />
+            </div>
+                <div id="UpdateaWorkItem">
+                <!-- UpdateaWorkItem METADATA BEGIN -->
+            <h3>Update a Work Item</h3>
+            <p>Update a work item fields.</p>
+        <p>This procedure is a wrapper around REST API. See <a href="https://www.visualstudio.com/en-us/docs/integrate/api/wit/work-items#create-a-work-item" target="_blank">Update a Work Item</a> for reference.</p><!-- UpdateaWorkItem METADATA END -->
+                <!-- UpdateaWorkItem BEGIN -->
+            <table class="grid">
+                <thead>
+                    <tr>
+                        <th>Parameter</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                <tr>
+                    <td class="required">Item ID</td>
+                    <td>ID of the work item to be updated.</td>
+                </tr>
+                <tr>
+                    <td>Title</td>
+                    <td>Short description of the work item.</td>
+                </tr>
+                <tr>
+                    <td>Priority</td>
+                    <td>Priority for completing the work item, based on business goals</td>
+                </tr>
+                <tr>
+                    <td>Assign to</td>
+                    <td>The person currently assigned to the work item.</td>
+                </tr>
+                <tr>
+                    <td>Description</td>
+                    <td>Description for the work item</td>
+                </tr>
+                <tr>
+                    <td>Additional fields</td>
+                    <td>Additional fields to be added, e.g. {"Microsoft.VSTS.Common.Severity": 2}. For field names see <a href="https://www.visualstudio.com/en-us/docs/integrate/api/wit/work-item-types" target="_blank" > https://www.visualstudio.com/en-us/docs/integrate/api/wit/work-item-types</a>
+</td>
+                </tr>
+                <tr>
+                    <td>Request body</td>
+                    <td>Pre-set request body, e.g. [{"op": "add", "path": "/relations/-", "value": {"rel": "System.LinkTypes.Hierarchy-Reverse", "url": "https://fabrikam-fiber-inc.visualstudio.com/DefaultCollection/_apis/wit/workItems/297", "attributes": {"comment": "decomposition of work"} } } ]
+</td>
+                </tr>
+                 </tbody>
+            </table>
+        <!-- UpdateaWorkItem END -->
+        <img src="../../plugins/@PLUGIN_NAME@/images/UpdateWorkItem.png" />
+            </div>
+                <div id="GetaWorkItem">
+                <!-- GetaWorkItem METADATA BEGIN -->
+            <h3>Get a Work Item</h3>
+            <p>Returns the content of the work item</p>
+        <p>This procedure is a wrapper around REST API. See <a href="https://www.visualstudio.com/en-us/docs/integrate/api/wit/work-items#get-a-work-item" target="_blank">Get a Work Item</a> for reference.</p><!-- GetaWorkItem METADATA END -->
+                <!-- GetaWorkItem BEGIN -->
+            <table class="grid">
+                <thead>
+                    <tr>
+                        <th>Parameter</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                <tr>
+                    <td class="required">ID</td>
+                    <td>ID of the work item to retrieve.</td>
+                </tr>
+                <tr>
+                    <td>Expand</td>
+                    <td>Gets work item relationships (work item links, hyperlinks and file attachements).</td>
+                </tr>
+                 </tbody>
+            </table>
+        <!-- GetaWorkItem END -->
+        <img src="../../plugins/@PLUGIN_NAME@/images/GetWorkItem.png" />
+            </div>
+                <div id="DeleteaWorkItem">
+                <!-- DeleteaWorkItem METADATA BEGIN -->
+            <h3>Delete a Work Item</h3>
+            <p>Deletes the specified work item.</p>
+        <p>This procedure is a wrapper around REST API. See <a href="https://www.visualstudio.com/en-us/docs/integrate/api/wit/work-items#delete-a-work-item" target="_blank">Delete a Work Item</a> for reference.</p><!-- DeleteaWorkItem METADATA END -->
+                <!-- DeleteaWorkItem BEGIN -->
+            <table class="grid">
+                <thead>
+                    <tr>
+                        <th>Parameter</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                <tr>
+                    <td class="required">ID</td>
+                    <td>ID of the work item to delete.</td>
+                </tr>
+                <tr>
+                    <td>Strict mode</td>
+                    <td>If checked, the procedure will fail in case the item does not exist.</td>
+                </tr>
+                 </tbody>
+            </table>
+        <!-- DeleteaWorkItem END -->
+        <img src="../../plugins/@PLUGIN_NAME@/images/DeleteWorkItem.png" />
+            </div>
+                <div id="GetDefaultValues">
+                <!-- GetDefaultValues METADATA BEGIN -->
+            <h3>Get Default Values</h3>
+            <p>Get the default values that will be filled in automatically when you create a new work item of a specific type.</p>
+        <p>This procedure is a wrapper around REST API. See <a href="https://www.visualstudio.com/en-us/docs/integrate/api/wit/work-items#get-default-values" target="_blank">Get Default Values</a> for reference.</p><!-- GetDefaultValues METADATA END -->
+                <!-- GetDefaultValues BEGIN -->
+            <table class="grid">
+                <thead>
+                    <tr>
+                        <th>Parameter</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                <tr>
+                    <td class="required">Project</td>
+                    <td>Name or ID of a team project where the work item type is defined.</td>
+                </tr>
+                <tr>
+                    <td class="required">Work item type name</td>
+                    <td>Name of the work item type.</td>
+                </tr>
+                 </tbody>
+            </table>
+        <!-- GetDefaultValues END -->
+        <img src="../../plugins/@PLUGIN_NAME@/images/GetDefaultValues.png" />
+            </div>
+                <div id="QueryWorkItems">
+                <!-- QueryWorkItems METADATA BEGIN -->
+                <h3>Query work items</h3>
+                <p>Queries the work items and saves them under the specified property.</p>
+                <!-- QueryWorkItems METADATA END -->
+            <table class="grid">
+                <thead>
+                    <tr>
+                        <th>Parameter</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                <tr>
+                    <td class="required">Project</td>
+                    <td>Name or ID of a team project where the work item type is defined.</td>
+                </tr>
+                <tr>
+                    <td class="required">Query path</td>
+                    <td>ID or path of the query or folder to delete.</td>
+                </tr>
+                 </tbody>
+            </table>
+            <img src="../../plugins/@PLUGIN_NAME@/images/QueryWorkItems.png" />
+            </div>
+                <div id="UpdateaWorkItemQuery">
+                <!-- UpdateaWorkItemQuery METADATA BEGIN -->
+            <h3>Update a Work Item Query</h3>
+            <p>Updates a work item search query.</p>
+        <p>This procedure is a wrapper around REST API. See <a href="https://www.visualstudio.com/en-us/docs/integrate/api/wit/queries#update-a-query" target="_blank">Update a Work Item Query</a> for reference.</p><!-- UpdateaWorkItemQuery METADATA END -->
+                <!-- UpdateaWorkItemQuery BEGIN -->
+            <table class="grid">
+                <thead>
+                    <tr>
+                        <th>Parameter</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                <tr>
+                    <td class="required">Project</td>
+                    <td>Name or ID of a team project where the work item type is defined.</td>
+                </tr>
+                <tr>
+                    <td class="required">Folder path</td>
+                    <td>ID or Path to the folder you want to create the query in</td>
+                </tr>
+                <tr>
+                    <td class="required">Query ID</td>
+                    <td>Name or ID the query to update.</td>
+                </tr>
+                <tr>
+                    <td class="required">Query string</td>
+                    <td><a href="http://msdn.microsoft.com/library/bb130306.aspx" target="_blank" >Query string</a>.
+</td>
+                </tr>
+                 </tbody>
+            </table>
+        <!-- UpdateaWorkItemQuery END -->
+            </div>
+                <div id="RunaWorkItemQuery">
+                <!-- RunaWorkItemQuery METADATA BEGIN -->
+            <h3>Run a Work Item Query</h3>
+            <p>Runs a new work item search query.</p>
+        <p>This procedure is a wrapper around REST API. See <a href="https://www.visualstudio.com/en-us/docs/integrate/api/wit/wiql#run-a-query" target="_blank">Run a Work Item Query</a> for reference.</p><!-- RunaWorkItemQuery METADATA END -->
+                <!-- RunaWorkItemQuery BEGIN -->
+            <table class="grid">
+                <thead>
+                    <tr>
+                        <th>Parameter</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                <tr>
+                    <td class="required">Project</td>
+                    <td>Name or ID of a team project where the work item type is defined.</td>
+                </tr>
+                <tr>
+                    <td class="required">Query string</td>
+                    <td><a href="http://msdn.microsoft.com/library/bb130306.aspx" target="_blank" >Query string</a>.
+</td>
+                </tr>
+                <tr>
+                    <td>Time precision</td>
+                    <td>True if time precision is allowed in the date time comparisons.</td>
+                </tr>
+                 </tbody>
+            </table>
+        <!-- RunaWorkItemQuery END -->
+            </div>
+                <div id="DeleteaWorkItemQuery">
+                <!-- DeleteaWorkItemQuery METADATA BEGIN -->
+            <h3>Delete a Work Item Query</h3>
+            <p>Deletes the specified work item search query.</p>
+        <p>This procedure is a wrapper around REST API. See <a href="https://www.visualstudio.com/en-us/docs/integrate/api/wit/queries#delete-a-query-or-folder" target="_blank">Delete a Work Item Query</a> for reference.</p><!-- DeleteaWorkItemQuery METADATA END -->
+                <!-- DeleteaWorkItemQuery BEGIN -->
+            <table class="grid">
+                <thead>
+                    <tr>
+                        <th>Parameter</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                <tr>
+                    <td class="required">Project</td>
+                    <td>Name or ID of a team project where the work item type is defined.</td>
+                </tr>
+                <tr>
+                    <td class="required">Query path</td>
+                    <td>ID or path of the query or folder to delete.</td>
+                </tr>
+                 </tbody>
+            </table>
+        <!-- DeleteaWorkItemQuery END -->
+            </div>
+                <div id="CreateaWorkItemQuery">
+                <!-- CreateaWorkItemQuery METADATA BEGIN -->
+            <h3>Create a Work Item Query</h3>
+            <p>Create a new work item search query.</p>
+        <p>This procedure is a wrapper around REST API. See <a href="https://www.visualstudio.com/en-us/docs/integrate/api/wit/queries#create-a-query" target="_blank">Create a Work Item Query</a> for reference.</p><!-- CreateaWorkItemQuery METADATA END -->
+                <!-- CreateaWorkItemQuery BEGIN -->
+            <table class="grid">
+                <thead>
+                    <tr>
+                        <th>Parameter</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                <tr>
+                    <td class="required">Project</td>
+                    <td>Name or ID of a team project where the work item type is defined.</td>
+                </tr>
+                <tr>
+                    <td class="required">Folder path</td>
+                    <td>ID or Path to the folder you want to create the query in</td>
+                </tr>
+                <tr>
+                    <td class="required">Name</td>
+                    <td>Name of the query.</td>
+                </tr>
+                <tr>
+                    <td class="required">Query string</td>
+                    <td><a href="http://msdn.microsoft.com/library/bb130306.aspx" target="_blank" >Query string</a>.
+</td>
+                </tr>
+                 </tbody>
+            </table>
+        <!-- CreateaWorkItemQuery END -->
+            </div>
+                <div id="Queueabuild">
+                <!-- Queueabuild METADATA BEGIN -->
+            <h3>Queue a build</h3>
+            <p>Queues a new build.</p>
+        <p>This procedure is a wrapper around REST API. See <a href="https://www.visualstudio.com/en-us/docs/integrate/api/build/builds#queue-a-build" target="_blank">Queue a build</a> for reference.</p><!-- Queueabuild METADATA END -->
+                <!-- Queueabuild BEGIN -->
+            <table class="grid">
+                <thead>
+                    <tr>
+                        <th>Parameter</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                <tr>
+                    <td class="required">Project</td>
+                    <td>Team project ID or name.</td>
+                </tr>
+                <tr>
+                    <td class="required">Definition ID or name</td>
+                    <td>The ID or the name of the definition. This is required.</td>
+                </tr>
+                <tr>
+                    <td>Queue ID or name</td>
+                    <td>The ID or the name of the queue. This is optional. If not specified, the default queue for the definition will be used.</td>
+                </tr>
+                <tr>
+                    <td>Source branch</td>
+                    <td>The branch to build. This is optional. If not specified, the default branch for the definition will be used.</td>
+                </tr>
+                <tr>
+                    <td>Wait for build</td>
+                    <td>If checked, the procedure will wait for build to finish.</td>
+                </tr>
+                <tr>
+                    <td>Wait timeout</td>
+                    <td>Timeout in second to wait for build to finish. Will be used if "Wait for build" is checked.</td>
+                </tr>
+                <tr>
+                    <td>Mimic build status</td>
+                    <td>If checked, the procedure status will mimic build status. If build has failed, the procedure status will be "Failed", if build has succeeded, the status will be "Success" and "Warning" otherwize.</td>
+                </tr>
+                <tr>
+                    <td>Parameters</td>
+                    <td>Parameters to pass to the build. This is optional. <br/>
+E.g., <pre>{"system.debug":"true","BuildConfiguration":"debug","BuildPlatform":"x64"}</pre>
+If not specified, the default variables for the definition will be used.
+</td>
+                </tr>
+                 </tbody>
+            </table>
+        <!-- Queueabuild END -->
+            </div>
+                <div id="UploadaWorkItemAttachment">
+                <!-- UploadaWorkItemAttachment METADATA BEGIN -->
+            <h3>Upload a Work Item Attachment</h3>
+            <p>To attach a file to a work item, upload the attachment to the attachment store, then attach it to the work item.</p>
+        <p>This procedure is a wrapper around REST API. See <a href="https://www.visualstudio.com/en-us/docs/integrate/api/wit/attachments#upload-an-attachment" target="_blank">Upload a Work Item Attachment</a> for reference.</p><!-- UploadaWorkItemAttachment METADATA END -->
+                <!-- UploadaWorkItemAttachment BEGIN -->
+            <table class="grid">
+                <thead>
+                    <tr>
+                        <th>Parameter</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                <tr>
+                    <td class="required">Attachment filename</td>
+                    <td>The name of the file in the attachment store (typically the same as the name of the source of the attachment).</td>
+                </tr>
+                <tr>
+                    <td>Upload type</td>
+                    <td>Default is simple. Use chunked upload type for uploading large files (>130 MB).</td>
+                </tr>
+                <tr>
+                    <td>File path</td>
+                    <td>Path to the file to be uploaded. Either this field or file content field must be specified.</td>
+                </tr>
+                <tr>
+                    <td>File content</td>
+                    <td>File content to be uploaded. Either this field or file path field must be specified.</td>
+                </tr>
+                 </tbody>
+            </table>
+        <!-- UploadaWorkItemAttachment END -->
+            </div>
+                <div id="DownloadanArtifactfromaGitRepository">
+                <!-- DownloadanArtifactfromaGitRepository METADATA BEGIN -->
+            <h3>Download an Artifact from a Git Repository</h3>
+            <p>Downloads a file from a Git repository.</p>
+        <p>This procedure is a wrapper around REST API. See <a href="https://www.visualstudio.com/en-us/docs/integrate/api/git/items#get-a-file" target="_blank">Download an Artifact from a Git Repository</a> for reference.</p><!-- DownloadanArtifactfromaGitRepository METADATA END -->
+                <!-- DownloadanArtifactfromaGitRepository BEGIN -->
+            <table class="grid">
+                <thead>
+                    <tr>
+                        <th>Parameter</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                <tr>
+                    <td class="required">Project name</td>
+                    <td>ID or name of the <a href="https://www.visualstudio.com/en-us/docs/integrate/api/tfs/projects" target="_blank" >team project</a>.
+</td>
+                </tr>
+                <tr>
+                    <td class="required">Repository name</td>
+                    <td>ID or name of the <a href="https://www.visualstudio.com/en-us/docs/integrate/api/git/repositories" target="_blank" >repository</a>.
+</td>
+                </tr>
+                <tr>
+                    <td class="required">File path</td>
+                    <td>Path to the item in the repository. e.g. /WebSite/WebSite/Views/Home/_Home.cshtml</td>
+                </tr>
+                <tr>
+                    <td>Destination folder for file</td>
+                    <td>Destination folder for file. If not specified, defaults to the current job workspace.</td>
+                </tr>
+                <tr>
+                    <td class="required">Download format</td>
+                    <td>Specify the format for dowloading an artifact.</td>
+                </tr>
+                <tr>
+                    <td>Include content metadata</td>
+                    <td>Use true to include additional metadata about the item content, like the file type.
+Useful only when metadata is retrived.
+</td>
+                </tr>
+                <tr>
+                    <td>Latest processed change</td>
+                    <td>true gets the commit that contains the previous change to the retrieved version of the item.
+Of course, the root item ("/") has no commits associated with it, so there will not be a
+commit returned with the root item.
+Useful only when metadata is retrived.
+</td>
+                </tr>
+                <tr>
+                    <td>Version type</td>
+                    <td>Use the versionType and version parameters together. For example, to get an item from "mybranch", use versionType=branch and version=mybranch.</td>
+                </tr>
+                <tr>
+                    <td>Version</td>
+                    <td><table>
+<tr>
+<th>If versionType is...</th><th>Version is interpreted as...</th>
+</tr>
+<tr>
+  <td>Branch</td><td>The name of a branch.</td>
+</tr>
+<tr>
+  <td>Tag</td><td>The name of a tag.</td>
+</tr>
+<tr>
+  <td>Commit</td><td>The ID of a commit.</td>
+  </tr>
+</table>
+You can also modify the version with the versionOptions parameter.
+</td>
+                </tr>
+                <tr>
+                    <td>Version options</td>
+                    <td><b>First parent</b>: The parent branch to the version specified by the versionType and version parameters.
+<br />
+<b>Previous change</b>: The last version of the item that was changed prior to the version specified by the versionType and version parameters.
+<br />
+<b>None</b>: No modification to the version specified by the versionType and version parameters.
+</td>
+                </tr>
+                 </tbody>
+            </table>
+        <!-- DownloadanArtifactfromaGitRepository END -->
+            </div>
+            <div id="GetaBuild">
+                <a name="GetaBuild" id="GetaBuild" />
+                <!-- GetaBuild METADATA BEGIN -->
+            <h3>Get a Build</h3>
+            <p>Gets a specified build info</p>
+        <p>This procedure is a wrapper around REST API. See <a href="https://www.visualstudio.com/en-us/docs/integrate/api/build/builds#get-a-build" target="_blank">Get a Build</a> for reference.</p><!-- GetaBuild METADATA END -->
+                <!-- GetaBuild BEGIN -->
+            <table class="grid">
+                <thead>
+                    <tr>
+                        <th>Parameter</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                <tr>
+                    <td class="required">Project name</td>
+                    <td>ID or name of the <a href="https://www.visualstudio.com/en-us/docs/integrate/api/tfs/projects" target="_blank" >team project</a>.
+</td>
+                </tr>
+                <tr>
+                    <td class="required">Build number or ID</td>
+                    <td>ID or number of the build.</td>
+                </tr>
+                <tr>
+                    <td>Wait for build</td>
+                    <td>If checked, the procedure will poll the build status until the build is finished.</td>
+                </tr>
+                <tr>
+                    <td>Timeout to wait</td>
+                    <td>Time (in seconds) to wait for build to be finished. Used if "Wait for build" flag is set.</td>
+                </tr>
+                <tr>
+                    <td>Mimic build status</td>
+                    <td>If checked, the procedure status will mimic build status, e.g. if the build has failed, the procedure will fail too.</td>
+                </tr>
+                 </tbody>
+            </table>
+        <!-- GetaBuild END -->
+            </div>
+            <!-- PROCEDURES END -->
+            <div id="UseCases">
+                <h1>Use cases</h1>
+                <h2>Create a work item after test run</h2>
+                <p>
+                    We have a simple pipeline: first task runs some test suite, and the second creates a work item if tests failed.
+                </p>
+                <p>
+                    Pipeline structure can look like:
+                    <br/>
+                    <img src="../../plugins/@PLUGIN_NAME@/images/UseCases/PipelineStructure.png" />
+                </p>
+                <p>
+                    Task condition for "Create work item" task:
+                    <br/>
+                    <img src="../../plugins/@PLUGIN_NAME@/images/UseCases/Conditions.png" />
+                </p>
+                <p>
+                    Task definition for "Create work item" task:<br/>
+                    <img src="../../plugins/@PLUGIN_NAME@/images/UseCases/TaskDefinition.png" />
+                </p>
+                <p>
+                    Result:
+                    <br/>
+                    <img src="../../plugins/@PLUGIN_NAME@/images/UseCases/PipelineRun.png" />
+                </p>
+                <p>
+                    The work item has been created:
+                    <br/>
+                    <img src="../../plugins/@PLUGIN_NAME@/images/UseCases/TFSItem.png" />
+                </p>
+            </div>
+        </div>
+        <!-- RELEASE NOTES BEGIN -->
+        <div>
+            <h2>@PLUGIN_KEY@ 1.0.0</h2>
+            <ul>
+                <li>Initial release.</li>
+            </ul>
+        </div>        
+        <!-- RELEASE NOTES END -->
+    </body>
+</html>

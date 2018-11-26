@@ -1,0 +1,70 @@
+<!--
+
+     Copyright 2016 Electric Cloud, Inc.
+
+     Licensed under the Apache License, Version 2.0 (the "License");
+     you may not use this file except in compliance with the License.
+     You may obtain a copy of the License at
+
+         http://www.apache.org/licenses/LICENSE-2.0
+
+     Unless required by applicable law or agreed to in writing, software
+     distributed under the License is distributed on an "AS IS" BASIS,
+     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+     See the License for the specific language governing permissions and
+     limitations under the License.
+
+-->
+<editor>
+    <formElement>
+        <type>entry</type>
+        <label>Configuration:</label>
+        <property>config</property>
+        <required>1</required>
+        <documentation>Unique name for the plugin configuration.</documentation>
+    </formElement>
+    <formElement>
+        <type>entry</type>
+        <label>Description:</label>
+        <property>desc</property>
+        <required>0</required>
+        <documentation>Description for the plugin configuration.</documentation>
+    </formElement>
+    <formElement>
+        <type>entry</type>
+        <label>VSTS/TFS endpoint:</label>
+        <property>endpoint</property>
+        <required>1</required>
+        <documentation>VS Team Services endpoint (https://myaccount.visualstudio.com) or TFS server (scheme://server:port/tfs).</documentation>
+    </formElement>
+    <formElement>
+        <type>entry</type>
+        <label>Collection name for TFS:</label>
+        <property>collection</property>
+        <required>1</required>
+        <value>DefaultCollection</value>
+        <documentation>Collection name. If not defined, DefaultCollection will be used.</documentation>
+    </formElement>
+    <formElement>
+        <type>credential</type>
+        <label>Credentials:</label>
+        <property>credential</property>
+        <required>1</required>
+        <attachedAsParameterToStep>createAndAttachCredential</attachedAsParameterToStep>
+        <documentation>Username and password to connect to VSTS/TFS.</documentation>
+    </formElement>
+    <formElement>
+        <type>textarea</type>
+        <label>API versions:</label>
+        <property>apiVersions</property>
+        <required>1</required>
+        <value>
+wit/workitems=1.0
+wit/wiql=1.0
+git/repositories=1.0
+wit/queries=2.2
+build/builds=2.0
+</value>
+        <htmlDocumentation>Versions for different APIs, one version per line. API names can look like wit/workitems, wit/wiql, git/repositories - generally, part of the API endpoint after the _apis part. If no version is provided, version 1.0 will be used.</htmlDocumentation>
+    </formElement>
+</editor>
