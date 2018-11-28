@@ -1,6 +1,6 @@
-# EC-TFS
+# EC-AzureDevOps
 
-This plugin allows to work with REST API of Visual Studio Team Services/Team Foundation Server.
+This plugin allows to work with REST API of Azure DevOps Server/Services (former Visual Studio Team Services/Team Foundation Server).
 
 
 # Procedures
@@ -64,17 +64,17 @@ Gets a specified build info
 
 
 # Building the plugin
-1. Download or clone the EC-TFS repository.
+1. Download or clone the EC-AzureDevOps repository.
 
     ```
-    git clone https://github.com/electric-cloud/EC-TFS.git
+    git clone https://github.com/electric-cloud/EC-AzureDevOps.git
     ```
 
 5. Zip up the files to create the plugin zip file.
 
     ```
-     cd EC-TFS
-     zip -r EC-TFS.zip ./*
+     cd EC-AzureDevOps
+     zip -r EC-AzureDevOps.zip ./*
     ```
 
 6. Import the plugin zip file into your ElectricFlow server and promote it.

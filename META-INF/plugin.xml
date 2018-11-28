@@ -1,12 +1,12 @@
 <plugin>
-  <key>EC-TFS</key>
-  <label>EC-TFS</label>
+  <key>EC-AzureDevOps</key>
+  <label>EC-AzureDevOps</label>
   <version>1.0.0</version>
   <author>Electric Cloud</author>
   <authorUrl>http://www.electric-cloud.com/support</authorUrl>
   <category>Application Lifecycle</category>
   <commander-version min="6.0" />
-  <description>Integration for TFS/VSTS</description>
+  <description>Integration for Azure DevOps Server/Services (former TFS/VSTS)</description>
   <configure>ec_config</configure>
   <pluginWizardBased>false</pluginWizardBased>
   <depends min="1.4.1">EC-PluginManager</depends>
