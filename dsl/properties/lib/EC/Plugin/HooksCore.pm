@@ -110,6 +110,7 @@ sub _run {
     }
 }
 
+#@returns EC::Plugin::Core
 sub plugin {
     return shift->{plugin};
 }

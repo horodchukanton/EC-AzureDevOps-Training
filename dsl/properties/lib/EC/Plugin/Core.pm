@@ -1,3 +1,4 @@
+# Version: Mon Nov 19 15:21:21 2018
 #
 #  Copyright 2015 Electric Cloud, Inc.
 #
@@ -36,6 +37,9 @@ use IPC::Open3;
 use IO::Select;
 use Symbol qw/gensym/;
 use File::Spec;
+use Data::Dumper;
+
+use EC::Bootstrap;
 
 my $DRYRUN = 0;
 
@@ -76,7 +80,7 @@ sub new {
         $self->{plugin_key} = $params{plugin_key}
     }
     defined $self->debug_level() or do {
-        $self->debug_level(1);
+        $self->debug_level(2);
     };
 
     $self->after_init_hook(%params);
@@ -113,6 +117,7 @@ All next times it just returns instance without initialization
 
 =cut
 
+#@returns ElectricCommander
 sub ec {
     my ($self) = @_;
 
@@ -125,26 +130,6 @@ sub ec {
 }
 
 
-=item B<get_plugin_dir>
-
-Returns Plugin Directory.
-
-=cut
-
-sub get_plugin_dir {
-    my $self = shift;
-
-    unless ($self->{plugin_dir}) {
-        my $commanderPluginDir = $self->ec->getProperty('/server/settings/pluginsDirectory')->findvalue('//value');
-        unless ( $commanderPluginDir && -d $commanderPluginDir ) {
-            die "Cannot find commander plugin dir, please ensure that the option server/settings/pluginsDirectory is set up correctly";
-        }
-
-        $self->{plugin_dir} = File::Spec->catfile($commanderPluginDir, $self->{plugin_name});
-    }
-
-    return $self->{plugin_dir};
-}
 
 =item B<check_executable>
 
@@ -207,50 +192,36 @@ sub set_property {
     return 1;
 }
 
+sub property_exists {
+    my ($self, $prop) = @_;
 
-=item B<move_property>
+    my $no_error_transaction = sub {
+        my ($code) = @_;
+        $self->ec->abortOnError(0);
+        eval {
+            $code->();
+        };
+        my $err = $@;
+        $self->ec->abortOnError(1);
+        if ($err) {
+            die $err;
+        }
+    };
 
-Moves property to a new path
-
-    $core->move_property('/old/sheet/path/property', '/new/sheet/path/property');
-
-=cut
-
-
-sub move_property {
-    my ($self, $key_old, $key_new) = @_;
-
-    my $value = $self->ec()->getProperty($key_old)->findvalue('//value')->string_value;
-    $self->ec()->deleteProperty($key_old);
-    $self->ec()->setProperty($key_new, $value);
-
-    return 1;
-}
-
-
-=item B<move_property_sheet>
-
-Moves propertysheet to a new path
-
-    $core->move_property_sheet('/old/sheet/path', '/new/sheet/path');
-
-=cut
-
-sub move_property_sheet {
-    my ($self, $root_old, $root_new) = @_;
-
-    my $property_sheet_id = $self->ec->getProperty($root_old)->findvalue('//propertySheetId')->string_value;
-
-    my $properties = $self->ec->getProperties({propertySheetId => $property_sheet_id});
-
-    for my $node ( $properties->findnodes('//property')) {
-        my $name = $node->findvalue('propertyName')->string_value;
-        $self->move_property(join('/', $root_old, $name), join('/', $root_new, $name));
-    }
-
-    $self->ec()->deleteProperty($root_old);
-
-    return 1;
+    my $exists = 1;
+    my $error_message;
+    $no_error_transaction->(
+        sub {
+            my $xpath = $self->ec->getProperty($prop);
+            my $code = $xpath->findvalue('//code')->string_value;
+            $self->logger->info(qq{Trying to get "$prop": $code});
+            if ($code) {
+                $exists = 0;
+                $error_message = qq{Cannot get property "$prop": $code};
+            }
+        }
+    );
+    return ($exists, $error_message);
 }
 
 =item B<success>
@@ -315,6 +286,44 @@ sub _set_outcome {
     $self->ec()->setProperty('/myJobStep/outcome', $status);
 }
 
+=item B<set_output_parameter>
+
+Sets output parameter safely.
+
+    $plugin->set_output_parameter('aborted', 'true');
+
+=cut
+
+sub set_output_parameter {
+    my ($self, $name, $value, $attach_params) = @_;
+
+    if (!defined $value){
+        $self->logger->debug("Will not save undefined value for outputParameter '$name'");
+        return;
+    };
+
+    # Will fall if parameter does not exists
+    eval {
+        if ($value && (ref $value eq 'HASH' || ref $value eq 'ARRAY')){
+            require JSON unless $JSON::VERSION;
+            $value = JSON::encode_json($value);
+        }
+
+        # 0e0 can be returned by EC::Bootstrap function and means parameter was not really set
+        my $is_set = $self->ec->setOutputParameter($name, $value, $attach_params);
+        if ($is_set && !$is_set eq '0E0'){
+            $self->logger->info("Output parameter '$name' has been set to '$value'"
+                . (defined $attach_params ? "and attached to " . Dumper($attach_params) : ''));
+        }
+    };
+    if ($@){
+        $self->logger->debug("Output parameter '$name' can't be saved : $@");
+        return 0;
+    }
+
+    return 1;
+}
+
 
 =item B<bail_out>
 
@@ -333,10 +342,11 @@ sub bail_out {
     $msg .= "\n";
 
     $self->error();
-    print "BAILED_OUT:\n$msg\n";
-    $self->set_property(summary => $msg);
-    exit 1;
+    $self->logger->info("BAILED_OUT:\n$msg\n");
+
+    return $self->finish_procedure_with_error($msg);
 }
+
 
 =item B<finish_procedure>
 
@@ -357,6 +367,31 @@ sub finish_procedure {
         $self->logger->message($msg);
     }
     exit 0;
+}
+
+=item B<finish_procedure>
+
+Finishing execution with error and exit code. Main goal is to set PipelineStage error summary too.
+
+    $plugin->finish_procedure_with_error("Something bad happened and we cannot proceed");
+
+=cut
+sub finish_procedure_with_error {
+    my ($self, @msg) = @_;
+
+    my $msg = join(' ', @msg);
+    $msg = ($msg || '') . "\n";
+
+    $self->ec()->setProperty("/myCall/summary", $msg);
+
+    if ($self->in_pipeline()){
+        $self->ec()->setProperty("/myPipelineStageRuntime/ec_summary/Error", $msg);
+    }
+    else {
+        $self->ec()->setProperty("/myJobStep/summary", $msg);
+    }
+
+    exit 1;
 }
 
 
@@ -475,6 +510,7 @@ it will return credentials {user => 'username', password=>'coolpassword'}
 sub get_credentials {
     my ($self, $config_name, $config_rows, $cfgs_path) = @_;
 
+    print "Running it\n";
     if ($self->{_credentials} && ref $self->{_credentials} eq 'HASH' && %{$self->{_credentials}}) {
         return $self->{_credentials};
     }
@@ -534,6 +570,59 @@ sub get_credentials {
     return $retval;
 
 }
+
+
+sub get_config_values {
+    my ($self, $config_name) = @_;
+
+    die 'No config name' unless $config_name;
+    my $plugin_project_name = '@PLUGIN_KEY@-@PLUGIN_VERSION@';
+    my $config_property_sheet = "/projects/$plugin_project_name/ec_plugin_cfgs/$config_name";
+    my $property_sheet_id = eval { $self->ec->getProperty($config_property_sheet)->findvalue('//propertySheetId')->string_value };
+    if ($@) {
+        $self->bail_out(qq{Configuration "$config_name" does not exist});
+    }
+    my $properties = $self->ec->getProperties({propertySheetId => $property_sheet_id});
+
+    my $retval = {};
+    for my $node ( $properties->findnodes('//property')) {
+        my $value = $node->findvalue('value')->string_value;
+        my $name = $node->findvalue('propertyName')->string_value;
+        $retval->{$name} = $value;
+
+
+        if ($name =~ /proxy_credential/) {
+            # Proxy credential can exist not, and EC will fail. Avoiding
+            my $saved_abort_on_error_value = $self->ec->abortOnError();
+            eval {
+                $self->ec->abortOnError(0);
+                my $credentials = $self->ec->getFullCredential($config_name . '_proxy_credential');
+                my $user_name = $credentials->findvalue('//userName')->string_value;
+                my $password = $credentials->findvalue('//password')->string_value;
+
+                $retval->{proxy_username} = $user_name;
+                $retval->{proxy_password} = $password;
+            } or do {
+                print "Can't get proxy credential: $@ \n";
+            };
+
+            # Restore value
+            $self->ec->abortOnError($saved_abort_on_error_value);
+        }
+        elsif ($name =~ /credential/) {
+            my $credentials = $self->ec->getFullCredential($config_name);
+            my $user_name = $credentials->findvalue('//userName')->string_value;
+            my $password = $credentials->findvalue('//password')->string_value;
+
+            $retval->{userName} = $user_name;
+            $retval->{password} = $password;
+        }
+
+    }
+
+    return $retval;
+}
+
 
 
 =item B<safe_cmd>
@@ -719,7 +808,6 @@ sub set_pipeline_summary {
     unless($self->in_pipeline) {
         return;
     }
-
     eval {
         $self->ec->setProperty("/myPipelineStageRuntime/ec_summary/$name", $message);
         1;
@@ -764,13 +852,13 @@ sub debug_level {
 
     if (defined $debug_level) {
         $self->{_init}->{debug_level} = $debug_level;
-        return 1;
+        return $self->{_init}->{debug_level};
     }
 
     if (defined $self->{_init}->{debug_level}) {
         return $self->{_init}->{debug_level};
     }
-    return 1;
+    return 0;
 }
 
 =item B<dbg>
@@ -884,6 +972,10 @@ sub get_params_as_hashref {
         next unless defined $param;
         $retval->{$param_name} = trim_input($param);
     }
+    for my $param_name (keys %$retval) {
+        my $value = $retval->{$param_name};
+        $self->logger->info(qq{Got parameter "$param_name" with value "$value"});
+    }
     return $retval;
 }
 
@@ -895,22 +987,66 @@ sub  trim_input {
     return $s
 }
 
+=item B<render_template_from_property>
+
+$template_name - property name to take template from
+If it is not an absolute property path, the template is taken from current plugin properties/resources/templates/<template name>
+
+$params - params for rendering
+%options
+    mt - use Text::MicroTemplate engine instead of EC::MicroTemplate
+
+=cut
+
 sub render_template_from_property {
-    my ($self, $template_name, $params) = @_;
+    my ($self, $template_name, $params, %options) = @_;
 
     if (!$template_name) {
         croak "No template";
     }
     my $template;
-    $self->out(1, "Processing template $template_name");
+    $self->logger->debug("Processing template $template_name");
+    if ($template_name !~ /^\//) {
+        my $plugin_name = $self->{plugin_name};
+        $template_name = "/projects/$plugin_name/resources/templates/$template_name";
+    }
     $template = $self->get_param($template_name);
     unless ($template) {
         croak "Template $template_name wasn't found";
     }
 
-    return $self->render_template(text => $template, render_params => $params);
+    if ($options{mt}) {
+        return $self->_render_mt(text => $template, render_params => $params);
+    }
+    else {
+        return $self->render_template(text => $template, render_params => $params);
+    }
 }
 
+
+sub deprecated_procedure_warning {
+    my ($self) = @_;
+
+    $self->logger->info('Deprecation warning: This procedure is deprecated and will be removed in the next release.');
+}
+
+sub _render_mt {
+    my ($self, %params) = @_;
+
+    my $template = $params{text};
+    my $render_params = $params{render_params};
+
+    require Text::MicroTemplate;
+    my $renderer = Text::MicroTemplate::build_mt($template);
+    # $self->logger->trace($render_params);
+    my $result = eval { $renderer->($render_params)->as_string };
+    if ($@) {
+        my $message = "Render failed: $@";
+        $message .= Dumper(\%params);
+        die $message;
+    }
+    return $result;
+}
 
 # TODO: add simple version of exec_timelimit
 sub exec_timelimit_simple {
@@ -1015,7 +1151,7 @@ sub canon_path {
     return File::Spec->canonpath($path);
 }
 
-
+#@returns EC::Plugin::Logger
 sub logger {
     my ($self) = @_;
     unless($self->{logger}) {
@@ -1024,63 +1160,261 @@ sub logger {
     return $self->{logger};
 }
 
-sub get_config_values {
-    my ($self, $plugin_project_name, $config_name) = @_;
 
-    die 'No config name' unless $config_name;
-    my $config_property_sheet = "/projects/$plugin_project_name/ec_plugin_cfgs/$config_name";
-    my $property_sheet_id = $self->ec->getProperty($config_property_sheet)->findvalue('//propertySheetId')->string_value;
+sub build_metadata_location {
+    my ($self, $filter, $reportingType) = @_;
 
-    my $properties = $self->ec->getProperties({propertySheetId => $property_sheet_id});
+    my $context = $self->get_run_context();
+    print "Context found: $context\n";
+    my $location = '';
+    my $projectName = $self->get_project_name();
 
-    my $retval = {};
-    for my $node ( $properties->findnodes('//property')) {
-        my $value = $node->findvalue('value')->string_value;
-        my $name = $node->findvalue('propertyName')->string_value;
-        $retval->{$name} = $value;
-
-        if ($name =~ /credential/) {
-            my $credentials = $self->ec->getFullCredential($config_name);
-            my $user_name = $credentials->findvalue('//userName')->string_value;
-            my $password = $credentials->findvalue('//password')->string_value;
-            $retval->{userName} = $user_name;
-            $retval->{password} = $password;
-        }
+    if ($context eq 'schedule') {
+        # '/projects/<projectName>/schedules/<scheduleName>/ecreport_data_tracker/<jobName>
+        my $scheduleName = $self->get_schedule_name();
+        $location = "/projects/$projectName/schedules/$scheduleName/ecreport_data_tracker";
+    }
+    else {
+        # '/projects/<projectName>/ecreport_data_tracker/<jobName>'.
+        $location = "/projects/$projectName/ecreport_data_tracker";
     }
 
-    return $retval;
+    my $propertyName = '@PLUGIN_KEY@' . '-' . $filter . '-' . $reportingType;
+    $location .= '/' . $propertyName;
+    return $location;
 }
 
 
-=item B<get_java>
+# this function returns current context of call. could return: schedule, pipeline, procedure
+sub get_run_context {
+    my ($self) = @_;
 
-Returns path to local Java
+    my $ec = $self->ec;
+    my $context = 'pipeline';
 
-    my $path_to_java = $core->get_java();
+    eval {
+        my $flowRuntimeId = $ec->getProperty('/flowRuntime/id')->findvalue('/value')->string_value();
+        return $context if $flowRuntimeId;
+    };
+
+    $context = 'schedule';
+    my $scheduleName = '';
+    eval {
+        $scheduleName = $self->get_schedule_name();
+        1;
+    } or do {
+        $self->bail_out("error occured: $@\n");
+    };
+
+    if ($scheduleName) {
+        return $context;
+    }
+    $context = 'procedure';
+    return $context;
+}
+
+sub get_project_name {
+    my ($self, $jobId) = @_;
+
+    $jobId ||= $ENV{COMMANDER_JOBID};
+
+    my $projectName = '';
+    eval {
+        my $result = $self->ec->getJobDetails($jobId);
+        $projectName = $result->findvalue('//job/projectName')->string_value();
+        1;
+    } or do {
+        $self->bail_out($@);
+    };
+
+    return $projectName;
+}
+
+sub get_schedule_name {
+    my ($self, $jobId) = @_;
+
+    $jobId ||= $ENV{COMMANDER_JOBID};
+
+    my $scheduleName = '';
+    eval {
+        my $result = $self->ec->getJobDetails($jobId);
+        $scheduleName = $result->findvalue('//scheduleName')->string_value();
+        if ($scheduleName) {
+            $self->logger->info("Schedule found: $scheduleName");
+        }
+        1;
+    } or do {
+        $self->bail_out("error occured: $@");
+    };
+
+    return $scheduleName;
+}
+
+
+sub get_metadata {
+    my ($self, $location) = @_;
+
+    my $meta;
+    my $json;
+    eval {
+        $json = $self->ec->getProperty($location)->findvalue('//value')->value;
+        1;
+    } or do {
+        $self->logger->info("No metadata found by path $location");
+        return {};
+    };
+
+    eval {
+        $meta = decode_json($json);
+        1;
+    } or do {
+        $self->bail_out("Corrupted metadata: $json");
+    };
+    return $meta;
+}
+
+sub set_metadata {
+    my ($self, $location, $meta) = @_;
+
+    my $json = encode_json($meta);
+    $self->ec->setProperty($location, $json);
+    $self->logger->info("Saved metadata under property $location");
+}
+
+
+=item B<check_parameters>
+
+  Checks parameters using given parameters definition map. Possible checked formats are 'number', 'url', 'file'.
+  Will bail out if any check fails.
 
 =cut
+sub check_parameters {
+    my ($self, $params, $procedure_parameters) = @_;
 
-sub get_java {
-    my $self = shift;
+    my $check = {
+        file      => sub {
+            my ( $param_name, $param_value, $param_def ) = @_;
 
-    my $java_exec = 'java';
-    if (is_win){
-        $java_exec = 'java.exe'
+            my @errors = ();
+
+            if ($param_def->{filebase}) {
+                if (! ref($param_def->{filebase})) {
+                    $param_value = File::Spec->catpath($param_def->{filebase}, $param_value)
+                }
+                elsif (ref($param_def->{filebase}) eq 'CODE') {
+                    File::Spec->catpath(&{$param_def->{filebase}}(), $param_value);
+                }
+            }
+
+            if ($param_def->{file}) {
+                my ( $f_bits, @rules ) = split(',\s?', $param_def->{file});
+
+                foreach my $bit (split("", $f_bits)) {
+                    if ('e' eq $bit) {
+                        push @errors, "File '$param_value' do not exists" if (! -e $param_value);
+                    }
+                    elsif ('r' eq $bit) {
+                        push @errors, "File '$param_value' is not readable" if (! -r $param_value);
+                    }
+                    elsif ('w' eq $bit) {
+                        push @errors, "File '$param_value' is not writable" if (! -w $param_value);
+                    }
+                    elsif ('x' eq $bit) {
+                        push @errors, "File '$param_value' cannot be executed" if (! -x $param_value);
+                    }
+                    else {
+                        croak "File check flags should contain only /[erwx]+/. Got '$bit'\n";
+                    }
+                }
+            }
+
+            return wantarray
+                ? ( scalar @errors == 0, \@errors )
+                : scalar @errors == 0;
+        },
+        text      => sub {
+            my ( $param_name, $param_value, $param_def ) = @_;
+            # TODO: what symbols are considered OK?
+            # Should this contain only ASCII or any UTF8?
+            return 1;
+        },
+        number    => sub {
+            my ( $param_name, $param_value, $param_def ) = @_;
+            my @errors = ();
+
+            if ($param_value !~ /^[+-]?\d+(?:\.\d+)?$/) {
+                push @errors, "Parameter '$param_name' should contain number, but has '$param_value'."
+            }
+
+            return wantarray
+                ? ( scalar @errors == 0, \@errors )
+                : scalar @errors == 0;
+        },
+        url       => sub {
+            my ( $param_name, $param_value, $param_def ) = @_;
+            my @errors = ();
+
+            require URI;
+            URI->import() unless $URI::VERSION;
+
+            eval {
+                my $uri = URI->new($param_value);
+                if (! $uri->scheme ) {
+                    push @errors, "URL in '$param_name' doesn't contain a scheme";
+                }
+
+                1;
+            } or do {
+                push @errors, "Error while parsing URL from '$param_name' : $@";
+            };
+
+            return wantarray
+                ? ( scalar @errors == 0, \@errors )
+                : scalar @errors == 0;
+        },
+        key_value => sub {
+            my ( $param_name, $param_value, $param_def ) = @_;
+            my @errors = ();
+
+            # At least one pair
+            if ($param_value !~ /=/){
+                push @errors, "Parameter '$param_name' should contain key-value pairs."
+                    . " Please refer to parameter help tip or plugin's help for format";
+            }
+
+            return wantarray
+                ? ( scalar @errors == 0, \@errors )
+                : scalar @errors == 0;
+        }
+
+    };
+
+    for my $param (keys %$procedure_parameters) {
+        my $param_def = $procedure_parameters->{$param};
+
+        my $label = $param_def->{label} || $param;
+        my $value = $params->{$param};
+
+        # Check that all required parameters have values
+        if (!$value && $param_def->{required} ) {
+            $self->bail_out("Parameter \"$label\" is mandatory");
+        }
+        elsif ($value && $param_def->{check}){
+            my $check_rule = $param_def->{check};
+
+            my $check_sub = (ref $check_rule eq 'CODE') ? $check_rule : $check->{$check_rule};
+
+            # Will return "1" or (0, ref to array with list of errors)
+            my (@check_res) = &{$check_sub}($label, $value, $param_def);
+
+            if (!$check_res[0]){
+                my $check_error = join("\n", @{ $check_res[1] || ['Unknown error'] });
+                $self->bail_out("Parameter '$label' check failed: $check_error");
+            }
+        }
     }
 
-    my $commander_java = File::Spec->catfile($ENV{'COMMANDER_HOME'}, 'jre', 'bin', $java_exec);
-    my $home_java = File::Spec->catfile($ENV{'JAVA_HOME'}, 'bin', $java_exec);
-
-    if (-e $commander_java){
-        return $commander_java;
-    }
-    elsif(-e $home_java){
-        return $home_java;
-    }
-    else{
-        ##possibly java is in PATH
-        return $java_exec;
-    }
+    return 1;
 }
 
 =back
@@ -1207,58 +1541,119 @@ use constant {
 };
 
 sub new {
-    my ($class, $level) = @_;
+    my ($class, $level, %param) = @_;
     $level ||= 0;
-    my $self = {level => $level};
+    my $self = {%param, level => $level};
     return bless $self,$class;
-}
-
-sub warning {
-    my ($self, @messages) = @_;
-
-    $self->log(INFO, 'WARNING: ', @messages);
 }
 
 sub info {
     my ($self, @messages) = @_;
-    $self->log(INFO, @messages);
+    $self->_log(INFO, @messages);
 }
 
 sub debug {
     my ($self, @messages) = @_;
-    $self->log(DEBUG, '[DEBUG]', @messages);
+    $self->_log(DEBUG, '[DEBUG]', @messages);
 }
 
 sub error {
     my ($self, @messages) = @_;
-    $self->log(ERROR, '[ERROR]', @messages);
+    $self->_log(ERROR, '[ERROR]', @messages);
 }
 
 sub trace {
     my ($self, @messages) = @_;
-    $self->log(TRACE, '[TRACE]', @messages);
+    $self->_log(TRACE, '[TRACE]', @messages);
 }
 
-sub log {
-    my ($self, $level, @messages) = @_;
+sub level {
+    my ($self, $level) = @_;
 
-    binmode STDOUT, ':encoding(UTF-8)';
-
-    return if $level > $self->{level};
-    my @lines = ();
-    for my $message (@messages) {
-        unless(defined $message) {
-            $message = 'undef';
-        }
-        if (ref $message) {
-            print Dumper($message);
-        }
-        else {
-            print "$message\n";
-        }
+    if (defined $level) {
+        $self->{level} = $level;
+    }
+    else {
+        return $self->{level};
     }
 }
 
+sub log_to_property {
+    my ($self, $prop) = @_;
+
+    if (defined $prop) {
+        $self->{log_to_property} = $prop;
+    }
+    else {
+        return $self->{log_to_property};
+    }
+}
+
+
+my $length = 40;
+
+sub divider {
+    my ($self, $thick) = @_;
+
+    if ($thick) {
+        $self->info('=' x $length);
+    }
+    else {
+        $self->info('-' x $length);
+    }
+}
+
+sub header {
+    my ($self, $header, $thick) = @_;
+
+    my $symb = $thick ? '=' : '-';
+    $self->info($header);
+    $self->info($symb x $length);
+}
+
+sub _log {
+    my ($self, $level, @messages) = @_;
+
+    return if $level > $self->level;
+    my @lines = ();
+    for my $message (@messages) {
+        if (ref $message) {
+            print Dumper($message);
+            push @lines, Dumper($message);
+        }
+        else {
+            print "$message\n";
+            push @lines, $message;
+        }
+    }
+
+    if ($self->{log_to_property}) {
+        my $prop = $self->{log_to_property};
+        my $value = "";
+        eval {
+            $value = $self->ec->getProperty($prop)->findvalue('//value')->string_value;
+            1;
+        };
+        unshift @lines, split("\n", $value);
+        $self->ec->setProperty($prop, join("\n", @lines));
+    }
+}
+
+
+sub ec {
+    my ($self) = @_;
+    unless($self->{ec}) {
+        require ElectricCommander;
+        my $ec = ElectricCommander->new;
+        $self->{ec} = $ec;
+    }
+    return $self->{ec};
+}
+
+
+
 1;
+
+
 
 

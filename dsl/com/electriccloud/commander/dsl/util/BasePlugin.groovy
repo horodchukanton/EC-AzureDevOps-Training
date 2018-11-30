@@ -1,3 +1,4 @@
+// Version: Thu Oct 25 16:24:07 2018
 package com.electriccloud.commander.dsl.util
 
 import groovy.io.FileType
@@ -17,14 +18,24 @@ abstract class BasePlugin extends DslDelegatingScript {
 		String propDescription = description ?: procedureName
 
 		property "/server/ec_customEditors/pickerStep/$pickerLabel",
-				value:
-						"""<step>
+				value: """<step>
 						<project>/plugins/$pluginKey/project</project>
 						<procedure>$procedureName</procedure>
 						<category>$category</category>
 					</step>
 				""".stripIndent(),
 				description: propDescription
+	}
+
+	def deleteStepPicker(String pluginKey, String procName) {
+
+		def label = "$pluginKey - $procName"
+		def propName = "/server/ec_customEditors/pickerStep/$label"
+		def stepPickerProp = getProperty(propName, suppressNoSuchPropertyException: true)
+		if (stepPickerProp) {
+			deleteProperty propertyName: propName
+		}
+
 	}
 
 	def setupPluginMetadata(String pluginDir, String pluginKey, String pluginName, List stepsWithAttachedCredentials) {
@@ -35,14 +46,14 @@ abstract class BasePlugin extends DslDelegatingScript {
 			println "/projects/${pluginName}/procedures/${proc.procedureName}/standardStepPicker: '$addStepPicker'"
 			if (addStepPicker) {
 				def label = "$pluginKey - $proc.procedureName"
-				def description = proc.description
+				def description = descriptionForStepPicker(pluginName, proc.procedureName) ?: proc.description
 				stepPicker (label, pluginKey, proc.procedureName, pluginCategory, description)
 			}
 			if (proc.procedureName == 'CreateConfiguration' && stepsWithAttachedCredentials) {
 				//Store the list of steps that require credentials to be attached as a procedure property
 				procedure proc.procedureName, {
 					property 'ec_stepsWithAttachedCredentials', value: JsonOutput.toJson(stepsWithAttachedCredentials)
-		}
+		        }
 			}
 		}
 		// configure the plugin icon if is exists
@@ -74,12 +85,7 @@ abstract class BasePlugin extends DslDelegatingScript {
 			def addStepPicker = shouldAddStepPicker(pluginName, proc.procedureName)
 			// delete the step picker if it was added by setupPluginMetadata
 			if (addStepPicker) {
-				def label = "$pluginKey - $proc.procedureName"
-				def propName = "/server/ec_customEditors/pickerStep/$label"
-				def stepPickerProp = getProperty(propName, suppressNoSuchPropertyException: true)
-				if (stepPickerProp) {
-					deleteProperty propertyName: propName
-				}
+				deleteStepPicker(pluginKey, proc.procedureName)
 			}
 
 		}
@@ -92,7 +98,7 @@ abstract class BasePlugin extends DslDelegatingScript {
 	}
 
 	def shouldAddStepPicker(def pluginName, def procedureName) {
-		if (procedureName == 'CreateConfiguration' || procedureName == 'DeleteConfiguration') {
+		if (procedureName == 'CreateConfiguration' || procedureName == 'DeleteConfiguration' || procedureName == 'EditConfiguration') {
 			return false
 		}
 		def prop = getProperty("/projects/${pluginName}/procedures/${procedureName}/standardStepPicker", suppressNoSuchPropertyException: true)
@@ -100,6 +106,11 @@ abstract class BasePlugin extends DslDelegatingScript {
 		// If the property is not set, then we add the step-picker by default
 		// If the property is set, then we check if the user requested stepPicker not be added.
 		return value == null || (value != 'false' && value != '0')
+	}
+
+	def descriptionForStepPicker(def pluginName, def procedureName) {
+		def prop = getProperty("/projects/${pluginName}/procedures/${procedureName}/stepPickerDescription", suppressNoSuchPropertyException: true)
+		prop?.value
 	}
 
 	def loadPluginProperties(String pluginDir, String pluginName) {
@@ -190,6 +201,10 @@ abstract class BasePlugin extends DslDelegatingScript {
 		return script.run();
 	}
 
+	def nullIfEmpty(def value) {
+		value == '' ? null : value
+	}
+
 	def buildFormalParametersFromFormXml(def proc, File formXml) {
 
 		def formElements = new XmlSlurper().parseText(formXml.text)
@@ -198,12 +213,16 @@ abstract class BasePlugin extends DslDelegatingScript {
 
 			ec_parameterForm = formXml.text
 			formElements.formElement.each { formElement ->
+				def expansionDeferred = formElement.expansionDeferred == "true" ? "1" : "0"
+				println "expansionDeferred: ${formElement.property}: $expansionDeferred"
+
 				formalParameter "$formElement.property",
 						defaultValue: formElement.value,
-						required: formElement.required,
-						description: formElement.description,
+						required: nullIfEmpty(formElement.condition) ? 0 : ( nullIfEmpty(formElement.required) ?: 0 ),
+						description: formElement.documentation,
 						type: formElement.type,
-						label: formElement.label
+						label: formElement.label,
+						expansionDeferred: expansionDeferred
 
 				if (formElement['attachedAsParameterToStep'] && formElement['attachedAsParameterToStep'] != '') {
 					formElement['attachedAsParameterToStep'].toString().split(',').each { attachToStep ->
@@ -250,10 +269,37 @@ abstract class BasePlugin extends DslDelegatingScript {
 
 	def upgrade(String upgradeAction, String pluginName,
 				String otherPluginName, List steps,
-				String configName = 'ec_plugin_cfgs') {
+				String configName = 'ec_plugin_cfgs', List properties = []) {
+
 
 		migrationConfigurations(upgradeAction, pluginName, otherPluginName, steps, configName)
+		println "Properties size: " + properties.size()
+        properties.each { propertyName ->
+        	println "Going to migrate $propertyName"
+            migrationProperties(upgradeAction, pluginName, otherPluginName, propertyName)
+        }
 	}
+
+
+   def migrationProperties(String upgradeAction, String pluginName, String otherPluginName, String propertyName) {
+        if (upgradeAction == 'upgrade') {
+           def properties = getProperty("/plugins/$otherPluginName/project/$propertyName", suppressNoSuchPropertyException: true)
+           if (!properties) {
+           		println "No properties found for $otherPluginName: $propertyName"
+           		return
+           }
+
+           def existingProperties = getProperty("/plugins/$pluginName/project/$propertyName", suppressNoSuchPropertyException: true)
+           if (existingProperties) {
+           		println "Properties exist in plugin $pluginName: $propertyName"
+           		return
+           }
+
+           clone path: "/plugins/$otherPluginName/project/$propertyName", cloneName: "/plugins/$pluginName/project/$propertyName"
+           println "Cloned /plugins/$otherPluginName/project/$propertyName, /plugins/$pluginName/project/$propertyName"
+ 	   }
+    }
+
 
 	def migrationConfigurations(String upgradeAction, String pluginName,
 								String otherPluginName, List steps,
@@ -279,15 +325,27 @@ abstract class BasePlugin extends DslDelegatingScript {
 					clone path: "/plugins/$otherPluginName/project/credentials/${cred.credentialName}",
 							cloneName: "/plugins/$pluginName/project/credentials/${cred.credentialName}"
 
-					aclEntry principalType: 'user',
-							principalName: "project: $pluginName",
-							projectName: pluginName,
-							credentialName: cred.credentialName,
-							objectType: 'credential',
-							readPrivilege: 'allow',
-							modifyPrivilege: 'allow',
-							executePrivilege: 'allow',
-							changePermissionsPrivilege: 'allow'
+					deleteAclEntry principalType: 'user',
+						principalName: "project: $otherPluginName",
+						projectName: pluginName,
+						credentialName: cred.credentialName
+
+					// For some reason aclEntry() does not work here
+					deleteAclEntry principalType: 'user',
+						principalName: "project: $pluginName",
+						projectName: pluginName,
+						credentialName: cred.credentialName
+
+					createAclEntry principalType: 'user',
+						principalName: "project: $pluginName",
+						projectName: pluginName,
+						credentialName: cred.credentialName,
+						objectType: 'credential',
+						readPrivilege: 'allow',
+						modifyPrivilege: 'allow',
+						executePrivilege: 'allow',
+						changePermissionsPrivilege: 'allow'
+
 
 					steps.each { s ->
 						attachCredential projectName: pluginName,

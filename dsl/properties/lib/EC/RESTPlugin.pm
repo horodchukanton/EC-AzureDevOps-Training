@@ -71,7 +71,7 @@ sub after_init_hook {
 
 }
 
-
+#@returns EC::Plugin::Hooks
 sub hooks {
     my ($self) = @_;
     unless($self->{hooks}) {
@@ -80,6 +80,7 @@ sub hooks {
     return $self->{hooks};
 }
 
+#@returns EC::Plugin::BatchCommander
 sub batch_commander {
     my ($self) = @_;
     unless($self->{batch_commander}) {
@@ -107,6 +108,7 @@ sub refiners {
     return $self->{refiners};
 }
 
+#@returns EC::Plugin::ContentProcessor
 sub content_processor {
     my ($self) = @_;
 
@@ -271,7 +273,7 @@ sub run_one_step{
         $self->logger->debug('Config', $config);
     }
 
-    my $request = $self->generate_step_request($step_name, $config, $parameters);
+    my HTTP::Request $request = $self->generate_step_request($step_name, $config, $parameters);
     $self->hooks->request_hook($step_name, $request); # request can be altered by the hook
     $self->logger->info("Going to run request");
     $self->logger->trace("Request", $request->as_string);

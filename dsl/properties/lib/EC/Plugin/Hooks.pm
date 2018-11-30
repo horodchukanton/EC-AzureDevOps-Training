@@ -4,6 +4,8 @@ use strict;
 use warnings;
 use MIME::Base64 qw(encode_base64);
 use JSON;
+use Data::Dumper;
+
 use base qw(EC::Plugin::HooksCore);
 use File::Spec;
 use EC::Plugin::WorkItems;
