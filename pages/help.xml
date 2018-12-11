@@ -97,7 +97,7 @@
             </tr>
             <tr>
                 <td class="required">
-                    VSTS/TFS endpoint:
+                    AzureDevOps Server/Services endpoint:
                 </td>
                 <td>
                     VS Team Services endpoint (https://myaccount.visualstudio.com) or TFS server (scheme://server:port/tfs).
@@ -105,7 +105,7 @@
             </tr>
             <tr>
                 <td class="required">
-                    Collection name for TFS:
+                    Collection name for Azure DevOps Server:
                 </td>
                 <td>
                     Collection name. If not defined, DefaultCollection will be used.
@@ -116,7 +116,7 @@
                     Credentials:
                 </td>
                 <td>
-                    Username and password to connect to VSTS/TFS.
+                    Username and password to connect to AzureDevOps Server/Services.
                 </td>
             </tr>
             <tr>

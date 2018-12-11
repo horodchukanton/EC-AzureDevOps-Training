@@ -41,6 +41,7 @@ project pluginName, {
 	loadProcedures(pluginDir, pluginKey, pluginName, stepsWithAttachedCredentials)
 	//plugin configuration metadata
 	property 'ec_config', {
+		configLocation = 'ec_plugin_cfgs'
 		form = '$[' + "/projects/${pluginName}/procedures/CreateConfiguration/ec_parameterForm]"
 		property 'fields', {
 			property 'desc', {
@@ -50,6 +51,7 @@ project pluginName, {
 		}
 	}
 
+	property 'ec_formXmlCompliant', value : "true"
 }
 
 // Copy existing plugin configurations from the previous

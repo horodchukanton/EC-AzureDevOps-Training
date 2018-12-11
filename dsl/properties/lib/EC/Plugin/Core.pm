@@ -1618,6 +1618,15 @@ sub _log {
     my @lines = ();
     for my $message (@messages) {
         if (ref $message) {
+
+            if (ref $message eq 'HASH'){
+                my @secret_keys = grep { $_ =~ /password|secret|token/i } keys %$message;
+                my %copy = %$message;
+
+                # $copy{$_} = '[PROTECTED]' for @secret_keys;
+                $message = \%copy;
+            }
+
             print Dumper($message);
             push @lines, Dumper($message);
         }

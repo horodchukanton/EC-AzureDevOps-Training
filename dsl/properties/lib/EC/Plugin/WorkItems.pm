@@ -33,7 +33,7 @@ sub step_query_work_items {
 
     my $url = URI->new($endpoint);
     $url->query_form(%query);
-    my $request = HTTP::Request->new(POST => $url);
+    my $request = $self->get_new_http_request(POST => $url);
 
     $request->header('Authorization' => "Basic $auth");
     my $payload = encode_json({query => $parameters->{query}});
@@ -42,7 +42,7 @@ sub step_query_work_items {
     $request->header('Content-type', 'application/json');
 
     $self->logger->trace('Request', $request);
-    my $ua = LWP::UserAgent->new;
+    my $ua = $self->new_lwp();
     my $response = $ua->request($request);
 
     unless($response->is_success) {
@@ -87,7 +87,7 @@ sub step_query_work_items {
     $url = URI->new($endpoint);
     $url->query_form(%query);
 
-    $request = HTTP::Request->new(GET => $url);
+    $request = $self->get_new_http_request(GET => $url);
     $request->header('Authorization' => "Basic $auth");
     $self->logger->trace('Request', $request);
     $response = $ua->request($request);

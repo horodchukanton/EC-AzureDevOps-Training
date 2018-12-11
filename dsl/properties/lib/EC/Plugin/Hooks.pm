@@ -101,7 +101,6 @@ sub define_hooks {
     $self->define_hook('*', 'request', \&general_request);
 }
 
-
 sub get_build_link {
     my ($self, $project_name, $build_id) = @_;
 
@@ -145,7 +144,7 @@ sub poll_build {
     my $request = $self->create_request('GET',
         '#{{endpoint}}/#{{collection}}/#{project}/_apis/build/builds/' . $build_id . '?api-version=2.0',
         {}, '');
-    my $ua = LWP::UserAgent->new;
+    my $ua = $self->new_lwp();
     my $time = 0;
 
     my $result;
@@ -185,7 +184,7 @@ sub ua {
     my ($self) = @_;
 
     unless($self->{ua}) {
-        $self->{ua} = LWP::UserAgent->new;
+        $self->{ua} = $self->plugin->new_lwp();
     }
     return $self->{ua};
 }
@@ -270,7 +269,7 @@ sub get_queue_id {
         '#{{endpoint}}/#{{collection}}/#{project}/_apis/distributedtask/queues?api-version=3.0-preview.1',
         {queueName => $queue}, '');
     $self->plugin->logger->trace($request);
-    my $ua = LWP::UserAgent->new;
+    my $ua = $self->new_lwp();
     my $response = $ua->request($request);
     $self->plugin->logger->trace($response);
     $self->parse_json_error($response);
@@ -303,7 +302,7 @@ sub get_definition_id {
 
     my $request = $self->create_request('GET', '#{{endpoint}}/#{{collection}}/#{project}/_apis/build/definitions?api-version=2.0',
         {name => $definition}, '');
-    my $ua = LWP::UserAgent->new;
+    my $ua = $self->new_lwp();
     $self->plugin->logger->debug("Get definition id request URI: " . $request->uri);
     $self->plugin->logger->trace($request);
 
@@ -341,7 +340,7 @@ sub get_build_id {
         '#{{endpoint}}/#{{collection}}/#{project}/_apis/build/builds?api-version=2.0',
         {buildNumber => $build_id}, '');
 
-    my $ua = LWP::UserAgent->new;
+    my $ua = $self->new_lwp();
     $self->plugin->logger->debug("Get build id request URI: " . $request->uri);
     $self->plugin->logger->trace($request);
     my $response = $ua->request($request);
@@ -376,7 +375,7 @@ sub poll_build_status {
     return unless $params->{waitForBuild};
 
     my $status;
-    my $agent = LWP::UserAgent->new;
+    my $agent = $self->new_lwp();
     my $timeout = $params->{waitTimeout} || 60;
     my $wait_time = 0;
     my $time_to_sleep = 30;
@@ -535,7 +534,7 @@ sub upload_attachment_response {
     my %request_query_form = URI->new($response->request->url)->query_form;
 
     $self->plugin->logger->debug("Auth: $auth");
-    my $ua = LWP::UserAgent->new;
+    my $ua = $self->new_lwp();
 
     my $url = URI->new($data->{url});
     $url->query_form($url->query_form, uploadType => 'chunked', 'api-version' => $request_query_form{'api-version'});
@@ -548,7 +547,7 @@ sub upload_attachment_response {
         $cl_end = $bytes_read - 1 + $cl_start;
         my $content_length = "$cl_start-$cl_end";
 
-        my $request = HTTP::Request->new(PUT => $url);
+        my $request = $self->get_new_http_request(PUT => $url);
         $request->header('Authorization' => $auth);
         $request->header('Content-Range' => "bytes $content_length/$total");
         $request->header('Content-Type' => 'application/octet-stream');
@@ -783,12 +782,11 @@ sub create_request {
     $self->plugin->logger->debug("Endpoint: $uri");
 
 
-    my $request = HTTP::Request->new($method, $uri);
+    my $request = $self->plugin->get_new_http_request($method, $uri);
 
     my $username = $config->{userName};
     my $password = $config->{password};
 
-    $request->authorization_basic($username, $password);
     $request->content($body) if $body;
     $request->header('Content-Type' => 'application/json');
     return $request;
