@@ -795,55 +795,55 @@ procedures:
 #         <b>None</b>: No modification to the version specified by the versionType and version parameters.
 
 
-  - name: Get a Build
-    stepName: get a build
-    description: Gets a specified build info
-    method: GET
-    endpoint: '#{{endpoint}}/#{{collection}}/#{project}/_apis/build/builds/#{buildId}'
-    hasConfig: true
-    attachCredentials: true
-    basicAuth: true
-    documentationLinks:
-     - https://www.visualstudio.com/en-us/docs/integrate/api/build/builds#get-a-build
-    contentType: application/json
-    resultProperty:
-      show: true
-      # Selectbox with formats will appear
-      format:
-        - json
-        - propertySheet
-      default: /myJob/build
-    parameters:
-      - property: project
-        label: Project name
-        documentation: ID or name of the team project.
-        htmlDocumentation: |
-          ID or name of the <a href="https://www.visualstudio.com/en-us/docs/integrate/api/tfs/projects">team project</a>.
-        type: entry
-        required: 1
-        in: path
-      - property: buildId
-        label: Build number or ID
-        documentation: ID or number of the build.
-        type: entry
-        required: 1
-        in: path
-      - property: waitForBuild
-        label: Wait for build
-        type: checkbox
-        checkedValue: 1
-        uncheckedValue: 0
-        value: 1
-        documentation: If checked, the procedure will poll the build status until the build is finished.
-      - property: waitTimeout
-        label: Timeout to wait
-        type: entry
-        value: 300
-        documentation: Time (in seconds) to wait for build to be finished. Used if "Wait for build" flag is set.
-      - property: mimicProcedureStatus
-        label: Mimic build status
-        type: checkbox
-        checkedValue: 1
-        uncheckedValue: 0
-        value: 1
-        documentation: If checked, the procedure status will mimic build status, e.g. if the build has failed, the procedure will fail too.
+#  - name: Get a Build
+#    stepName: get a build
+#    description: Gets a specified build info
+#    method: GET
+#    endpoint: '#{{endpoint}}/#{{collection}}/#{project}/_apis/build/builds/#{buildId}'
+#    hasConfig: true
+#    attachCredentials: true
+#    basicAuth: true
+#    documentationLinks:
+#     - https://www.visualstudio.com/en-us/docs/integrate/api/build/builds#get-a-build
+#    contentType: application/json
+#    resultProperty:
+#      show: true
+#      # Selectbox with formats will appear
+#      format:
+#        - json
+#        - propertySheet
+#      default: /myJob/build
+#    parameters:
+#      - property: project
+#        label: Project name
+#        documentation: ID or name of the team project.
+#        htmlDocumentation: |
+#          ID or name of the <a href="https://www.visualstudio.com/en-us/docs/integrate/api/tfs/projects">team project</a>.
+#        type: entry
+#        required: 1
+#        in: path
+#      - property: buildId
+#        label: Build number or ID
+#        documentation: ID or number of the build.
+#        type: entry
+#        required: 1
+#        in: path
+#      - property: waitForBuild
+#        label: Wait for build
+#        type: checkbox
+#        checkedValue: 1
+#        uncheckedValue: 0
+#        value: 1
+#        documentation: If checked, the procedure will poll the build status until the build is finished.
+#      - property: waitTimeout
+#        label: Timeout to wait
+#        type: entry
+#        value: 300
+#        documentation: Time (in seconds) to wait for build to be finished. Used if "Wait for build" flag is set.
+#      - property: mimicProcedureStatus
+#        label: Mimic build status
+#        type: checkbox
+#        checkedValue: 1
+#        uncheckedValue: 0
+#        value: 1
+#        documentation: If checked, the procedure status will mimic build status, e.g. if the build has failed, the procedure will fail too.
