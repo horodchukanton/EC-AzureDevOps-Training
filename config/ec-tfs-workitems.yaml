@@ -365,178 +365,178 @@ procedures:
         required: 1
         in: path
 
-  - name: Create a Work Item Query
-    stepName: create a work item query
-    description: Create a new work item search query.
-    endpoint: '#{{endpoint}}/#{{collection}}/#{project}/_apis/wit/queries/#{folderPath}'
-    method: POST
-    # HTTP method
-    hasConfig: true
-     # a field for configuration name will be added to the form
-    attachCredentials: true
-    documentationLinks:
-      - https://www.visualstudio.com/en-us/docs/integrate/api/wit/queries#create-a-query
-     # credentials will be attached to the procedure
-    basicAuth: true
-     # credentials will be turned into basic auth header
-    contentType: application/json
-    resultProperty:
-      show: true
-      # Selectbox with formats will appear
-      format:
-        - json
-        - propertySheet
-      default: /myJob/createQueryResult
-    parameters:
-      - property: project
-        type: entry
-        label: Project
-        documentation: Name or ID of a team project where the work item type is defined.
-        required: 1
-        in: path
-      - property: folderPath
-        type: entry
-        label: Folder path
-        documentation: ID or Path to the folder you want to create the query in
-        required: 1
-        in: path
-      - property: name
-        type: entry
-        label: Name
-        documentation: Name of the query.
-        required: 1
-        in: body
-      - property: wiql
-        label: Query string
-        type: textarea
-        documentation: Query string.
-        htmlDocumentation: >
-          <a href="http://msdn.microsoft.com/library/bb130306.aspx" target="_blank">Query string</a>.
-        in: body
-        required: 1
+#  - name: Create a Work Item Query
+#    stepName: create a work item query
+#    description: Create a new work item search query.
+#    endpoint: '#{{endpoint}}/#{{collection}}/#{project}/_apis/wit/queries/#{folderPath}'
+#    method: POST
+#    # HTTP method
+#    hasConfig: true
+#     # a field for configuration name will be added to the form
+#    attachCredentials: true
+#    documentationLinks:
+#      - https://www.visualstudio.com/en-us/docs/integrate/api/wit/queries#create-a-query
+#     # credentials will be attached to the procedure
+#    basicAuth: true
+#     # credentials will be turned into basic auth header
+#    contentType: application/json
+#    resultProperty:
+#      show: true
+#      # Selectbox with formats will appear
+#      format:
+#        - json
+#        - propertySheet
+#      default: /myJob/createQueryResult
+#    parameters:
+#      - property: project
+#        type: entry
+#        label: Project
+#        documentation: Name or ID of a team project where the work item type is defined.
+#        required: 1
+#        in: path
+#      - property: folderPath
+#        type: entry
+#        label: Folder path
+#        documentation: ID or Path to the folder you want to create the query in
+#        required: 1
+#        in: path
+#      - property: name
+#        type: entry
+#        label: Name
+#        documentation: Name of the query.
+#        required: 1
+#        in: body
+#      - property: wiql
+#        label: Query string
+#        type: textarea
+#        documentation: Query string.
+#        htmlDocumentation: >
+#          <a href="http://msdn.microsoft.com/library/bb130306.aspx" target="_blank">Query string</a>.
+#        in: body
+#        required: 1
 
 
-  - name: Update a Work Item Query
-    stepName: updates a work item query
-    description: Updates a work item search query.
-    endpoint: '#{{endpoint}}/#{{collection}}/#{project}/_apis/wit/queries/#{folderPath}/#{query}'
-    method: PATCH
-    # HTTP method
-    documentationLinks:
-      - https://www.visualstudio.com/en-us/docs/integrate/api/wit/queries#update-a-query
-    hasConfig: true
-     # a field for configuration name will be added to the form
-    attachCredentials: true
-     # credentials will be attached to the procedure
-    basicAuth: true
-     # credentials will be turned into basic auth header
-    contentType: application/json
-    resultProperty:
-      show: true
-      # Selectbox with formats will appear
-      format:
-        - json
-        - propertySheet
-      default: /myJob/updateQueryResult
-    parameters:
-      - property: project
-        type: entry
-        label: Project
-        documentation: Name or ID of a team project where the work item type is defined.
-        required: 1
-        in: path
-      - property: folderPath
-        type: entry
-        label: Folder path
-        documentation: ID or Path to the folder you want to create the query in
-        required: 1
-        in: path
-      - property: query
-        type: entry
-        label: Query ID
-        documentation: Name or ID the query to update.
-        required: 1
-        in: path
-      - property: wiql
-        label: Query string
-        type: textarea
-        documentation: Query string.
-        htmlDocumentation: >
-          <a href="http://msdn.microsoft.com/library/bb130306.aspx" target="_blank">Query string</a>.
-        in: body
-        required: 1
+#  - name: Update a Work Item Query
+#    stepName: updates a work item query
+#    description: Updates a work item search query.
+#    endpoint: '#{{endpoint}}/#{{collection}}/#{project}/_apis/wit/queries/#{folderPath}/#{query}'
+#    method: PATCH
+#    # HTTP method
+#    documentationLinks:
+#      - https://www.visualstudio.com/en-us/docs/integrate/api/wit/queries#update-a-query
+#    hasConfig: true
+#     # a field for configuration name will be added to the form
+#    attachCredentials: true
+#     # credentials will be attached to the procedure
+#    basicAuth: true
+#     # credentials will be turned into basic auth header
+#    contentType: application/json
+#    resultProperty:
+#      show: true
+#      # Selectbox with formats will appear
+#      format:
+#        - json
+#        - propertySheet
+#      default: /myJob/updateQueryResult
+#    parameters:
+#      - property: project
+#        type: entry
+#        label: Project
+#        documentation: Name or ID of a team project where the work item type is defined.
+#        required: 1
+#        in: path
+#      - property: folderPath
+#        type: entry
+#        label: Folder path
+#        documentation: ID or Path to the folder you want to create the query in
+#        required: 1
+#        in: path
+#      - property: query
+#        type: entry
+#        label: Query ID
+#        documentation: Name or ID the query to update.
+#        required: 1
+#        in: path
+#      - property: wiql
+#        label: Query string
+#        type: textarea
+#        documentation: Query string.
+#        htmlDocumentation: >
+#          <a href="http://msdn.microsoft.com/library/bb130306.aspx" target="_blank">Query string</a>.
+#        in: body
+#        required: 1
 
-  - name: Run a Work Item Query
-    stepName: run a work item query
-    documentationLinks:
-      - https://www.visualstudio.com/en-us/docs/integrate/api/wit/wiql#run-a-query
-    description: Runs a new work item search query.
-    endpoint: '#{{endpoint}}/#{{collection}}/#{project}/_apis/wit/wiql'
-    method: POST
-    # HTTP method
-    hasConfig: true
-     # a field for configuration name will be added to the form
-    attachCredentials: true
-     # credentials will be attached to the procedure
-    basicAuth: true
-     # credentials will be turned into basic auth header
-    contentType: application/json
-    resultProperty:
-      show: true
-      # Selectbox with formats will appear
-      format:
-        - json
-        - propertySheet
-      default: /myJob/runQueryResult
-    parameters:
-      - property: project
-        type: entry
-        label: Project
-        documentation: Name or ID of a team project where the work item type is defined.
-        required: 1
-        in: path
-      - property: query
-        label: Query string
-        type: textarea
-        documentation: Query string.
-        htmlDocumentation: >
-          <a href="http://msdn.microsoft.com/library/bb130306.aspx" target="_blank">Query string</a>.
-        in: body
-        required: 1
-      - property: timePrecision
-        label: Time precision
-        type: checkbox
-        checkedValue: true
-        uncheckedValue: false
-        documentation: True if time precision is allowed in the date time comparisons.
-        value: false
-        in: query
-        required: 0
+#  - name: Run a Work Item Query
+#    stepName: run a work item query
+#    documentationLinks:
+#      - https://www.visualstudio.com/en-us/docs/integrate/api/wit/wiql#run-a-query
+#    description: Runs a new work item search query.
+#    endpoint: '#{{endpoint}}/#{{collection}}/#{project}/_apis/wit/wiql'
+#    method: POST
+#    # HTTP method
+#    hasConfig: true
+#     # a field for configuration name will be added to the form
+#    attachCredentials: true
+#     # credentials will be attached to the procedure
+#    basicAuth: true
+#     # credentials will be turned into basic auth header
+#    contentType: application/json
+#    resultProperty:
+#      show: true
+#      # Selectbox with formats will appear
+#      format:
+#        - json
+#        - propertySheet
+#      default: /myJob/runQueryResult
+#    parameters:
+#      - property: project
+#        type: entry
+#        label: Project
+#        documentation: Name or ID of a team project where the work item type is defined.
+#        required: 1
+#        in: path
+#      - property: query
+#        label: Query string
+#        type: textarea
+#        documentation: Query string.
+#        htmlDocumentation: >
+#          <a href="http://msdn.microsoft.com/library/bb130306.aspx" target="_blank">Query string</a>.
+#        in: body
+#        required: 1
+#      - property: timePrecision
+#        label: Time precision
+#        type: checkbox
+#        checkedValue: true
+#        uncheckedValue: false
+#        documentation: True if time precision is allowed in the date time comparisons.
+#        value: false
+#        in: query
+#        required: 0
 
-  - name: Delete a Work Item Query
-    stepName: delete a work item query
-    description: Deletes the specified work item search query.
-    endpoint: '#{{endpoint}}/#{{collection}}/#{project}/_apis/wit/queries/#{queryPath}'
-    method: DELETE
-    hasConfig: true
-    attachCredentials: true
-    basicAuth: true
-    documentationLinks:
-      - https://www.visualstudio.com/en-us/docs/integrate/api/wit/queries#delete-a-query-or-folder
-    contentType: application/json
-    parameters:
-      - property: project
-        type: entry
-        label: Project
-        documentation: Name or ID of a team project where the work item type is defined.
-        required: 1
-        in: path
-      - property: queryPath
-        label: Query path
-        type: entry
-        documentation: ID or path of the query or folder to delete.
-        in: query
-        required: 1
+#  - name: Delete a Work Item Query
+#    stepName: delete a work item query
+#    description: Deletes the specified work item search query.
+#    endpoint: '#{{endpoint}}/#{{collection}}/#{project}/_apis/wit/queries/#{queryPath}'
+#    method: DELETE
+#    hasConfig: true
+#    attachCredentials: true
+#    basicAuth: true
+#    documentationLinks:
+#      - https://www.visualstudio.com/en-us/docs/integrate/api/wit/queries#delete-a-query-or-folder
+#    contentType: application/json
+#    parameters:
+#      - property: project
+#        type: entry
+#        label: Project
+#        documentation: Name or ID of a team project where the work item type is defined.
+#        required: 1
+#        in: path
+#      - property: queryPath
+#        label: Query path
+#        type: entry
+#        documentation: ID or path of the query or folder to delete.
+#        in: query
+#        required: 1
 
   - name: Queue a build
     stepName: queue a build
@@ -612,187 +612,187 @@ procedures:
 
           If not specified, the default variables for the definition will be used.
 
-  - name: Upload a Work Item Attachment
-    stepName: upload a work item attachment
-    description: To attach a file to a work item, upload the attachment to the attachment store, then attach it to the work item.
-    method: POST
-    endpoint: '#{{endpoint}}/#{{collection}}/_apis/wit/attachments'
-    hasConfig: true
-    attachCredentials: true
-    basicAuth: true
-    contentType: application/json
-    documentationLinks:
-      - https://www.visualstudio.com/en-us/docs/integrate/api/wit/attachments#upload-an-attachment
-    resultProperty:
-      show: true
-      # Selectbox with formats will appear
-      format:
-        - json
-        - propertySheet
-      default: /myJob/workItemAttachment
-    parameters:
-      - property: filename
-        in: query
-        label: Attachment filename
-        required: 1
-        type: entry
-        documentation: The name of the file in the attachment store (typically the same as the name of the source of the attachment).
-      - property: uploadType
-        type: select
-        label: Upload type
-        in: query
-        documentation: Default is simple. Use chunked upload type for uploading large files (>130 MB).
-        option:
-          - name: Simple
-            value: simple
-          - name: Chunked
-            value: chunked
-      - property: filePath
-        label: File path
-        documentation: Path to the file to be uploaded. Either this field or file content field must be specified.
-        type: entry
-        in: body
-      - property: fileContent
-        label: File content
-        documentation: File content to be uploaded. Either this field or file path field must be specified.
-        type: textarea
-        in: body
+#  - name: Upload a Work Item Attachment
+#    stepName: upload a work item attachment
+#    description: To attach a file to a work item, upload the attachment to the attachment store, then attach it to the work item.
+#    method: POST
+#    endpoint: '#{{endpoint}}/#{{collection}}/_apis/wit/attachments'
+#    hasConfig: true
+#    attachCredentials: true
+#    basicAuth: true
+#    contentType: application/json
+#    documentationLinks:
+#      - https://www.visualstudio.com/en-us/docs/integrate/api/wit/attachments#upload-an-attachment
+#    resultProperty:
+#      show: true
+#      # Selectbox with formats will appear
+#      format:
+#        - json
+#        - propertySheet
+#      default: /myJob/workItemAttachment
+#    parameters:
+#      - property: filename
+#        in: query
+#        label: Attachment filename
+#        required: 1
+#        type: entry
+#        documentation: The name of the file in the attachment store (typically the same as the name of the source of the attachment).
+#      - property: uploadType
+#        type: select
+#        label: Upload type
+#        in: query
+#        documentation: Default is simple. Use chunked upload type for uploading large files (>130 MB).
+#        option:
+#          - name: Simple
+#            value: simple
+#          - name: Chunked
+#            value: chunked
+#      - property: filePath
+#        label: File path
+#        documentation: Path to the file to be uploaded. Either this field or file content field must be specified.
+#        type: entry
+#        in: body
+#      - property: fileContent
+#        label: File content
+#        documentation: File content to be uploaded. Either this field or file path field must be specified.
+#        type: textarea
+#        in: body
 
-  - name: Download an Artifact from a Git Repository
-    stepName: download an artifact from a git repository
-    description: Downloads a file from a Git repository.
-    method: GET
-    endpoint: '#{{endpoint}}/#{{collection}}/#{project}/_apis/git/repositories/#{repository}/items'
-    hasConfig: true
-    attachCredentials: true
-    basicAuth: true
-    documentationLinks:
-     - https://www.visualstudio.com/en-us/docs/integrate/api/git/items#get-a-file
-    contentType: application/json
-    resultProperty:
-      show: true
-      # Selectbox with formats will appear
-      format:
-        - json
-        - propertySheet
-      default: /myJob/downloadGitArtifact
-    parameters:
-      - property: project
-        label: Project name
-        documentation: ID or name of the team project.
-        htmlDocumentation: |
-          ID or name of the <a href="https://www.visualstudio.com/en-us/docs/integrate/api/tfs/projects">team project</a>.
-        type: entry
-        required: 1
-        in: path
-      - property: repository
-        label: Repository name
-        documentation: ID or name of the repository.
-        htmlDocumentation: |
-          ID or name of the <a href="https://www.visualstudio.com/en-us/docs/integrate/api/git/repositories">repository</a>.
-        type: entry
-        required: 1
-        in: path
-      - property: scopePath
-        label: File path
-        documentation: Path to the item in the repository. e.g. /WebSite/WebSite/Views/Home/_Home.cshtml
-        value: /
-        type: entry
-        required: 1
-        in: query
-      - property: destination
-        label: Destination folder for file
-        type: entry
-        documentation: Destination folder for file. If not specified, defaults to the current job workspace.
-      - property: Accept
-        label: Download format
-        in: header
-        type: select
-        value: application/octet-stream
-        documentation: Specify the format for dowloading an artifact.
-        required: true
-        option:
-          - name: Binary
-            value: application/octet-stream
-          - name: Zip
-            value: application/zip
-          - name: JSON (metadata)
-            value: application/json
-      - property: includeContentMetadata
-        label: Include content metadata
-        documentation: |
-          Use true to include additional metadata about the item content, like the file type.
-          Useful only when metadata is retrived.
-        in: query
-        type: checkbox
-        checkedValue: true
-        uncheckedValue: false
-        value: false
-      - property: latestProcessedChange
-        label: Latest processed change
-        documentation: |
-          true gets the commit that contains the previous change to the retrieved version of the item.
-          Of course, the root item ("/") has no commits associated with it, so there will not be a
-          commit returned with the root item.
-          Useful only when metadata is retrived.
-        value: false
-        type: checkbox
-        checkedValue: true
-        uncheckedValue: false
-      - property: versionType
-        label: Version type
-        type: select
-        in: query
-        option:
-          - name: Branch
-            value: branch
-          - name: Commit
-            value: commit
-          - name: Tag
-            value: tag
-        value: branch
-        documentation: Use the versionType and version parameters together. For example, to get an item from "mybranch", use versionType=branch and version=mybranch.
-      - property: version
-        label: Version
-        type: entry
-        value: master
-        in: query
-        htmlDocumentation: |
-          <table>
-          <tr>
-          <th>If versionType is...</th><th>Version is interpreted as...</th>
-          </tr>
-          <tr>
-            <td>Branch</td><td>The name of a branch.</td>
-          </tr>
-          <tr>
-            <td>Tag</td><td>The name of a tag.</td>
-          </tr>
-          <tr>
-            <td>Commit</td><td>The ID of a commit.</td>
-            </tr>
-          </table>
-
-          You can also modify the version with the versionOptions parameter.
-
-      - property: versionOptions
-        in: query
-        label: Version options
-        type: select
-        option:
-          - name: First parent
-            value: firstParent
-          - name: Previous change
-            value: previousChange
-          - name: None
-            value: None
-        value: None
-        htmlDocumentation: |
-         <b>First parent</b>: The parent branch to the version specified by the versionType and version parameters.
-         <br />
-         <b>Previous change</b>: The last version of the item that was changed prior to the version specified by the versionType and version parameters.
-         <br />
-         <b>None</b>: No modification to the version specified by the versionType and version parameters.
+#  - name: Download an Artifact from a Git Repository
+#    stepName: download an artifact from a git repository
+#    description: Downloads a file from a Git repository.
+#    method: GET
+#    endpoint: '#{{endpoint}}/#{{collection}}/#{project}/_apis/git/repositories/#{repository}/items'
+#    hasConfig: true
+#    attachCredentials: true
+#    basicAuth: true
+#    documentationLinks:
+#     - https://www.visualstudio.com/en-us/docs/integrate/api/git/items#get-a-file
+#    contentType: application/json
+#    resultProperty:
+#      show: true
+#      # Selectbox with formats will appear
+#      format:
+#        - json
+#        - propertySheet
+#      default: /myJob/downloadGitArtifact
+#    parameters:
+#      - property: project
+#        label: Project name
+#        documentation: ID or name of the team project.
+#        htmlDocumentation: |
+#          ID or name of the <a href="https://www.visualstudio.com/en-us/docs/integrate/api/tfs/projects">team project</a>.
+#        type: entry
+#        required: 1
+#        in: path
+#      - property: repository
+#        label: Repository name
+#        documentation: ID or name of the repository.
+#        htmlDocumentation: |
+#          ID or name of the <a href="https://www.visualstudio.com/en-us/docs/integrate/api/git/repositories">repository</a>.
+#        type: entry
+#        required: 1
+#        in: path
+#      - property: scopePath
+#        label: File path
+#        documentation: Path to the item in the repository. e.g. /WebSite/WebSite/Views/Home/_Home.cshtml
+#        value: /
+#        type: entry
+#        required: 1
+#        in: query
+#      - property: destination
+#        label: Destination folder for file
+#        type: entry
+#        documentation: Destination folder for file. If not specified, defaults to the current job workspace.
+#      - property: Accept
+#        label: Download format
+#        in: header
+#        type: select
+#        value: application/octet-stream
+#        documentation: Specify the format for dowloading an artifact.
+#        required: true
+#        option:
+#          - name: Binary
+#            value: application/octet-stream
+#          - name: Zip
+#            value: application/zip
+#          - name: JSON (metadata)
+#            value: application/json
+#      - property: includeContentMetadata
+#        label: Include content metadata
+#        documentation: |
+#          Use true to include additional metadata about the item content, like the file type.
+#          Useful only when metadata is retrived.
+#        in: query
+#        type: checkbox
+#        checkedValue: true
+#        uncheckedValue: false
+#        value: false
+#      - property: latestProcessedChange
+#        label: Latest processed change
+#        documentation: |
+#          true gets the commit that contains the previous change to the retrieved version of the item.
+#          Of course, the root item ("/") has no commits associated with it, so there will not be a
+#          commit returned with the root item.
+#          Useful only when metadata is retrived.
+#        value: false
+#        type: checkbox
+#        checkedValue: true
+#        uncheckedValue: false
+#      - property: versionType
+#        label: Version type
+#        type: select
+#        in: query
+#        option:
+#          - name: Branch
+#            value: branch
+#          - name: Commit
+#            value: commit
+#          - name: Tag
+#            value: tag
+#        value: branch
+#        documentation: Use the versionType and version parameters together. For example, to get an item from "mybranch", use versionType=branch and version=mybranch.
+#      - property: version
+#        label: Version
+#        type: entry
+#        value: master
+#        in: query
+#        htmlDocumentation: |
+#          <table>
+#          <tr>
+#          <th>If versionType is...</th><th>Version is interpreted as...</th>
+#          </tr>
+#          <tr>
+#            <td>Branch</td><td>The name of a branch.</td>
+#          </tr>
+#          <tr>
+#            <td>Tag</td><td>The name of a tag.</td>
+#          </tr>
+#          <tr>
+#            <td>Commit</td><td>The ID of a commit.</td>
+#            </tr>
+#          </table>
+#
+#          You can also modify the version with the versionOptions parameter.
+#
+#      - property: versionOptions
+#        in: query
+#        label: Version options
+#        type: select
+#        option:
+#          - name: First parent
+#            value: firstParent
+#          - name: Previous change
+#            value: previousChange
+#          - name: None
+#            value: None
+#        value: None
+#        htmlDocumentation: |
+#         <b>First parent</b>: The parent branch to the version specified by the versionType and version parameters.
+#         <br />
+#         <b>Previous change</b>: The last version of the item that was changed prior to the version specified by the versionType and version parameters.
+#         <br />
+#         <b>None</b>: No modification to the version specified by the versionType and version parameters.
 
 
   - name: Get a Build
