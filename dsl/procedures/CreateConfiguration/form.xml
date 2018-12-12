@@ -20,6 +20,7 @@
         <type>entry</type>
         <label>Configuration:</label>
         <property>config</property>
+        <configuration>1</configuration>
         <required>1</required>
         <documentation>Unique name for the plugin configuration.</documentation>
     </formElement>

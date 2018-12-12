@@ -50,6 +50,33 @@ sub run_parse_response {
 sub serialize_body {
     my ($self, $body) = @_;
 
+    # Checking for payload template
+    my $plugin = $self->plugin;
+    my $step_name = $plugin->current_step_name;
+    my $step_config = $plugin->config->{$step_name};
+
+    if ($step_config->{payload}){
+        $plugin->logger->info("Building payload from \'payload\' template parameter");
+        my $template = $step_config->{payload};
+
+        my $rendered = $plugin->render_template(text => $template, render_params => $body, mt => 1);
+
+        # Checking if need to DEBUG ( to prevent unnecessary template render )
+        if ($plugin->debug_level){
+
+            # Log without sensitive info
+            my $safe_params = { map { $_ => $plugin->safe_log($_, $body->{$_}) } keys %{$body} };
+            my $safe_rendered = $plugin->render_template(
+                text          => $template,
+                render_params => $safe_params,
+                mt            => 1
+            );
+            $plugin->logger->debug("Rendered payload : \n" . $safe_rendered);
+        }
+
+        return $rendered;
+    }
+
     return unless $body;
 
     my $json = encode_json($body);

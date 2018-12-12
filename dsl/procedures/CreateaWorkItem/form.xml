@@ -4,10 +4,8 @@
 <formElement>
   <documentation>Previously defined plugin configuration.</documentation>
   <label>Configuration name:</label>
-  <!-- Improvements for CEV-18687 -->
-  <configuration>1</configuration>
-  <!-- End of improvements for CEV-18687 -->
   <property>config</property>
+  <configuration>1</configuration>
   <propertyReference>/plugins/@PLUGIN_NAME@/project/ec_plugin_cfgs</propertyReference>
   <required>1</required>
   <type>entry</type>
@@ -18,7 +16,7 @@
   <property>title</property>
   <required>1</required>
   <type>entry</type>
-  <value></value>
+  <value/>
 </formElement>
 <formElement>
   <documentation>Name or ID of a team project where the work item should be created.</documentation>
@@ -28,7 +26,7 @@
   <property>project</property>
   <required>1</required>
   <type>entry</type>
-  <value></value>
+  <value/>
 </formElement>
 <formElement>
   <documentation>Name of the work item type.</documentation>
@@ -38,7 +36,7 @@
   <property>type</property>
   <required>1</required>
   <type>entry</type>
-  <value></value>
+  <value/>
 </formElement>
 <formElement>
   <documentation>Priority for completing the work item, based on business goals.</documentation>
@@ -46,7 +44,7 @@
   <property>priority</property>
   <required>0</required>
   <type>entry</type>
-  <value></value>
+  <value/>
 </formElement>
 <formElement>
   <documentation>The person currently assigned to the work item.</documentation>
@@ -54,7 +52,7 @@
   <property>assignTo</property>
   <required>0</required>
   <type>entry</type>
-  <value></value>
+  <value/>
 </formElement>
 <formElement>
   <documentation>Description for the work item.</documentation>
@@ -62,7 +60,7 @@
   <property>description</property>
   <required>0</required>
   <type>textarea</type>
-  <value></value>
+  <value/>
 </formElement>
 <formElement>
   <documentation>Additional fields to be added, e.g. {&quot;Microsoft.VSTS.Common.Severity&quot;: 2}.
@@ -75,7 +73,7 @@ https://www.visualstudio.com/en-us/docs/integrate/api/wit/work-item-types&lt;/a&
   <property>additionalFields</property>
   <required>0</required>
   <type>textarea</type>
-  <value></value>
+  <value/>
 </formElement>
 <formElement>
   <documentation>Pre-set request body, e.g. [{&quot;op&quot;: &quot;add&quot;, &quot;path&quot;: &quot;/relations/-&quot;, &quot;value&quot;: {&quot;rel&quot;: &quot;System.LinkTypes.Hierarchy-Reverse&quot;, &quot;url&quot;: &quot;https://fabrikam-fiber-inc.visualstudio.com/DefaultCollection/_apis/wit/workItems/297&quot;, &quot;attributes&quot;: {&quot;comment&quot;: &quot;decomposition of work&quot;} } } ].</documentation>
@@ -84,7 +82,7 @@ https://www.visualstudio.com/en-us/docs/integrate/api/wit/work-item-types&lt;/a&
   <property>requestBody</property>
   <required>0</required>
   <type>textarea</type>
-  <value></value>
+  <value/>
 </formElement>
 <formElement>
   <documentation>Results will be saved into this property/property sheet.</documentation>
@@ -98,14 +96,15 @@ https://www.visualstudio.com/en-us/docs/integrate/api/wit/work-item-types&lt;/a&
   <documentation>Format to save request results.</documentation>
   <label>Result format:</label>
   <option>
-    <name>json</name>
+    <name>JSON</name>
     <value>json</value>
   </option>
   <option>
-    <name>propertySheet</name>
+    <name>Property Sheet</name>
     <value>propertySheet</value>
   </option>
   <property>resultFormat</property>
+  <value>propertySheet</value>
   <required>1</required>
   <type>select</type>
 </formElement>

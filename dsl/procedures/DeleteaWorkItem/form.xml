@@ -4,10 +4,8 @@
 <formElement>
   <documentation>Previously defined plugin configuration.</documentation>
   <label>Configuration name:</label>
-  <!-- Improvements for CEV-18687 -->
-  <configuration>1</configuration>
-  <!-- End of improvements for CEV-18687 -->
   <property>config</property>
+  <configuration>1</configuration>
   <propertyReference>/plugins/@PLUGIN_NAME@/project/ec_plugin_cfgs</propertyReference>
   <required>1</required>
   <type>entry</type>
@@ -18,7 +16,7 @@
   <property>itemId</property>
   <required>1</required>
   <type>entry</type>
-  <value></value>
+  <value/>
 </formElement>
 <formElement>
   <checkedValue>1</checkedValue>
@@ -42,14 +40,15 @@
   <documentation>Format to save request results.</documentation>
   <label>Result format:</label>
   <option>
-    <name>json</name>
+    <name>JSON</name>
     <value>json</value>
   </option>
   <option>
-    <name>propertySheet</name>
+    <name>Property Sheet</name>
     <value>propertySheet</value>
   </option>
   <property>resultFormat</property>
+  <value>propertySheet</value>
   <required>1</required>
   <type>select</type>
 </formElement>

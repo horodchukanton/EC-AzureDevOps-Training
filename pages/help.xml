@@ -3,7 +3,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
     <meta content="text/html; charset=us-ascii" http-equiv="content-type" />
-    <title><!-- TITLE BEGIN -->Electric Flow integration for TFS/VSTS<!-- TITLE END --></title>
+    <title><!-- TITLE BEGIN -->Electric Flow integration for AzureDevOps Server/Services (former TFS/VSTS)<!-- TITLE END --></title>
     <link rel="stylesheet" href="../../plugins/@PLUGIN_KEY@/pluginhelp.css" type="text/css" media="screen" />
 </head>
 <!-- REST PLUGIN WIZARD HELP -->
@@ -12,9 +12,9 @@
         <h1>@PLUGIN_KEY@</h1>
         <p>Plugin Version @PLUGIN_VERSION@</p>
         <hr style="margin-left: -10px; margin-top: 10px; height: 1px; width: 100%; color: #5981BD;" noshade="noshade" />
-        <p>Revised on <!-- REVISION DATE BEGIN -->June 7, 2018<!-- REVISION DATE END --></p>
+        <p>Revised on <!-- REVISION DATE BEGIN -->December 12, 2018<!-- REVISION DATE END --></p>
         <p>
-            <!-- DESCRIPTION BEGIN -->This plugin allows to work with REST API of Visual Studio Team Services/Team Foundation Server.
+            <!-- DESCRIPTION BEGIN -->This plugin allows to work with REST API of AzureDevOps Server/Services (former TFS/VSTS).
 <!-- DESCRIPTION END -->
             <br />
             Plugin was tested on
@@ -35,14 +35,7 @@
 <li><a href="#GetaWorkItem">Get a Work Item</a></li>
 <li><a href="#DeleteaWorkItem">Delete a Work Item</a></li>
 <li><a href="#GetDefaultValues">Get Default Values</a></li>
-<li><a href="#CreateaWorkItemQuery">Create a Work Item Query</a></li>
-<li><a href="#UpdateaWorkItemQuery">Update a Work Item Query</a></li>
-<li><a href="#RunaWorkItemQuery">Run a Work Item Query</a></li>
-<li><a href="#DeleteaWorkItemQuery">Delete a Work Item Query</a></li>
-<li><a href="#Queueabuild">Queue a build</a></li>
-<li><a href="#UploadaWorkItemAttachment">Upload a Work Item Attachment</a></li>
-<li><a href="#DownloadanArtifactfromaGitRepository">Download an Artifact from a Git Repository</a></li>
-<li><a href="#GetaBuild">Get a Build</a></li><!-- TOC END -->
+<li><a href="#Queueabuild">Queue a build</a></li><!-- TOC END -->
 <li><a href="#QueryWorkItems">Query Work Items</a></li>
 <li><a href="#UseCases">Use Cases</a></li>
 </ul>
@@ -105,10 +98,18 @@
             </tr>
             <tr>
                 <td class="required">
-                    Collection name for Azure DevOps Server:
+                    Collection name for TFS:
                 </td>
                 <td>
                     Collection name. If not defined, DefaultCollection will be used.
+                </td>
+            </tr>
+            <tr>
+                <td class="required">
+                    Auth Type:
+                </td>
+                <td>
+                    Select the type of authentication to use.
                 </td>
             </tr>
             <tr>
@@ -161,6 +162,10 @@
                 </thead>
                 <tbody>
                 <tr>
+                    <td class="required">Configuration Name</td>
+                    <td>Previously defined plugin configuration.</td>
+                </tr>
+                <tr>
                     <td class="required">IDs</td>
                     <td>A comma-separated list of up to 200 IDs of the work items to get.</td>
                 </tr>
@@ -182,6 +187,14 @@
                     <td>Determines if the call will throw an error when encountering a work item (default behavior) that doesn't exist or simply omit it.
 </td>
                 </tr>
+                <tr>
+                    <td class="required">Property sheet name for results</td>
+                    <td>Results will be saved into this property/property sheet.</td>
+                </tr>
+                <tr>
+                    <td class="required">Result format</td>
+                    <td>Format to save request results.</td>
+                </tr>
                  </tbody>
             </table>
         <!-- GetaListofWorkItems END -->
@@ -201,6 +214,10 @@
                     </tr>
                 </thead>
                 <tbody>
+                <tr>
+                    <td class="required">Configuration Name</td>
+                    <td>Previously defined plugin configuration.</td>
+                </tr>
                 <tr>
                     <td class="required">Title</td>
                     <td>Short description of the work item.</td>
@@ -240,6 +257,14 @@ https://www.visualstudio.com/en-us/docs/integrate/api/wit/work-item-types</a>
                     <td>Pre-set request body, e.g. [{"op": "add", "path": "/relations/-", "value": {"rel": "System.LinkTypes.Hierarchy-Reverse", "url": "https://fabrikam-fiber-inc.visualstudio.com/DefaultCollection/_apis/wit/workItems/297", "attributes": {"comment": "decomposition of work"} } } ]
 </td>
                 </tr>
+                <tr>
+                    <td class="required">Property sheet name for results</td>
+                    <td>Results will be saved into this property/property sheet.</td>
+                </tr>
+                <tr>
+                    <td class="required">Result format</td>
+                    <td>Format to save request results.</td>
+                </tr>
                  </tbody>
             </table>
         <!-- CreateaWorkItem END -->
@@ -259,6 +284,10 @@ https://www.visualstudio.com/en-us/docs/integrate/api/wit/work-item-types</a>
                     </tr>
                 </thead>
                 <tbody>
+                <tr>
+                    <td class="required">Configuration Name</td>
+                    <td>Previously defined plugin configuration.</td>
+                </tr>
                 <tr>
                     <td class="required">Item ID</td>
                     <td>ID of the work item to be updated.</td>
@@ -289,6 +318,14 @@ https://www.visualstudio.com/en-us/docs/integrate/api/wit/work-item-types</a>
                     <td>Pre-set request body, e.g. [{"op": "add", "path": "/relations/-", "value": {"rel": "System.LinkTypes.Hierarchy-Reverse", "url": "https://fabrikam-fiber-inc.visualstudio.com/DefaultCollection/_apis/wit/workItems/297", "attributes": {"comment": "decomposition of work"} } } ]
 </td>
                 </tr>
+                <tr>
+                    <td class="required">Property sheet name for results</td>
+                    <td>Results will be saved into this property/property sheet.</td>
+                </tr>
+                <tr>
+                    <td class="required">Result format</td>
+                    <td>Format to save request results.</td>
+                </tr>
                  </tbody>
             </table>
         <!-- UpdateaWorkItem END -->
@@ -309,12 +346,24 @@ https://www.visualstudio.com/en-us/docs/integrate/api/wit/work-item-types</a>
                 </thead>
                 <tbody>
                 <tr>
+                    <td class="required">Configuration Name</td>
+                    <td>Previously defined plugin configuration.</td>
+                </tr>
+                <tr>
                     <td class="required">ID</td>
                     <td>ID of the work item to retrieve.</td>
                 </tr>
                 <tr>
                     <td>Expand</td>
                     <td>Gets work item relationships (work item links, hyperlinks and file attachements).</td>
+                </tr>
+                <tr>
+                    <td class="required">Property sheet name for results</td>
+                    <td>Results will be saved into this property/property sheet.</td>
+                </tr>
+                <tr>
+                    <td class="required">Result format</td>
+                    <td>Format to save request results.</td>
                 </tr>
                  </tbody>
             </table>
@@ -336,12 +385,24 @@ https://www.visualstudio.com/en-us/docs/integrate/api/wit/work-item-types</a>
                 </thead>
                 <tbody>
                 <tr>
+                    <td class="required">Configuration Name</td>
+                    <td>Previously defined plugin configuration.</td>
+                </tr>
+                <tr>
                     <td class="required">ID</td>
                     <td>ID of the work item to delete.</td>
                 </tr>
                 <tr>
                     <td>Strict mode</td>
                     <td>If checked, the procedure will fail in case the item does not exist.</td>
+                </tr>
+                <tr>
+                    <td class="required">Property sheet name for results</td>
+                    <td>Results will be saved into this property/property sheet.</td>
+                </tr>
+                <tr>
+                    <td class="required">Result format</td>
+                    <td>Format to save request results.</td>
                 </tr>
                  </tbody>
             </table>
@@ -363,12 +424,24 @@ https://www.visualstudio.com/en-us/docs/integrate/api/wit/work-item-types</a>
                 </thead>
                 <tbody>
                 <tr>
+                    <td class="required">Configuration Name</td>
+                    <td>Previously defined plugin configuration.</td>
+                </tr>
+                <tr>
                     <td class="required">Project</td>
                     <td>Name or ID of a team project where the work item type is defined.</td>
                 </tr>
                 <tr>
                     <td class="required">Work item type name</td>
                     <td>Name of the work item type.</td>
+                </tr>
+                <tr>
+                    <td class="required">Property sheet name for results</td>
+                    <td>Results will be saved into this property/property sheet.</td>
+                </tr>
+                <tr>
+                    <td class="required">Result format</td>
+                    <td>Format to save request results.</td>
                 </tr>
                  </tbody>
             </table>
@@ -542,6 +615,10 @@ https://www.visualstudio.com/en-us/docs/integrate/api/wit/work-item-types</a>
                 </thead>
                 <tbody>
                 <tr>
+                    <td class="required">Configuration Name</td>
+                    <td>Previously defined plugin configuration.</td>
+                </tr>
+                <tr>
                     <td class="required">Project</td>
                     <td>Team project ID or name.</td>
                 </tr>
@@ -575,6 +652,14 @@ https://www.visualstudio.com/en-us/docs/integrate/api/wit/work-item-types</a>
 E.g., <pre>{"system.debug":"true","BuildConfiguration":"debug","BuildPlatform":"x64"}</pre>
 If not specified, the default variables for the definition will be used.
 </td>
+                </tr>
+                <tr>
+                    <td class="required">Property sheet name for results</td>
+                    <td>Results will be saved into this property/property sheet.</td>
+                </tr>
+                <tr>
+                    <td class="required">Result format</td>
+                    <td>Format to save request results.</td>
                 </tr>
                  </tbody>
             </table>
@@ -699,46 +784,6 @@ You can also modify the version with the versionOptions parameter.
                  </tbody>
             </table>
         <!-- DownloadanArtifactfromaGitRepository END -->
-            </div>
-            <div id="GetaBuild">
-                <a name="GetaBuild" id="GetaBuild" />
-                <!-- GetaBuild METADATA BEGIN -->
-            <h3>Get a Build</h3>
-            <p>Gets a specified build info</p>
-        <p>This procedure is a wrapper around REST API. See <a href="https://www.visualstudio.com/en-us/docs/integrate/api/build/builds#get-a-build" target="_blank">Get a Build</a> for reference.</p><!-- GetaBuild METADATA END -->
-                <!-- GetaBuild BEGIN -->
-            <table class="grid">
-                <thead>
-                    <tr>
-                        <th>Parameter</th>
-                        <th>Description</th>
-                    </tr>
-                </thead>
-                <tbody>
-                <tr>
-                    <td class="required">Project name</td>
-                    <td>ID or name of the <a href="https://www.visualstudio.com/en-us/docs/integrate/api/tfs/projects" target="_blank" >team project</a>.
-</td>
-                </tr>
-                <tr>
-                    <td class="required">Build number or ID</td>
-                    <td>ID or number of the build.</td>
-                </tr>
-                <tr>
-                    <td>Wait for build</td>
-                    <td>If checked, the procedure will poll the build status until the build is finished.</td>
-                </tr>
-                <tr>
-                    <td>Timeout to wait</td>
-                    <td>Time (in seconds) to wait for build to be finished. Used if "Wait for build" flag is set.</td>
-                </tr>
-                <tr>
-                    <td>Mimic build status</td>
-                    <td>If checked, the procedure status will mimic build status, e.g. if the build has failed, the procedure will fail too.</td>
-                </tr>
-                 </tbody>
-            </table>
-        <!-- GetaBuild END -->
             </div>
             <!-- PROCEDURES END -->
             <div id="UseCases">

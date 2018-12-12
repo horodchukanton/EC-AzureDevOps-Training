@@ -144,7 +144,7 @@ sub poll_build {
     my $request = $self->create_request('GET',
         '#{{endpoint}}/#{{collection}}/#{project}/_apis/build/builds/' . $build_id . '?api-version=2.0',
         {}, '');
-    my $ua = $self->new_lwp();
+    my $ua = $self->plugin->new_lwp();
     my $time = 0;
 
     my $result;
@@ -269,7 +269,7 @@ sub get_queue_id {
         '#{{endpoint}}/#{{collection}}/#{project}/_apis/distributedtask/queues?api-version=3.0-preview.1',
         {queueName => $queue}, '');
     $self->plugin->logger->trace($request);
-    my $ua = $self->new_lwp();
+    my $ua = $self->plugin->new_lwp();
     my $response = $ua->request($request);
     $self->plugin->logger->trace($response);
     $self->parse_json_error($response);
@@ -302,7 +302,7 @@ sub get_definition_id {
 
     my $request = $self->create_request('GET', '#{{endpoint}}/#{{collection}}/#{project}/_apis/build/definitions?api-version=2.0',
         {name => $definition}, '');
-    my $ua = $self->new_lwp();
+    my $ua = $self->plugin->new_lwp();
     $self->plugin->logger->debug("Get definition id request URI: " . $request->uri);
     $self->plugin->logger->trace($request);
 
@@ -340,7 +340,7 @@ sub get_build_id {
         '#{{endpoint}}/#{{collection}}/#{project}/_apis/build/builds?api-version=2.0',
         {buildNumber => $build_id}, '');
 
-    my $ua = $self->new_lwp();
+    my $ua = $self->plugin->new_lwp();
     $self->plugin->logger->debug("Get build id request URI: " . $request->uri);
     $self->plugin->logger->trace($request);
     my $response = $ua->request($request);
@@ -534,7 +534,7 @@ sub upload_attachment_response {
     my %request_query_form = URI->new($response->request->url)->query_form;
 
     $self->plugin->logger->debug("Auth: $auth");
-    my $ua = $self->new_lwp();
+    my $ua = $self->plugin->new_lwp();
 
     my $url = URI->new($data->{url});
     $url->query_form($url->query_form, uploadType => 'chunked', 'api-version' => $request_query_form{'api-version'});
