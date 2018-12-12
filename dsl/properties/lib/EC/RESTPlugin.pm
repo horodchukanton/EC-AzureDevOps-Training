@@ -731,10 +731,15 @@ sub new_lwp {
         }
 
         # Get credential
-        my $username = '\Administrator';
+        my $username = $config->{userName};
         my $password = $config->{password};
 
         $self->logger->debug("Password is empty") unless $password;
+
+        if ($username !~ /\\/){
+            $self->logger->debug("Login does not contain a domain. Prepending '\\'");
+            $username = '\\' . $username;
+        }
 
         # Get url
         my $url = URI->new($config->{endpoint});
