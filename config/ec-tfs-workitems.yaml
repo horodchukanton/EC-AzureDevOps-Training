@@ -2,6 +2,8 @@
 # This block refers to auto help generation
 options:
   noEmptyString: true
+common:
+  formXmlCompliant: true
 help:
   title: Electric Flow integration for AzureDevOps Server/Services (former TFS/VSTS)
   description: |
@@ -538,8 +540,8 @@ procedures:
 #        in: query
 #        required: 1
 
-  - name: Queue a build
-    stepName: queue a build
+  - name: TriggerBuild
+    stepName: trigger a build
     description: Queues a new build.
     documentationLinks:
       - https://www.visualstudio.com/en-us/docs/integrate/api/build/builds#queue-a-build
@@ -612,51 +614,61 @@ procedures:
 
           If not specified, the default variables for the definition will be used.
 
-#  - name: Upload a Work Item Attachment
-#    stepName: upload a work item attachment
-#    description: To attach a file to a work item, upload the attachment to the attachment store, then attach it to the work item.
-#    method: POST
-#    endpoint: '#{{endpoint}}/#{{collection}}/_apis/wit/attachments'
-#    hasConfig: true
-#    attachCredentials: true
-#    basicAuth: true
-#    contentType: application/json
-#    documentationLinks:
-#      - https://www.visualstudio.com/en-us/docs/integrate/api/wit/attachments#upload-an-attachment
-#    resultProperty:
-#      show: true
-#      # Selectbox with formats will appear
-#      format:
-#        - json
-#        - propertySheet
-#      default: /myJob/workItemAttachment
-#    parameters:
-#      - property: filename
-#        in: query
-#        label: Attachment filename
-#        required: 1
-#        type: entry
-#        documentation: The name of the file in the attachment store (typically the same as the name of the source of the attachment).
-#      - property: uploadType
-#        type: select
-#        label: Upload type
-#        in: query
-#        documentation: Default is simple. Use chunked upload type for uploading large files (>130 MB).
-#        option:
-#          - name: Simple
-#            value: simple
-#          - name: Chunked
-#            value: chunked
-#      - property: filePath
-#        label: File path
-#        documentation: Path to the file to be uploaded. Either this field or file content field must be specified.
-#        type: entry
-#        in: body
-#      - property: fileContent
-#        label: File content
-#        documentation: File content to be uploaded. Either this field or file path field must be specified.
-#        type: textarea
-#        in: body
+  - name: Upload a Work Item Attachment
+    stepName: upload a work item attachment
+    description: To attach a file to a work item, upload the attachment to the attachment store, then attach it to the work item.
+    method: POST
+    endpoint: '#{{endpoint}}/#{{collection}}/_apis/wit/attachments'
+    hasConfig: true
+    attachCredentials: true
+    basicAuth: true
+    contentType: application/json
+    documentationLinks:
+      - https://www.visualstudio.com/en-us/docs/integrate/api/wit/attachments#upload-an-attachment
+    resultProperty:
+      show: true
+      # Selectbox with formats will appear
+      format:
+        - json
+        - propertySheet
+      default: /myJob/workItemAttachment
+    parameters:
+      - property : workItemId
+        label: Work Item ID
+        required : 1
+        type : entry
+        documentation: ID of the work item.
+      - property: comment
+        label : Comment
+        required : 0
+        type : entry
+        documentation: Comment for the attachment
+      - property: filename
+        in: query
+        label: Attachment filename
+        required: 1
+        type: entry
+        documentation: The name of the file in the attachment store (typically the same as the name of the source of the attachment).
+      - property: uploadType
+        type: select
+        label: Upload type
+        in: query
+        documentation: Default is simple. Use chunked upload type for uploading large files (>130 MB).
+        option:
+          - name: Simple
+            value: simple
+          - name: Chunked
+            value: chunked
+      - property: filePath
+        label: File path
+        documentation: Path to the file to be uploaded. Either this field or file content field must be specified.
+        type: entry
+        in: body
+      - property: fileContent
+        label: File content
+        documentation: File content to be uploaded. Either this field or file path field must be specified.
+        type: textarea
+        in: body
 
 #  - name: Download an Artifact from a Git Repository
 #    stepName: download an artifact from a git repository

@@ -35,7 +35,8 @@
 <li><a href="#GetaWorkItem">Get a Work Item</a></li>
 <li><a href="#DeleteaWorkItem">Delete a Work Item</a></li>
 <li><a href="#GetDefaultValues">Get Default Values</a></li>
-<li><a href="#Queueabuild">Queue a build</a></li><!-- TOC END -->
+<li><a href="#Triggerbuild">TriggerBuild</a></li>
+<li><a href="#UploadaWorkItemAttachment">Upload a Work Item Attachment</a></li><!-- TOC END -->
 <li><a href="#QueryWorkItems">Query Work Items</a></li>
 <li><a href="#UseCases">Use Cases</a></li>
 </ul>
@@ -600,12 +601,12 @@ https://www.visualstudio.com/en-us/docs/integrate/api/wit/work-item-types</a>
             </table>
         <!-- CreateaWorkItemQuery END -->
             </div>
-                <div id="Queueabuild">
-                <!-- Queueabuild METADATA BEGIN -->
-            <h3>Queue a build</h3>
+                <div id="Triggerbuild">
+                <!-- Triggerbuild METADATA BEGIN -->
+            <h3>TriggerBuild</h3>
             <p>Queues a new build.</p>
-        <p>This procedure is a wrapper around REST API. See <a href="https://www.visualstudio.com/en-us/docs/integrate/api/build/builds#queue-a-build" target="_blank">Queue a build</a> for reference.</p><!-- Queueabuild METADATA END -->
-                <!-- Queueabuild BEGIN -->
+        <p>This procedure is a wrapper around REST API. See <a href="https://www.visualstudio.com/en-us/docs/integrate/api/build/builds#queue-a-build" target="_blank">TriggerBuild</a> for reference.</p><!-- Triggerbuild METADATA END -->
+                <!-- Triggerbuild BEGIN -->
             <table class="grid">
                 <thead>
                     <tr>
@@ -663,7 +664,7 @@ If not specified, the default variables for the definition will be used.
                 </tr>
                  </tbody>
             </table>
-        <!-- Queueabuild END -->
+        <!-- Triggerbuild END -->
             </div>
                 <div id="UploadaWorkItemAttachment">
                 <!-- UploadaWorkItemAttachment METADATA BEGIN -->
@@ -680,6 +681,18 @@ If not specified, the default variables for the definition will be used.
                 </thead>
                 <tbody>
                 <tr>
+                    <td class="required">Configuration Name</td>
+                    <td>Previously defined plugin configuration.</td>
+                </tr>
+                <tr>
+                    <td class="required">Work Item ID</td>
+                    <td>ID of the work item.</td>
+                </tr>
+                <tr>
+                    <td>Comment</td>
+                    <td>Comment for the attachment</td>
+                </tr>
+                <tr>
                     <td class="required">Attachment filename</td>
                     <td>The name of the file in the attachment store (typically the same as the name of the source of the attachment).</td>
                 </tr>
@@ -694,6 +707,14 @@ If not specified, the default variables for the definition will be used.
                 <tr>
                     <td>File content</td>
                     <td>File content to be uploaded. Either this field or file path field must be specified.</td>
+                </tr>
+                <tr>
+                    <td class="required">Property sheet name for results</td>
+                    <td>Results will be saved into this property/property sheet.</td>
+                </tr>
+                <tr>
+                    <td class="required">Result format</td>
+                    <td>Format to save request results.</td>
                 </tr>
                  </tbody>
             </table>

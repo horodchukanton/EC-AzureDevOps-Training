@@ -86,10 +86,10 @@ sub define_hooks {
     $self->define_hook('delete a work item', 'response', \&delete_work_item_response, {run_before_shared => 1});
     $self->define_hook('get a list of work items', 'parsed', \&get_work_items_response_parsed);
     $self->define_hook('query work items', 'parsed', \&query_work_items_parsed);
-    $self->define_hook('queue a build', 'parsed', \&queue_build_parsed);
-    $self->define_hook('queue a build', 'parameters', \&queue_build_parameters);
-    $self->define_hook('queue a build', 'parsed', \&queue_build_parsed);
-    $self->define_hook('queue a build', 'after', \&queue_build_after);
+    $self->define_hook('trigger a build', 'parsed', \&queue_build_parsed);
+    $self->define_hook('trigger a build', 'parameters', \&queue_build_parameters);
+    $self->define_hook('trigger a build', 'parsed', \&queue_build_parsed);
+    $self->define_hook('trigger a build', 'after', \&queue_build_after);
     $self->define_hook('get a build', 'request', \&poll_build_status);
     $self->define_hook('get a build', 'parameters', \&get_build_id);
     $self->define_hook('get a build', 'after', \&get_build_after);
@@ -97,8 +97,53 @@ sub define_hooks {
     $self->define_hook('upload a work item attachment', 'parsed', \&upload_attachment_parsed);
     $self->define_hook('upload a work item attachment', 'request', \&upload_attachment_request);
     $self->define_hook('upload a work item attachment', 'response', \&upload_attachment_response);
+    $self->define_hook('upload a work item attachment', 'after', \&add_attachment_link);
     $self->define_hook('*', 'response', \&parse_json_error);
     $self->define_hook('*', 'request', \&general_request);
+
+}
+
+sub add_attachment_link {
+    my ( $self, $parsed ) = @_;
+
+    my $params = $self->plugin->parameters;
+    my $config = $self->plugin->get_config_values($params->{config});
+
+    for my $required (qw/workItemId/){
+        $self->plugin->bail_out("Parameter '$required' is mandatory") unless $params->{$required};
+    }
+
+    #PATCH
+    my $endpoint = $config->{endpoint} . "/$config->{collection}/_apis/wit/workitems/$params->{workItemId}";
+
+    my $payload = [ {
+        op    => "add",
+        path  => "/relations/-",
+        value => {
+            rel => "AttachedFile",
+            url => $parsed->{url},
+            %{$params->{comment} ? { attributes => { comment => $params->{comment} } } : {}}
+        }
+    }];
+
+    my $encoded_payload = encode_json($payload);
+
+    my HTTP::Request $request = $self->plugin->get_new_http_request('PATCH' => $endpoint);
+    $request->headers->header('Content-Type', 'application/json-patch+json');
+    $request->content($encoded_payload);
+
+    # Apply api version
+    $self->general_request($request);
+
+    my LWP::UserAgent $ua = $self->plugin->new_lwp();
+    my HTTP::Response $response = $ua->request($request);
+
+    if ($response->is_success){
+      $self->plugin->success("Successfully linked the attachment");
+    }
+    else {
+        $self->plugin->error($response->status_line());
+    }
 }
 
 sub get_build_link {

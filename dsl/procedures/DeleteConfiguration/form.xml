@@ -20,7 +20,6 @@
         <type>entry</type>
         <label>Configuration:</label>
         <property>config</property>
-        <configuration>1</configuration>
         <required>1</required>
         <documentation>The name of the configuration to delete.</documentation>
     </formElement>

@@ -29,9 +29,13 @@ Deletes the specified work item.
 
 Get the default values that will be filled in automatically when you create a new work item of a specific type.
 
-## Queue a build
+## TriggerBuild
 
 Queues a new build.
+
+## Upload a Work Item Attachment
+
+To attach a file to a work item, upload the attachment to the attachment store, then attach it to the work item.
 
 
 

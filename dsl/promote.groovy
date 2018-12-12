@@ -15,13 +15,14 @@ def pluginDir = getProperty("/projects/$pluginName/pluginDir").value
 //List of procedure steps to which the plugin configuration credentials need to be attached
 // ** steps with attached credentials
 def stepsWithAttachedCredentials = [
-	[procedureName: 'Get a List of Work Items', stepName: 'get a list of work items'],
-	[procedureName: 'Get a Work Item', stepName: 'get a work item'],
-	[procedureName: 'Create a Work Item', stepName: 'create a work item'],
-	[procedureName: 'Update a Work Item', stepName: 'update a work item'],
-	[procedureName: 'Delete a Work Item', stepName: 'delete a work item'],
-	[procedureName: 'Get Default Values', stepName: 'get default values'],
-	[procedureName: 'Queue a build', stepName: 'queue a build'],
+  [procedureName: 'Create a Work Item', stepName: 'create a work item'],
+  [procedureName: 'Delete a Work Item', stepName: 'delete a work item'],
+  [procedureName: 'Get Default Values', stepName: 'get default values'],
+  [procedureName: 'Get a List of Work Items', stepName: 'get a list of work items'],
+  [procedureName: 'Get a Work Item', stepName: 'get a work item'],
+  [procedureName: 'TriggerBuild', stepName: 'trigger a build'],
+  [procedureName: 'Update a Work Item', stepName: 'update a work item'],
+  [procedureName: 'Upload a Work Item Attachment', stepName: 'upload a work item attachment']
 ]
 // ** end steps with attached credentials
 
@@ -31,10 +32,10 @@ def unavailableProcedures = [
 	[procedureName: 'Delete a Work Item Query', stepName: 'delete a work item query'],
 	[procedureName: 'Download an Artifact from a Git Repository', stepName: 'download an artifact from a git repository'],
 	[procedureName: 'Get a Build', stepName: 'get a build'],
+	[procedureName: 'Query a build', stepName: 'query a build'],
 	[procedureName: 'Query Work Items', stepName: 'query work items'],
 	[procedureName: 'Run a Work Item Query', stepName: 'run a work item query'],
-	[procedureName: 'Update a Work Item Query', stepName: 'updates a work item query'],
-	[procedureName: 'Upload a Work Item Attachment', stepName: 'upload a work item attachment']
+	[procedureName: 'Update a Work Item Query', stepName: 'updates a work item query']
 ]
 
 project pluginName, {

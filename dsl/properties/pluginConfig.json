@@ -149,6 +149,91 @@
    "options" : {
       "noEmptyString" : "true"
    },
+   "upload a work item attachment" : {
+      "resultProperty" : {
+         "show" : "true",
+         "format" : [
+            "json",
+            "propertySheet"
+         ],
+         "default" : "/myJob/workItemAttachment"
+      },
+      "name" : "Upload a Work Item Attachment",
+      "description" : "To attach a file to a work item, upload the attachment to the attachment store, then attach it to the work item.",
+      "stepName" : "upload a work item attachment",
+      "parameters" : [
+         {
+            "required" : "1",
+            "documentation" : "ID of the work item.",
+            "type" : "entry",
+            "label" : "Work Item ID",
+            "property" : "workItemId"
+         },
+         {
+            "required" : "0",
+            "documentation" : "Comment for the attachment",
+            "type" : "entry",
+            "label" : "Comment",
+            "property" : "comment"
+         },
+         {
+            "required" : "1",
+            "in" : "query",
+            "documentation" : "The name of the file in the attachment store (typically the same as the name of the source of the attachment).",
+            "type" : "entry",
+            "label" : "Attachment filename",
+            "property" : "filename"
+         },
+         {
+            "in" : "query",
+            "documentation" : "Default is simple. Use chunked upload type for uploading large files (>130 MB).",
+            "option" : [
+               {
+                  "value" : "simple",
+                  "name" : "Simple"
+               },
+               {
+                  "value" : "chunked",
+                  "name" : "Chunked"
+               }
+            ],
+            "label" : "Upload type",
+            "type" : "select",
+            "property" : "uploadType"
+         },
+         {
+            "in" : "body",
+            "documentation" : "Path to the file to be uploaded. Either this field or file content field must be specified.",
+            "type" : "entry",
+            "label" : "File path",
+            "property" : "filePath"
+         },
+         {
+            "in" : "body",
+            "documentation" : "File content to be uploaded. Either this field or file path field must be specified.",
+            "type" : "textarea",
+            "label" : "File content",
+            "property" : "fileContent"
+         }
+      ],
+      "fields" : [
+         "workItemId",
+         "comment",
+         "filename",
+         "uploadType",
+         "filePath",
+         "fileContent"
+      ],
+      "hasConfig" : "true",
+      "basicAuth" : "true",
+      "method" : "POST",
+      "documentationLinks" : [
+         "https://www.visualstudio.com/en-us/docs/integrate/api/wit/attachments#upload-an-attachment"
+      ],
+      "contentType" : "application/json",
+      "endpoint" : "#{{endpoint}}/#{{collection}}/_apis/wit/attachments",
+      "attachCredentials" : "true"
+   },
    "delete a work item" : {
       "resultProperty" : {
          "show" : "true",
@@ -296,7 +381,7 @@
       "endpoint" : "#{{endpoint}}/#{{collection}}/#{project}/_apis/wit/workitems/#{type}",
       "attachCredentials" : "true"
    },
-   "queue a build" : {
+   "trigger a build" : {
       "resultProperty" : {
          "show" : "true",
          "format" : [
@@ -305,9 +390,9 @@
          ],
          "default" : "/myJob/queueBuild"
       },
-      "name" : "Queue a build",
+      "name" : "TriggerBuild",
       "description" : "Queues a new build.",
-      "stepName" : "queue a build",
+      "stepName" : "trigger a build",
       "parameters" : [
          {
             "required" : "1",
