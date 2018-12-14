@@ -138,7 +138,7 @@
     <property>resultPropertySheet</property>
     <required>1</required>
     <type>entry</type>
-    <value>/myJob/newWorkItem</value>
+    <value>/myJob/newWorkItems</value>
     <dependsOn>resultFormat</dependsOn>
     <condition>${resultFormat} != 'none'</condition>
   </formElement>

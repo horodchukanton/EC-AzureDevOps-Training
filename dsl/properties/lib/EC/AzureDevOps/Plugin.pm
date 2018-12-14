@@ -100,7 +100,7 @@ sub step_create_work_items {
          }
     );
 
-    # Prepend $ to the type name
+    # Prepending '$' to the type name
     my $type = ($parameters->{type} =~ /^\$/) ? $parameters->{type} : '$' . $parameters->{type};
 
     my $method_path = $parameters->{project} . '/_apis/wit/workitems/' . $type;
@@ -110,6 +110,7 @@ sub step_create_work_items {
     my %query = ();
     $query{'api-version'} = EC::AzureDevOps::WorkItems::get_api_version($method_path, $config);
 
+    # Generating the payload from the parameters
     my @work_item_payloads = $self->build_createupdate_workitem_payloads($parameters);
 
     # Sending requests one by one
@@ -119,6 +120,7 @@ sub step_create_work_items {
         push @created_items, $result;
     }
 
+    # Save the properties
     my $result_property_sheet = $parameters->{resultPropertySheet};
     my $result_ids_property_name =  $result_property_sheet . '/workItemIds';
     $self->save_entities(\@created_items, $result_property_sheet, $parameters->{resultFormat}, $result_ids_property_name);
