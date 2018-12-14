@@ -281,7 +281,7 @@
       "endpoint" : "#{{endpoint}}/#{{collection}}/#{project}/_apis/wit/workitems/#{itemId}",
       "attachCredentials" : "true"
    },
-   "create a work item" : {
+   "create work items" : {
       "resultProperty" : {
          "show" : "true",
          "format" : [
@@ -290,9 +290,9 @@
          ],
          "default" : "/myJob/newWorkItem"
       },
-      "name" : "Create a Work Item",
+      "name" : "CreateWorkItems",
       "description" : "Creates a new work item.",
-      "stepName" : "create a work item",
+      "stepName" : "create work items",
       "parameters" : [
          {
             "required" : "1",

@@ -9,7 +9,7 @@ This plugin allows to work with REST API of AzureDevOps Server/Services (former 
 
 Retrieves a list of the work items.
 
-## Create a Work Item
+## CreateWorkItems
 
 Creates a new work item.
 

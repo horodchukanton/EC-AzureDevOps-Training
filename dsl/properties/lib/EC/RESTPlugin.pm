@@ -768,7 +768,6 @@ sub new_lwp {
             # Apply the changed headers
             $response->headers($headers);
 
-            print Dumper $response->{_headers};
         });
 
     }

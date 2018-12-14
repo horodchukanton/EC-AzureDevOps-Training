@@ -10,6 +10,13 @@ use JSON::XS qw/decode_json encode_json/;
 use EC::Plugin::Microrest;
 use EC::AzureDevOps::WorkItems;
 
+use constant {
+    RESULT_PROPERTY_SHEET_FIELD => 'resultPropertySheet',
+    FORBIDDEN_FIELD_NAME_PREFIX => '_'
+};
+use constant FORBIDDEN_FIELD_NAME_PROPERTY_SHEET => qw(acl createTime lastModifiedBy modifyTime owner propertySheetId description);
+
+
 my %MS_FIELDS_MAPPING = (
     title       => 'System.Title',
     description => 'System.Description',
@@ -68,8 +75,10 @@ sub after_init_hook {
 sub step_create_work_items {
     my ($self) = @_;
 
-    my $fields = [qw/config project type title priority assignTo description additionalFields requestBody sourceProperty resultPropertySheet resultFormat/];
-    my $parameters = $self->get_params_as_hashref(@$fields);
+    my @fields = qw/config project type title priority assignTo
+        description additionalFields requestBody sourceProperty
+        resultPropertySheet resultFormat/;
+    my $parameters = $self->get_params_as_hashref(@fields);
 
     $self->logger->debug("Parameters", $parameters);
 
@@ -78,17 +87,20 @@ sub step_create_work_items {
     }
 
     my $config = $self->get_config_values($parameters->{config});
-    my $username = $config->{userName};
-    my $password = $config->{password};
 
-    my $client = EC::Plugin::MicroRest->new(
-        url      => $self->get_base_url($config),
-        auth     => $config->{auth} || 'basic',
-        user     => $username,
-        password => $password,
-        ctype    => 'application/json-patch+json'
+     my $client = EC::Plugin::MicroRest->new(
+         url        => $self->get_base_url($config),
+         auth       => $config->{auth} || 'basic',
+         user       => $config->{userName},
+         password   => $config->{password},
+         ctype      => 'application/json-patch+json',
+         encode_sub => \&encode_json,
+         decode_sub => sub {
+             $self->decode_json_or_bail_out(shift, "Failed to parse JSON response from $config->{endpoint}).")
+         }
     );
 
+    # Prepend $ to the type name
     my $type = ($parameters->{type} =~ /^\$/) ? $parameters->{type} : '$' . $parameters->{type};
 
     my $method_path = $parameters->{project} . '/_apis/wit/workitems/' . $type;
@@ -100,20 +112,16 @@ sub step_create_work_items {
 
     my @work_item_payloads = $self->build_createupdate_workitem_payloads($parameters);
 
+    # Sending requests one by one
     my @created_items = ();
-    my @ids = ();
-
-    # Finally can send the request
     for my $payload (@work_item_payloads){
-        my $response = $client->post($method_path, \%query, $payload);
-
-        my $result = $self->decode_json_or_bail_out($response, "Failed to parse JSON response from $config->{endpoint}.");
-
+        my $result = $client->post($method_path, \%query, $payload);
         push @created_items, $result;
-        push(@ids, $result->{id});
     }
 
-    $self->save_entities();
+    my $result_property_sheet = $parameters->{resultPropertySheet};
+    my $result_ids_property_name =  $result_property_sheet . '/workItemIds';
+    $self->save_entities(\@created_items, $result_property_sheet, $parameters->{resultFormat}, $result_ids_property_name);
 
     my $count = scalar(@created_items);
     my $summary = "Successfully created $count work item" . (($count > 1) ? 's' : '') . '.';
@@ -195,10 +203,18 @@ sub build_createupdate_workitem_payloads {
     return wantarray ? @results : \@results;
 }
 
-sub save_entities{
-    my ($entities_list, $result_format, $result_property) = @_;
+sub save_entities {
+    my ($self, $entities_list, $result_property, $result_format, $ids_property) = @_;
 
-    print Dumper $entities_list;
+    my @ids = ();
+    for my $entity (@$entities_list){
+        my $id = $entity->{id};
+        push @ids, $id;
+        $self->save_parsed_data($entity, $result_property . "/$id", $result_format)
+    }
+
+    $self->logger->info("Created work item IDs saved to a property $ids_property", );
+    $self->set_property($ids_property, join(', ', @ids));
 
     return 1;
 }
@@ -221,4 +237,106 @@ sub get_base_url {
     return "$config->{endpoint}/$config->{collection}";
 }
 
+sub save_parsed_data {
+    my ($self, $parsed_data, $result_property, $result_format) = @_;
+
+    unless($result_format) {
+        return $self->bail_out('No format has beed selected');
+    }
+
+    unless($parsed_data) {
+        $self->logger->info("Nothing to save");
+        return;
+    }
+
+    $self->logger->info("Got data", JSON->new->pretty->encode($parsed_data));
+
+    if ($result_format eq 'propertySheet') {
+
+        my $flat_map = $self->_self_flatten_map($parsed_data, $result_property, 'check_errors!');
+
+        for my $key (sort keys %$flat_map) {
+            $self->ec->setProperty($key, $flat_map->{$key});
+            $self->logger->info("Saved $key -> $flat_map->{$key}");
+        }
+    }
+    elsif ($result_format eq 'json') {
+        my $json = encode_json($parsed_data);
+        $json = decode('utf8', $json);
+        $self->logger->trace(Dumper($json));
+        $self->ec->setProperty($result_property, $json);
+        $self->logger->info("Saved answer under $result_property");
+    }
+    elsif ($result_format eq 'file') {
+        #saving data implementation is on Hooks side!
+    }
+    else {
+        $self->bail_out("Cannot process format $result_format: not implemented");
+    }
+}
+
+
+sub _self_flatten_map {
+    my ($self, $map, $prefix, $check) = @_;
+
+    if (defined $check and $check){
+        $check = 1;
+    }
+    else{
+        $check = 0;
+    }
+    $prefix ||= '';
+    my %retval = ();
+
+    for my $key (keys %$map) {
+
+        my $value = $map->{$key};
+        if (ref $value eq 'ARRAY') {
+            my $counter = 1;
+            my %copy = map { my $key = ref $_ ? $counter ++ : $_; $key => $_ } @$value;
+            $value = \%copy;
+        }
+        if (ref $value ne 'HASH') {
+            $value = '' unless defined $value;
+            $value = "$value";
+        }
+        if (ref $value) {
+            if ($check){
+                foreach my $bad_key(FORBIDDEN_FIELD_NAME_PROPERTY_SHEET){
+                    if (exists $value->{$bad_key}){
+                        $self->fix_propertysheet_forbidden_key($value, $bad_key);
+                    }
+                }
+            }
+
+            %retval = (%retval, %{$self->_self_flatten_map($value, "$prefix/$key", $check)});
+        }
+        else {
+            if ($check){
+                foreach my $bad_key(FORBIDDEN_FIELD_NAME_PROPERTY_SHEET){
+                    if ($key eq $bad_key){
+                        $self->fix_propertysheet_forbidden_key(\$key, $bad_key);
+                    }
+                }
+            }
+
+            $retval{"$prefix/$key"} = $value;
+        }
+    }
+    return \%retval;
+}
+
+sub fix_propertysheet_forbidden_key{
+    my ($self, $ref_var, $key) = @_;
+
+    $self->logger->info("\"$key\" is the system property name", "Prefix FORBIDDEN_FIELD_NAME_PREFIX was added to prevent failure.");
+    my $new_key = FORBIDDEN_FIELD_NAME_PREFIX . $key;
+    if(ref($ref_var) eq 'HASH'){
+        $ref_var->{$new_key} = $ref_var->{$key};
+        delete $ref_var->{$key};
+    }
+    elsif(ref($ref_var) eq 'SCALAR'){
+        $$ref_var = $new_key;
+    }
+}
 1;

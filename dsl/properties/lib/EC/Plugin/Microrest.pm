@@ -3,7 +3,6 @@ package EC::Plugin::MicroRest;
 use strict;
 use warnings;
 
-use ElectricCommander;
 use LWP::UserAgent;
 use Data::Dumper;
 use Carp;
@@ -82,6 +81,10 @@ sub new {
         };
     }
 
+    for my $sub_ref (qw/encode_sub decode_sub/){
+        $self->{$sub_ref} = $params{$sub_ref} if $params{$sub_ref};
+    }
+
     bless $self, $class;
     $self->_init();
     return $self;
@@ -90,9 +93,9 @@ sub new {
 
 sub _init {
     my ($self) = @_;
-
-    $self->{ec} = ElectricCommander->new();
-    $self->{ec}->abortOnError(0);
+    #
+    # $self->{ec} = ElectricCommander->new();
+    # $self->{ec}->abortOnError(0);
 
     $self->{ua} = $self->get_lwp_instance();
 
@@ -188,7 +191,11 @@ sub encode_content {
     my ($self, $content) = @_;
 
     return undef unless $content;
-    if ($self->{_ctype} =~ 'json') {
+
+    if ($self->{encode_sub}){
+       return &{$self->{encode_sub}}($content);
+    }
+    elsif ($self->{_ctype} =~ 'json') {
         return encode_json($content);
     }
     elsif ($self->{_ctype} eq 'xml') {
@@ -205,7 +212,10 @@ sub decode_content {
 
     return '' unless $content;
 
-    if ($self->{_ctype} eq 'json') {
+    if ($self->{decode_sub}){
+       return &{$self->{decode_sub}}($content);
+    }
+    elsif ($self->{_ctype} eq 'json') {
         return decode_json($content);
     }
     elsif ($self->{_ctype} eq 'xml') {

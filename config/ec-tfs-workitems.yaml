@@ -87,8 +87,8 @@ procedures:
         documentation: >
           Determines if the call will throw an error when encountering a work item (default behavior) that doesn't exist or simply omit it.
 
-  - name: Create a Work Item
-    stepName: create a work item
+  - name: CreateWorkItems
+    stepName: create work items
     description: Creates a new work item.
     # https://{instance}/DefaultCollection/_apis/wit/workitems?api-version={version}&ids={string}[&fields={string}&asOf={DateTime}&$expand={enum{relations}&ErrorPolicy={string}]
     endpoint: '#{{endpoint}}/#{{collection}}/#{project}/_apis/wit/workitems/#{type}'
@@ -367,8 +367,8 @@ procedures:
         required: 1
         in: path
 
-#  - name: Create a Work Item Query
-#    stepName: create a work item query
+#  - name: CreateWorkItems Query
+#    stepName: create work items query
 #    description: Create a new work item search query.
 #    endpoint: '#{{endpoint}}/#{{collection}}/#{project}/_apis/wit/queries/#{folderPath}'
 #    method: POST

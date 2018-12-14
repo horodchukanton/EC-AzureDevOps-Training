@@ -1,11 +1,10 @@
 #!/usr/local/bin/perl
-
 package Authen::NTLM;
-use strict;
-Authen::NTLM::DES->import();
-Authen::NTLM::MD4->import();
 use MIME::Base64;
 use Digest::HMAC_MD5;
+
+Authen::NTLM::DES->import();
+Authen::NTLM::MD4->import();
 
 use vars qw($VERSION @ISA @EXPORT);
 require Exporter;
@@ -426,9 +425,9 @@ sub lmEncrypt
     my $p14 = substr($password, 0, 14);
     $p14 =~ tr/a-z/A-Z/;
     $p14 .= "\0"x(14-length($p14));
-    my $p21 = E_P16($p14);
+    my $p21 = Authen::NTLM::DES::E_P16($p14);
     $p21 .= "\0"x(21-length($p21));
-    my $p24 = E_P24($p21, $data);
+    my $p24 = Authen::NTLM::DES::E_P24($p21, $data);
     return $p24;
 }
 
@@ -438,14 +437,14 @@ sub ntEncrypt
 
     my $p21 = &E_md4hash;
     $p21 .= "\0"x(21-length($p21));
-    my $p24 = E_P24($p21, $data);
+    my $p24 = Authen::NTLM::DES::E_P24($p21, $data);
     return $p24;
 }
 
 sub E_md4hash
 {
     my $wpwd = &NTunicode($password);
-    my $p16 = mdfour($wpwd);
+    my $p16 = Authen::NTLM::MD4::mdfour($wpwd);
     return $p16;
 }
 
@@ -453,7 +452,7 @@ sub lmv2Encrypt {
     my ($data) = @_;
 
     my $u_pass = &unicode($password);
-    my $ntlm_hash = mdfour($u_pass);
+    my $ntlm_hash = Authen::NTLM::MD4::mdfour($u_pass);
 
     my $u_user = &unicode("\U$user\E");
     my $u_domain = &unicode("$domain");

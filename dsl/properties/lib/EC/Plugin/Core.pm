@@ -1639,7 +1639,7 @@ sub _log {
                 my @secret_keys = grep { $_ =~ /password|secret|token/i } keys %$message;
                 my %copy = %$message;
 
-                # $copy{$_} = '[PROTECTED]' for @secret_keys;
+                $copy{$_} = '[PROTECTED]' for @secret_keys;
                 $message = \%copy;
             }
 

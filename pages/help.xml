@@ -30,7 +30,7 @@
         <h1>Contents</h1>
         <ul>
         <!-- TOC BEGIN --><li><a href="#GetaListofWorkItems">Get a List of Work Items</a></li>
-<li><a href="#CreateaWorkItem">Create a Work Item</a></li>
+<li><a href="#CreateaWorkItem">CreateWorkItems</a></li>
 <li><a href="#UpdateaWorkItem">Update a Work Item</a></li>
 <li><a href="#GetaWorkItem">Get a Work Item</a></li>
 <li><a href="#DeleteaWorkItem">Delete a Work Item</a></li>
@@ -202,11 +202,11 @@
         <img src="../../plugins/@PLUGIN_NAME@/images/GetWorkItems.png" />
             </div>
                 <div id="CreateaWorkItem">
-                <!-- CreateaWorkItem METADATA BEGIN -->
-            <h3>Create a Work Item</h3>
+                <!-- CreateWorkItems METADATA BEGIN -->
+            <h3>CreateWorkItems</h3>
             <p>Creates a new work item.</p>
-        <p>This procedure is a wrapper around REST API. See <a href="https://www.visualstudio.com/en-us/docs/integrate/api/wit/work-items#create-a-work-item" target="_blank">Create a Work Item</a> for reference.</p><!-- CreateaWorkItem METADATA END -->
-                <!-- CreateaWorkItem BEGIN -->
+        <p>This procedure is a wrapper around REST API. See <a href="https://www.visualstudio.com/en-us/docs/integrate/api/wit/work-items#create-a-work-item" target="_blank">CreateWorkItems</a> for reference.</p><!-- CreateWorkItems METADATA END -->
+                <!-- CreateWorkItems BEGIN -->
             <table class="grid">
                 <thead>
                     <tr>
@@ -268,7 +268,7 @@ https://www.visualstudio.com/en-us/docs/integrate/api/wit/work-item-types</a>
                 </tr>
                  </tbody>
             </table>
-        <!-- CreateaWorkItem END -->
+        <!-- CreateWorkItems END -->
         <img src="../../plugins/@PLUGIN_NAME@/images/CreateWorkItem.png" />
             </div>
                 <div id="UpdateaWorkItem">
@@ -568,9 +568,9 @@ https://www.visualstudio.com/en-us/docs/integrate/api/wit/work-item-types</a>
             </div>
                 <div id="CreateaWorkItemQuery">
                 <!-- CreateaWorkItemQuery METADATA BEGIN -->
-            <h3>Create a Work Item Query</h3>
+            <h3>CreateWorkItems Query</h3>
             <p>Create a new work item search query.</p>
-        <p>This procedure is a wrapper around REST API. See <a href="https://www.visualstudio.com/en-us/docs/integrate/api/wit/queries#create-a-query" target="_blank">Create a Work Item Query</a> for reference.</p><!-- CreateaWorkItemQuery METADATA END -->
+        <p>This procedure is a wrapper around REST API. See <a href="https://www.visualstudio.com/en-us/docs/integrate/api/wit/queries#create-a-query" target="_blank">CreateWorkItems Query</a> for reference.</p><!-- CreateaWorkItemQuery METADATA END -->
                 <!-- CreateaWorkItemQuery BEGIN -->
             <table class="grid">
                 <thead>
