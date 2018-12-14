@@ -1,9 +1,9 @@
 package Digest::HMAC_MD5;
-$VERSION="1.01";
+our $VERSION="1.01";
 
 use strict;
 use Digest::MD5  qw(md5);
-use Digest::HMAC qw(hmac);
+Digest::HMAC->import('hmac');
 
 # OO interface
 use vars qw(@ISA);
@@ -31,41 +31,67 @@ sub hmac_md5_hex
 }
 
 1;
+package Digest::HMAC;
+our $VERSION = "1.03";
 
-__END__
+use strict;
 
-=head1 NAME
+# OO interface
 
-Digest::HMAC_MD5 - Keyed-Hashing for Message Authentication
+sub new
+{
+    my($class, $key, $hasher, $block_size) =  @_;
+    $block_size ||= 64;
+    $key = $hasher->new->add($key)->digest if length($key) > $block_size;
 
-=head1 SYNOPSIS
+    my $self = bless {}, $class;
+    $self->{k_ipad} = $key ^ (chr(0x36) x $block_size);
+    $self->{k_opad} = $key ^ (chr(0x5c) x $block_size);
+    $self->{hasher} = $hasher->new->add($self->{k_ipad});
+    $self;
+}
 
- # Functional style
- use Digest::HMAC_MD5 qw(hmac_md5 hmac_md5_hex);
- $digest = hmac_md5($data, $key);
- print hmac_md5_hex($data, $key);
+sub reset
+{
+    my $self = shift;
+    $self->{hasher}->reset->add($self->{k_ipad});
+    $self;
+}
 
- # OO style
- use Digest::HMAC_MD5;
- $hmac = Digest::HMAC_MD5->new($key);
+sub add     { my $self = shift; $self->{hasher}->add(@_);     $self; }
+sub addfile { my $self = shift; $self->{hasher}->addfile(@_); $self; }
 
- $hmac->add($data);
- $hmac->addfile(*FILE);
+sub _digest
+{
+    my $self = shift;
+    my $inner_digest = $self->{hasher}->digest;
+    $self->{hasher}->reset->add($self->{k_opad}, $inner_digest);
+}
 
- $digest = $hmac->digest;
- $digest = $hmac->hexdigest;
- $digest = $hmac->b64digest;
+sub digest    { shift->_digest->digest;    }
+sub hexdigest { shift->_digest->hexdigest; }
+sub b64digest { shift->_digest->b64digest; }
 
-=head1 DESCRIPTION
 
-This module provide HMAC-MD5 hashing.
+# Functional interface
 
-=head1 SEE ALSO
+require Exporter;
+*import = \&Exporter::import;
+use vars qw(@EXPORT_OK);
+@EXPORT_OK = qw(hmac hmac_hex);
 
-L<Digest::HMAC>, L<Digest::MD5>, L<Digest::HMAC_SHA1>
+sub hmac
+{
+    my($data, $key, $hash_func, $block_size) = @_;
+    $block_size ||= 64;
+    $key = &$hash_func($key) if length($key) > $block_size;
 
-=head1 AUTHOR
+    my $k_ipad = $key ^ (chr(0x36) x $block_size);
+    my $k_opad = $key ^ (chr(0x5c) x $block_size);
 
-Gisle Aas <gisle@aas.no>
+    &$hash_func($k_opad, &$hash_func($k_ipad, $data));
+}
 
-=cut
+sub hmac_hex { unpack("H*", &hmac); }
+
+1;
