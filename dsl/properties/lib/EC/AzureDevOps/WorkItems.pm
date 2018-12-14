@@ -1,4 +1,4 @@
-package EC::Plugin::WorkItems;
+package EC::AzureDevOps::WorkItems;
 
 use strict;
 use warnings;

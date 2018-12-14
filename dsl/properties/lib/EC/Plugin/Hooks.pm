@@ -8,7 +8,7 @@ use Data::Dumper;
 
 use base qw(EC::Plugin::HooksCore);
 use File::Spec;
-use EC::Plugin::WorkItems;
+use EC::AzureDevOps::WorkItems;
 use File::Path qw(mkpath);
 
 
@@ -77,9 +77,9 @@ Available hooks types:
 sub define_hooks {
     my ($self) = @_;
 
-    $self->define_hook('create a work item', 'parsed', \&create_work_item_response_parsed);
+    $self->define_hook('create work items', 'parsed', \&create_work_item_response_parsed);
     $self->define_hook('update a work item', 'parsed', \&update_work_item_response_parsed);
-    $self->define_hook('create a work item', 'parameters', \&create_work_item_parameters);
+    $self->define_hook('create work items', 'parameters', \&create_work_item_parameters);
     $self->define_hook('get default values', 'parameters', \&get_default_values);
     $self->define_hook('get a work item', 'parsed', \&get_work_item_response_parsed);
     $self->define_hook('delete a work item', 'parsed', \&delete_work_item_response_parsed, {run_before_shared => 1});
@@ -472,7 +472,7 @@ sub general_request {
     my $params = $self->plugin->parameters;
     my $config = $self->plugin->get_config_values($params->{config});
 
-    my $api_version = EC::Plugin::WorkItems::get_api_version($request->uri, $config);
+    my $api_version = EC::AzureDevOps::WorkItems::get_api_version($request->uri, $config);
 
     my %query_form = $uri->query_form;
     $query_form{'api-version'} = $api_version;

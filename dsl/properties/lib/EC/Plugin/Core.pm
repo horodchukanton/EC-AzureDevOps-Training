@@ -38,6 +38,7 @@ use IO::Select;
 use Symbol qw/gensym/;
 use File::Spec;
 use Data::Dumper;
+use JSON;
 
 use EC::Bootstrap;
 
@@ -1415,6 +1416,21 @@ sub check_parameters {
     }
 
     return 1;
+}
+
+sub decode_json_or_bail_out {
+    my ($self, $json_str, $msg) = @_;
+    my $result = undef;
+
+    eval {
+        $result = decode_json($json_str);
+        1;
+    } or do {
+        $msg ||= 'Failed to parse JSON string. Please check the parameter values.';
+        $self->bail_out($msg . " : $@.\nReceived: '$json_str'")
+    };
+
+    return $result;
 }
 
 =back
