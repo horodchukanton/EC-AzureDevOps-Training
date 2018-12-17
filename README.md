@@ -21,7 +21,7 @@ Update a work item fields.
 
 Returns the content of the work item
 
-## Delete a Work Item
+## DeleteWorkItems
 
 Deletes the specified work item.
 

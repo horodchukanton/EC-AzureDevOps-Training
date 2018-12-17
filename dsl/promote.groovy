@@ -15,16 +15,19 @@ def pluginDir = getProperty("/projects/$pluginName/pluginDir").value
 //List of procedure steps to which the plugin configuration credentials need to be attached
 // ** steps with attached credentials
 def stepsWithAttachedCredentials = [
+	// Rewritten ones
 	[procedureName: 'CreateWorkItems', stepName: 'create work items'],
+	[procedureName: 'UpdateWorkItems', stepName: 'update work items'],
+	[procedureName: 'DeleteWorkItems', stepName: 'delete work items'],
+
+	// Still REST
 	[procedureName: 'Get a List of Work Items', stepName: 'get a list of work items'],
-
-	[procedureName: 'Delete a Work Item', stepName: 'delete a work item'],
-
 	[procedureName: 'Get Default Values', stepName: 'get default values'],
 	[procedureName: 'TriggerBuild', stepName: 'trigger a build'],
 	[procedureName: 'UpdateWorkItems', stepName: 'update work items'],
 	[procedureName: 'Upload a Work Item Attachment', stepName: 'upload a work item attachment'],
 	[procedureName: 'Query Work Items', stepName: 'query work items'],
+	[procedureName: 'Get a Build', stepName: 'get a build'],
 ]
 // ** end steps with attached credentials
 
@@ -32,15 +35,12 @@ def stepsWithAttachedCredentials = [
 def unavailableProcedures = [
 	// Query is moved out of the scope
 	[procedureName: 'CreateWorkItems Query', stepName: 'create work items query'],
-	[procedureName: 'Delete a Work Item Query', stepName: 'delete a work item query'],
+	[procedureName: 'DeleteWorkItems Query', stepName: 'delete work items query'],
 	[procedureName: 'Run a Work Item Query', stepName: 'run a work item query'],
 	[procedureName: 'UpdateWorkItems Query', stepName: 'updates a work item query'],
 
 	// Git operations should be done in ECSCM plugin
 	[procedureName: 'Download an Artifact from a Git Repository', stepName: 'download an artifact from a git repository'],
-
-	// Out of the scope
-	[procedureName: 'Get a Build', stepName: 'get a build'],
 
 	// Procedure was renamed
 	[procedureName: 'Query a build', stepName: 'query a build'],
@@ -49,6 +49,7 @@ def unavailableProcedures = [
 	[procedureName: 'Create a Work Item', stepName: 'create a work item'],
 	[procedureName: 'Update a Work Item', stepName: 'update a work item'],
 	[procedureName: 'Get a Work Item', stepName: 'get a work item'],
+	[procedureName: 'DeleteWorkItems', stepName: 'delete work items'],
 ]
 
 project pluginName, {

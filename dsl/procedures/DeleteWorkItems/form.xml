@@ -11,22 +11,12 @@
   <type>entry</type>
 </formElement>
 <formElement>
-  <documentation>ID of the work item to delete.</documentation>
-  <label>ID:</label>
-  <property>itemId</property>
+  <documentation>ID(s) of the work item to delete.</documentation>
+  <label>Work Item ID(s):</label>
+  <property>workItemsIds</property>
   <required>1</required>
   <type>entry</type>
   <value/>
-</formElement>
-<formElement>
-  <checkedValue>1</checkedValue>
-  <documentation>If checked, the procedure will fail in case the item does not exist.</documentation>
-  <label>Strict mode:</label>
-  <property>strictMode</property>
-  <required>0</required>
-  <type>checkbox</type>
-  <uncheckedValue>0</uncheckedValue>
-  <value>1</value>
 </formElement>
 <formElement>
   <documentation>Results will be saved into this property/property sheet.</documentation>
@@ -34,7 +24,7 @@
   <property>resultPropertySheet</property>
   <required>1</required>
   <type>entry</type>
-  <value>/myJob/deletedWorkItem</value>
+  <value>/myJob/deletedWorkItems</value>
 </formElement>
 <formElement>
   <documentation>Format to save request results.</documentation>
