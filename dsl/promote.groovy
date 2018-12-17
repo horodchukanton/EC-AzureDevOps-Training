@@ -15,73 +15,73 @@ def pluginDir = getProperty("/projects/$pluginName/pluginDir").value
 //List of procedure steps to which the plugin configuration credentials need to be attached
 // ** steps with attached credentials
 def stepsWithAttachedCredentials = [
-	// Rewritten ones
-	[procedureName: 'CreateWorkItems', stepName: 'create work items'],
-	[procedureName: 'UpdateWorkItems', stepName: 'update work items'],
-	[procedureName: 'DeleteWorkItems', stepName: 'delete work items'],
+    // Rewritten ones
+    [procedureName: 'CreateWorkItems', stepName: 'create work items'],
+    [procedureName: 'UpdateWorkItems', stepName: 'update work items'],
+    [procedureName: 'DeleteWorkItems', stepName: 'delete work items'],
 
-	// Still REST
-	[procedureName: 'Get a List of Work Items', stepName: 'get a list of work items'],
-	[procedureName: 'Get Default Values', stepName: 'get default values'],
-	[procedureName: 'TriggerBuild', stepName: 'trigger a build'],
-	[procedureName: 'UpdateWorkItems', stepName: 'update work items'],
-	[procedureName: 'Upload a Work Item Attachment', stepName: 'upload a work item attachment'],
-	[procedureName: 'Query Work Items', stepName: 'query work items'],
-	[procedureName: 'Get a Build', stepName: 'get a build'],
+    // Still REST
+    [procedureName: 'Get a List of Work Items', stepName: 'get a list of work items'],
+    [procedureName: 'Get Default Values', stepName: 'get default values'],
+    [procedureName: 'TriggerBuild', stepName: 'trigger a build'],
+    [procedureName: 'UpdateWorkItems', stepName: 'update work items'],
+    [procedureName: 'Upload a Work Item Attachment', stepName: 'upload a work item attachment'],
+    [procedureName: 'Query Work Items', stepName: 'query work items'],
+//	[procedureName: 'Get a Build', stepName: 'get a build'],
 ]
 // ** end steps with attached credentials
 
 // Deleting the step pickers
 def unavailableProcedures = [
-	// Query is moved out of the scope
-	[procedureName: 'CreateWorkItems Query', stepName: 'create work items query'],
-	[procedureName: 'DeleteWorkItems Query', stepName: 'delete work items query'],
-	[procedureName: 'Run a Work Item Query', stepName: 'run a work item query'],
-	[procedureName: 'UpdateWorkItems Query', stepName: 'updates a work item query'],
+    // Query is moved out of the scope
+    [procedureName: 'CreateWorkItems Query', stepName: 'create work items query'],
+    [procedureName: 'DeleteWorkItems Query', stepName: 'delete work items query'],
+    [procedureName: 'Run a Work Item Query', stepName: 'run a work item query'],
+    [procedureName: 'UpdateWorkItems Query', stepName: 'updates a work item query'],
 
-	// Git operations should be done in ECSCM plugin
-	[procedureName: 'Download an Artifact from a Git Repository', stepName: 'download an artifact from a git repository'],
+    // Git operations should be done in ECSCM plugin
+    [procedureName: 'Download an Artifact from a Git Repository', stepName: 'download an artifact from a git repository'],
 
-	// Procedure was renamed
-	[procedureName: 'Query a build', stepName: 'query a build'],
+    // Procedure was renamed
+    [procedureName: 'Query a build', stepName: 'query a build'],
 
-	//Single entity operations were refactored to multiple entity operations
-	[procedureName: 'Create a Work Item', stepName: 'create a work item'],
-	[procedureName: 'Update a Work Item', stepName: 'update a work item'],
-	[procedureName: 'Get a Work Item', stepName: 'get a work item'],
-	[procedureName: 'DeleteWorkItems', stepName: 'delete work items'],
+    //Single entity operations were refactored to multiple entity operations
+    [procedureName: 'Create a Work Item', stepName: 'create a work item'],
+    [procedureName: 'Update a Work Item', stepName: 'update a work item'],
+    [procedureName: 'Get a Work Item', stepName: 'get a work item'],
+    [procedureName: 'Delete a Work Item', stepName: 'delete a work item'],
 ]
 
 project pluginName, {
 
-	unavailableProcedures.each { p ->
-		deleteStepPicker((String) pluginKey, (String) p.procedureName)
-	}
+    unavailableProcedures.each { p ->
+        deleteStepPicker((String) pluginKey, (String) p.procedureName)
+    }
 
-	loadPluginProperties(pluginDir, pluginName)
-	loadProcedures(pluginDir, pluginKey, pluginName, stepsWithAttachedCredentials)
+    loadPluginProperties(pluginDir, pluginName)
+    loadProcedures(pluginDir, pluginKey, pluginName, stepsWithAttachedCredentials)
 
-	//plugin configuration metadata
-	property 'ec_config', {
-		configLocation = 'ec_plugin_cfgs'
-		form = '$[' + "/projects/${pluginName}/procedures/CreateConfiguration/ec_parameterForm]"
-		property 'fields', {
-			property 'desc', {
-				property 'label', value: 'Description'
-				property 'order', value: '1'
-			}
-		}
-	}
+    //plugin configuration metadata
+    property 'ec_config', {
+        configLocation = 'ec_plugin_cfgs'
+        form = '$[' + "/projects/${pluginName}/procedures/CreateConfiguration/ec_parameterForm]"
+        property 'fields', {
+            property 'desc', {
+                property 'label', value: 'Description'
+                property 'order', value: '1'
+            }
+        }
+    }
 
-	property 'ec_formXmlCompliant', value : "true"
+    property 'ec_formXmlCompliant', value : "true"
 
-	property 'ecp_azuredevops_workitemtypes', {
-		property 'Bug', value: 'Bug'
-		property 'Epic', value: 'Epic'
-		property 'Feature', value: 'Feature'
-		property 'Issue', value: 'Issue'
-		property 'User Story', value: 'User Story'
-	}
+    property 'ecp_azuredevops_workitemtypes', {
+        property 'Bug', value: 'Bug'
+        property 'Epic', value: 'Epic'
+        property 'Feature', value: 'Feature'
+        property 'Issue', value: 'Issue'
+        property 'User Story', value: 'User Story'
+    }
 }
 
 // Copy existing plugin configurations from the previous

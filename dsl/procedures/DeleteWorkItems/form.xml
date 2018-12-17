@@ -13,7 +13,7 @@
 <formElement>
   <documentation>ID(s) of the work item to delete.</documentation>
   <label>Work Item ID(s):</label>
-  <property>workItemsIds</property>
+  <property>workItemIds</property>
   <required>1</required>
   <type>entry</type>
   <value/>
