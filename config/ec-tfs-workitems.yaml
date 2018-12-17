@@ -291,8 +291,8 @@ procedures:
             value: none
         value: none
 
-  - name: Delete a Work Item
-    stepName: delete a work item
+  - name: DeleteWorkItems
+    stepName: delete work items
     description: Deletes the specified work item.
     endpoint: '#{{endpoint}}/#{{collection}}/#{project}/_apis/wit/workitems/#{itemId}'
     method: DELETE
@@ -515,8 +515,8 @@ procedures:
 #        in: query
 #        required: 0
 
-#  - name: Delete a Work Item Query
-#    stepName: delete a work item query
+#  - name: DeleteWorkItems Query
+#    stepName: delete work items query
 #    description: Deletes the specified work item search query.
 #    endpoint: '#{{endpoint}}/#{{collection}}/#{project}/_apis/wit/queries/#{queryPath}'
 #    method: DELETE

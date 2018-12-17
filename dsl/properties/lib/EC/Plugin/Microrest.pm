@@ -307,6 +307,10 @@ sub delete {
         $params = $self->augment_oauth_params('DELETE', $url_path, $params);
     }
 
+    if ($params && %$params) {
+        $url_path = _augment_url($url_path, $params);
+    }
+
     return $self->_call(
         'DELETE' => $url_path,
         $params

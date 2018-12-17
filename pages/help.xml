@@ -33,7 +33,7 @@
 <li><a href="#CreateaWorkItem">CreateWorkItems</a></li>
 <li><a href="#UpdateWorkItems">UpdateWorkItems</a></li>
 <li><a href="#GetaWorkItem">Get a Work Item</a></li>
-<li><a href="#DeleteaWorkItem">Delete a Work Item</a></li>
+<li><a href="#DeleteaWorkItem">DeleteWorkItems</a></li>
 <li><a href="#GetDefaultValues">Get Default Values</a></li>
 <li><a href="#Triggerbuild">TriggerBuild</a></li>
 <li><a href="#UploadaWorkItemAttachment">Upload a Work Item Attachment</a></li><!-- TOC END -->
@@ -372,11 +372,11 @@ https://www.visualstudio.com/en-us/docs/integrate/api/wit/work-item-types</a>
         <img src="../../plugins/@PLUGIN_NAME@/images/GetWorkItem.png" />
             </div>
                 <div id="DeleteaWorkItem">
-                <!-- DeleteaWorkItem METADATA BEGIN -->
-            <h3>Delete a Work Item</h3>
+                <!-- DeleteWorkItems METADATA BEGIN -->
+            <h3>DeleteWorkItems</h3>
             <p>Deletes the specified work item.</p>
-        <p>This procedure is a wrapper around REST API. See <a href="https://www.visualstudio.com/en-us/docs/integrate/api/wit/work-items#delete-a-work-item" target="_blank">Delete a Work Item</a> for reference.</p><!-- DeleteaWorkItem METADATA END -->
-                <!-- DeleteaWorkItem BEGIN -->
+        <p>This procedure is a wrapper around REST API. See <a href="https://www.visualstudio.com/en-us/docs/integrate/api/wit/work-items#delete-a-work-item" target="_blank">DeleteWorkItems</a> for reference.</p><!-- DeleteWorkItems METADATA END -->
+                <!-- DeleteWorkItems BEGIN -->
             <table class="grid">
                 <thead>
                     <tr>
@@ -407,7 +407,7 @@ https://www.visualstudio.com/en-us/docs/integrate/api/wit/work-item-types</a>
                 </tr>
                  </tbody>
             </table>
-        <!-- DeleteaWorkItem END -->
+        <!-- DeleteWorkItems END -->
         <img src="../../plugins/@PLUGIN_NAME@/images/DeleteWorkItem.png" />
             </div>
                 <div id="GetDefaultValues">
@@ -542,9 +542,9 @@ https://www.visualstudio.com/en-us/docs/integrate/api/wit/work-item-types</a>
             </div>
                 <div id="DeleteaWorkItemQuery">
                 <!-- DeleteaWorkItemQuery METADATA BEGIN -->
-            <h3>Delete a Work Item Query</h3>
+            <h3>DeleteWorkItems Query</h3>
             <p>Deletes the specified work item search query.</p>
-        <p>This procedure is a wrapper around REST API. See <a href="https://www.visualstudio.com/en-us/docs/integrate/api/wit/queries#delete-a-query-or-folder" target="_blank">Delete a Work Item Query</a> for reference.</p><!-- DeleteaWorkItemQuery METADATA END -->
+        <p>This procedure is a wrapper around REST API. See <a href="https://www.visualstudio.com/en-us/docs/integrate/api/wit/queries#delete-a-query-or-folder" target="_blank">DeleteWorkItems Query</a> for reference.</p><!-- DeleteaWorkItemQuery METADATA END -->
                 <!-- DeleteaWorkItemQuery BEGIN -->
             <table class="grid">
                 <thead>

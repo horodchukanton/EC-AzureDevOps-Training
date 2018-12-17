@@ -234,7 +234,7 @@
       "endpoint" : "#{{endpoint}}/#{{collection}}/_apis/wit/attachments",
       "attachCredentials" : "true"
    },
-   "delete a work item" : {
+   "delete work items" : {
       "resultProperty" : {
          "show" : "true",
          "format" : [
@@ -243,9 +243,9 @@
          ],
          "default" : "/myJob/deletedWorkItem"
       },
-      "name" : "Delete a Work Item",
+      "name" : "DeleteWorkItems",
       "description" : "Deletes the specified work item.",
-      "stepName" : "delete a work item",
+      "stepName" : "delete work items",
       "SkSkipAuth" : "true",
       "parameters" : [
          {

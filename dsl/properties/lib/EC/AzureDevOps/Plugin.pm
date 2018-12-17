@@ -95,18 +95,7 @@ sub step_create_work_items {
     $self->check_parameters($params, \%procedure_parameters);
 
     my $config = $self->get_config_values($params->{config});
-
-     my $client = EC::Plugin::MicroRest->new(
-         url        => $self->get_base_url($config),
-         auth       => $config->{auth} || 'basic',
-         user       => $config->{userName},
-         password   => $config->{password},
-         ctype      => 'application/json-patch+json',
-         encode_sub => \&JSON::XS::encode_json,
-         decode_sub => sub {
-             $self->decode_json_or_bail_out(shift, "Failed to parse JSON response from $config->{endpoint}).")
-         }
-    );
+    my $client = $self->get_microrest_client($config);
 
     # Api version should be sent in query
     my $api_version = EC::AzureDevOps::WorkItems::get_api_version('/_apis/wit/workitems/', $config);
@@ -181,17 +170,7 @@ sub step_update_work_items {
     $self->check_parameters($params, \%procedure_parameters);
 
     my $config = $self->get_config_values($params->{config});
-    my $client = EC::Plugin::MicroRest->new(
-        url        => $self->get_base_url($config),
-        auth       => $config->{auth} || 'basic',
-        user       => $config->{userName},
-        password   => $config->{password},
-        ctype      => 'application/json-patch+json',
-        encode_sub => \&encode_json,
-        decode_sub => sub {
-            $self->decode_json_or_bail_out(shift, "Failed to parse JSON response from $config->{endpoint})")
-        }
-    );
+    my $client = $self->get_microrest_client($config);
 
     # Api version should be sent in query
     my $api_version = EC::AzureDevOps::WorkItems::get_api_version('/_apis/wit/workitems/', $config);
@@ -234,12 +213,93 @@ sub step_update_work_items {
     $self->set_summary($summary);
 }
 
+sub step_delete_work_items {
+    my ($self) = @_;
+
+    my %procedure_parameters = (
+        config              => { label => 'Configuration name', required => 1 },
+        workItemIds         => { label => 'Work Item Id(s)', required => 1 },
+        resultPropertySheet => { label => 'Result Property Sheet', required => 1 },
+        resultFormat        => { label => 'Result Format', required => 1 },
+    );
+
+    my $params = $self->get_params_as_hashref(keys %procedure_parameters);
+    $self->check_parameters($params, \%procedure_parameters);
+
+    my $config = $self->get_config_values($params->{config});
+    my $client = $self->get_microrest_client($config);
+
+    my $api_version = EC::AzureDevOps::WorkItems::get_api_version('/_apis/wit/workitems/', $config);
+
+    my @deleted = ();
+    my @unexisting = ();
+    for my $id (split(',\s?', $params->{workItemIds})){
+        if ($id !~ /^\d+$/){
+            $self->bail_out("$procedure_parameters{workItemIds}->{label} parameter should contain numbers.");
+        }
+        my $api_path = "_apis/wit/workitems/${id}";
+
+        my $result;
+        eval {
+            $result = $client->delete($api_path, { 'api-version' => $api_version });
+            push @deleted, $result;
+            1;
+        } or do {
+            my ($error) = $@;
+
+            # 404 Not found.
+            if (!ref $error && $error =~ /Work item [0-9]+ does not exist/){
+                $self->logger->info("Work item $id does not exist.\n");
+                push @unexisting, $id;
+            }
+        };
+
+    }
+
+    # Save the properties
+    $self->save_result_entities(\@deleted, $params->{resultPropertySheet}, $params->{resultFormat});
+
+    my $count = scalar(@deleted);
+    my $summary = '';
+
+    if (@deleted){
+        $summary = "Successfully deleted $count work item" . ( ( $count > 1 ) ? 's' : '' ) . '.';
+    }
+
+    if (@unexisting){
+        $summary .= "\n" if (@deleted);
+
+        $summary .= "Work item(s) " . (join(@unexisting)) . " was not found";
+        $self->warning("Some work items were not found. See the job logs");
+    }
+
+    $self->set_pipeline_summary($summary);
+    $self->set_summary($summary);
+}
+
 sub _generate_field_op_hash {
     my ($field_name, $field_value, $operation) = @_;
 
     $operation ||= 'add';
 
     return { op => $operation, path => '/fields/' . $MS_FIELDS_MAPPING{lc ($field_name)}, value => $field_value }
+}
+
+#@returns EC::Plugin::MicroRest
+sub get_microrest_client {
+    my ($self, $config) = @_;
+
+    return EC::Plugin::MicroRest->new(
+        url        => $self->get_base_url($config),
+        auth       => $config->{auth} || 'basic',
+        user       => $config->{userName},
+        password   => $config->{password},
+        ctype      => 'application/json-patch+json',
+        encode_sub => \&encode_json,
+        decode_sub => sub {
+            $self->decode_json_or_bail_out(shift, "Failed to parse JSON response from $config->{endpoint})")
+        }
+    );
 }
 
 sub parse_generic_create_update_parameters {
@@ -315,7 +375,7 @@ sub save_result_entities {
 
     my $ids_property = $result_property . '/workItemIds';
     my $ids = join(', ', @ids);
-    $self->logger->info("Work item IDs ($ids) will be saved to a property '$ids_property'.", );
+    $self->logger->info("Work item IDs ($ids) will be saved to a property '$ids_property'.") if $ids;
     $self->ec->setProperty($ids_property, $ids);
 
     return 1;

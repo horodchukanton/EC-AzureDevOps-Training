@@ -78,12 +78,12 @@ sub define_hooks {
     my ($self) = @_;
 
     # $self->define_hook('create work items', 'parsed', \&create_work_item_response_parsed);
-    # $self->define_hook('update work items', 'parsed', \&update_work_item_response_parsed);
+    # $self->define_hook('update a work item', 'parsed', \&update_work_item_response_parsed);
     $self->define_hook('create work items', 'parameters', \&create_work_item_parameters);
     $self->define_hook('get default values', 'parameters', \&get_default_values);
-    $self->define_hook('get a work item', 'parsed', \&get_work_item_response_parsed);
-    $self->define_hook('delete a work item', 'parsed', \&delete_work_item_response_parsed, {run_before_shared => 1});
-    $self->define_hook('delete a work item', 'response', \&delete_work_item_response, {run_before_shared => 1});
+    # $self->define_hook('get a work item', 'parsed', \&get_work_item_response_parsed);
+    # $self->define_hook('delete work items', 'parsed', \&delete_work_item_response_parsed, {run_before_shared => 1});
+    # $self->define_hook('delete work items', 'response', \&delete_work_item_response, {run_before_shared => 1});
     $self->define_hook('get a list of work items', 'parsed', \&get_work_items_response_parsed);
     $self->define_hook('query work items', 'parsed', \&query_work_items_parsed);
     $self->define_hook('trigger a build', 'parsed', \&queue_build_parsed);
