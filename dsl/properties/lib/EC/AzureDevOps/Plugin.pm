@@ -89,12 +89,12 @@ sub step_create_work_items {
         resultFormat        => { label => 'Result Format', required => 1 },
     );
 
-    my $parameters = $self->get_params_as_hashref(sort keys %procedure_parameters );
-    $self->logger->debug("Parameters", $parameters);
+    my $params = $self->get_params_as_hashref(sort keys %procedure_parameters );
+    $self->logger->debug("Parameters", $params);
 
-    $self->check_parameters($parameters, \%procedure_parameters);
+    $self->check_parameters($params, \%procedure_parameters);
 
-    my $config = $self->get_config_values($parameters->{config});
+    my $config = $self->get_config_values($params->{config});
 
      my $client = EC::Plugin::MicroRest->new(
          url        => $self->get_base_url($config),
@@ -112,34 +112,32 @@ sub step_create_work_items {
     my $api_version = EC::AzureDevOps::WorkItems::get_api_version('/_apis/wit/workitems/', $config);
 
     # Generating the payload from the parameters
-    my @generic_fields = $self->parse_generic_create_update_parameters($parameters);
+    my %generic_fields = $self->parse_generic_create_update_parameters($params);
 
-    my @work_item_hashes = @{ $self->_build_create_multi_entity_payload($parameters, @generic_fields) };
+    my @work_item_hashes = @{ $self->build_create_multi_entity_payload($params, %generic_fields) };
 
     # Sending requests one by one
     my @created_items = ();
     for my $work_item (@work_item_hashes) {
 
-        # Prepending '$' to the type name
+        # Prepending '$' to the type name and removing from hash
         my $type = ( $work_item->{type} =~ /^\$/ ) ? $work_item->{type} : '$' . $work_item->{type};
+        delete $work_item->{type};
 
         # Building API path (includes type)
-        my $api_path = $parameters->{project} . '/_apis/wit/workitems/' . $type;
-
+        my $api_path = $params->{project} . '/_apis/wit/workitems/' . $type;
         $self->logger->debug("API Path: $api_path");
 
         # Forming request payload
-        my %payload = map {_generate_field_op_hash($_, $work_item->{$_})} keys %$work_item;
+        my @payload = map { _generate_field_op_hash($_, $work_item->{$_}) } keys %$work_item;
 
-        my $result = $client->post($api_path, { 'api-version' => $api_version }, \%payload);
+        my $result = $client->post($api_path, { 'api-version' => $api_version }, \@payload);
 
         push @created_items, $result;
     }
 
     # Save the properties
-    my $result_property_sheet = $parameters->{resultPropertySheet};
-    my $result_ids_property_name =  $result_property_sheet . '/workItemIds';
-    $self->save_result_entities(\@created_items, $result_property_sheet, $parameters->{resultFormat}, $result_ids_property_name);
+    $self->save_result_entities(\@created_items, $params->{resultPropertySheet}, $params->{resultFormat});
 
     my $count = scalar(@created_items);
     my $summary = "Successfully created $count work item" . (($count > 1) ? 's' : '') . '.';
@@ -151,19 +149,25 @@ sub step_create_work_items {
 sub step_update_work_items {
     my ( $self ) = @_;
 
-    my @fields = qw/config workItemIds title priority assignTo
-        description additionalFields requestBody sourceProperty
-        resultPropertySheet resultFormat/;
-    my $parameters = $self->get_params_as_hashref(@fields);
+    my %procedure_parameters = (
+        config              => { label => 'Configuration name', required => 1 },
+        workItemIds         => { label => 'Work Item ID(s)', required => 1 },
+        title               => { label => 'Title', required => 1 },
+        priority            => { label => 'Priority', check => 'number' },
+        assignTo            => { label => 'Assign To' },
+        description         => { label => 'Description' },
+        additionalFields    => { label => 'Additional Fields' },
+        requestBody         => { label => 'Request Body' },
+        resultPropertySheet => { label => 'Result Property Sheet', required => 1 },
+        resultFormat        => { label => 'Result Format', required => 1 },
+    );
 
-    $self->logger->debug("Parameters", $parameters);
+    my $params = $self->get_params_as_hashref(sort keys %procedure_parameters);
+    $self->logger->debug("Parameters", $params);
 
-    for my $required (qw/config title resultPropertySheet resultFormat/) {
-        $self->bail_out("Parameter '$required' is mandatory") unless $parameters->{$required};
-    }
+    $self->check_parameters($params, \%procedure_parameters);
 
-    my $config = $self->get_config_values($parameters->{config});
-
+    my $config = $self->get_config_values($params->{config});
     my $client = EC::Plugin::MicroRest->new(
         url        => $self->get_base_url($config),
         auth       => $config->{auth} || 'basic',
@@ -177,26 +181,25 @@ sub step_update_work_items {
     );
 
     # Api version should be sent in query
-    my %query = ();
-    $query{'api-version'} = EC::AzureDevOps::WorkItems::get_api_version('/_apis/wit/workitems/', $config);
+    my $api_version = EC::AzureDevOps::WorkItems::get_api_version('/_apis/wit/workitems/', $config);
 
     # Generating the payload from the parameters
-    my @payload = $self->parse_generic_create_update_parameters($parameters, 'update');
+    my %generic_fields = $self->parse_generic_create_update_parameters($params);
 
     # Sending requests one by one
     my @updated_items = ();
-    for my $id (split(',\s?', $parameters->{workItemIds})) {
+    for my $id (split(',\s?', $params->{workItemIds})) {
         my $api_path = '/_apis/wit/workitems/' . $id;
         $self->logger->debug("API Path: $api_path");
 
-        my $result = $client->patch($api_path, \%query, @payload);
+        my @payload = map {_generate_field_op_hash($_, $generic_fields{$_})} keys %generic_fields;
+
+        my $result = $client->patch($api_path, { 'api-version' => $api_version }, \@payload);
         push @updated_items, $result;
     }
 
     # Save the properties
-    my $result_property_sheet = $parameters->{resultPropertySheet};
-    my $result_ids_property_name = $result_property_sheet . '/workItemIds';
-    $self->save_result_entities(\@updated_items, $result_property_sheet, $parameters->{resultFormat}, $result_ids_property_name);
+    $self->save_result_entities(\@updated_items, $params->{resultPropertySheet}, $params->{resultFormat});
 
     my $count = scalar(@updated_items);
     my $summary = "Successfully updated $count work item" . ( ( $count > 1 ) ? 's' : '' ) . '.';
@@ -216,7 +219,7 @@ sub _generate_field_op_hash {
 sub parse_generic_create_update_parameters {
     my ($self, $parameters) = @_;
 
-    my @generic_fields = ();
+    my %generic_fields = ();
 
     # If we have a request body, will not read other parameters.
     # But should be sure that it is valid.
@@ -229,15 +232,15 @@ sub parse_generic_create_update_parameters {
         return $payload;
     }
 
-    # Map parameters to Azure operations
-    for my $param (qw/priority assignTo description title/){
-        push @generic_fields, { lc ($param) => $parameters->{$param}} if $parameters->{$param};
+    # Map parameters to Azure operations (Update does not contain "type" parameter)
+    for my $param (qw/priority assignTo description title type/){
+        $generic_fields{ lc ($param) } = $parameters->{$param} if $parameters->{$param};
     }
 
-    return wantarray ? @generic_fields : \@generic_fields;
+    return wantarray ? %generic_fields : \%generic_fields;
 }
 
-sub _build_create_multi_entity_payload {
+sub build_create_multi_entity_payload {
     my ($self, $parameters, %generic_fields) = @_;
     my @results = ();
 
@@ -254,6 +257,8 @@ sub _build_create_multi_entity_payload {
 
         my @field_params = (qw/Type Title Priority Description/, 'Assign To');
 
+        # JSON object keys are the same as Parameter label
+        # Item hash keys are the same as Parameter property names (lower cased)
         for my $predefined_work_item (@$work_items){
             my %work_item = ();
 
@@ -273,7 +278,7 @@ sub _build_create_multi_entity_payload {
 }
 
 sub save_result_entities {
-    my ($self, $entities_list, $result_property, $result_format, $ids_property) = @_;
+    my ($self, $entities_list, $result_property, $result_format) = @_;
 
     my @ids = ();
     for my $entity (@$entities_list){
@@ -282,28 +287,12 @@ sub save_result_entities {
         $self->save_parsed_data($entity, $result_property . "/$id", $result_format)
     }
 
-    $self->logger->info("Created work item IDs saved to a property $ids_property", );
-    $self->ec->setProperty($ids_property, join(', ', @ids));
+    my $ids_property = $result_property . '/workItemIds';
+    my $ids = join(', ', @ids);
+    $self->logger->info("Work item IDs ($ids) will be saved to a property '$ids_property'.", );
+    $self->ec->setProperty($ids_property, $ids);
 
     return 1;
-}
-
-sub get_base_url {
-    my ($self, $config) = @_;
-
-    $config ||= $self->{_config};
-    $self->bail_out("No configuration was given to EC::AzureDevOps::Plugin\n") unless($config);
-
-
-    # Check mandatory
-    for my $param (qw/endpoint collection/){
-        $self->bail_out("No value for configuration parameter '$param' was provided\n") unless $config->{$param};
-    }
-
-    # Strip value
-    $config->{endpoint} =~ s|/+$||g;
-
-    return "$config->{endpoint}/$config->{collection}";
 }
 
 sub save_parsed_data {
@@ -327,8 +316,8 @@ sub save_parsed_data {
         my $flat_map = $self->_self_flatten_map($parsed_data, $result_property, 'check_errors!');
 
         for my $key (sort keys %$flat_map) {
+            $self->logger->info("Saving $key -> $flat_map->{$key}");
             $self->ec->setProperty($key, $flat_map->{$key});
-            $self->logger->info("Saved $key -> $flat_map->{$key}");
         }
     }
     elsif ($result_format eq 'json') {
@@ -346,6 +335,23 @@ sub save_parsed_data {
     }
 }
 
+sub get_base_url {
+    my ($self, $config) = @_;
+
+    $config ||= $self->{_config};
+    $self->bail_out("No configuration was given to EC::AzureDevOps::Plugin\n") unless($config);
+
+
+    # Check mandatory
+    for my $param (qw/endpoint collection/){
+        $self->bail_out("No value for configuration parameter '$param' was provided\n") unless $config->{$param};
+    }
+
+    # Strip value
+    $config->{endpoint} =~ s|/+$||g;
+
+    return "$config->{endpoint}/$config->{collection}";
+}
 
 sub _self_flatten_map {
     my ($self, $map, $prefix, $check) = @_;

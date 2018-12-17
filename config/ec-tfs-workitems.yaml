@@ -175,8 +175,8 @@ procedures:
           Pre-set request body, e.g. [{"op": "add", "path": "/relations/-", "value": {"rel": "System.LinkTypes.Hierarchy-Reverse", "url": "https://fabrikam-fiber-inc.visualstudio.com/DefaultCollection/_apis/wit/workItems/297", "attributes": {"comment": "decomposition of work"} } } ]
 
 
-  - name: Update a Work Item
-    stepName: update a work item
+  - name: UpdateWorkItems
+    stepName: update work items
     description: Update a work item fields.
     documentationLinks:
       - https://www.visualstudio.com/en-us/docs/integrate/api/wit/work-items#create-a-work-item
@@ -418,7 +418,7 @@ procedures:
 #        required: 1
 
 
-#  - name: Update a Work Item Query
+#  - name: UpdateWorkItems Query
 #    stepName: updates a work item query
 #    description: Updates a work item search query.
 #    endpoint: '#{{endpoint}}/#{{collection}}/#{project}/_apis/wit/queries/#{folderPath}/#{query}'

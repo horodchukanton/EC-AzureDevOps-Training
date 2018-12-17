@@ -281,6 +281,24 @@ sub put {
     );
 }
 
+sub patch {
+    my ($self, $url_path, $params, $content) = @_;
+
+    if ($self->is_oauth){
+        my $request_params = $self->augment_oauth_params('PUT', $url_path);
+        $url_path = _augment_url($url_path, $request_params);
+    }
+
+    if ($params && %$params) {
+        $url_path = _augment_url($url_path, $params);
+    }
+
+    return $self->_call(
+        'PATCH' => $url_path,
+        $content
+    );
+}
+
 
 sub delete {
     my ($self, $url_path, $params) = @_;

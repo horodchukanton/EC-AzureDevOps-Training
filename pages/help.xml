@@ -31,7 +31,7 @@
         <ul>
         <!-- TOC BEGIN --><li><a href="#GetaListofWorkItems">Get a List of Work Items</a></li>
 <li><a href="#CreateaWorkItem">CreateWorkItems</a></li>
-<li><a href="#UpdateaWorkItem">Update a Work Item</a></li>
+<li><a href="#UpdateWorkItems">UpdateWorkItems</a></li>
 <li><a href="#GetaWorkItem">Get a Work Item</a></li>
 <li><a href="#DeleteaWorkItem">Delete a Work Item</a></li>
 <li><a href="#GetDefaultValues">Get Default Values</a></li>
@@ -271,12 +271,12 @@ https://www.visualstudio.com/en-us/docs/integrate/api/wit/work-item-types</a>
         <!-- CreateWorkItems END -->
         <img src="../../plugins/@PLUGIN_NAME@/images/CreateWorkItem.png" />
             </div>
-                <div id="UpdateaWorkItem">
-                <!-- UpdateaWorkItem METADATA BEGIN -->
-            <h3>Update a Work Item</h3>
+                <div id="UpdateWorkItems">
+                <!-- UpdateWorkItems METADATA BEGIN -->
+            <h3>UpdateWorkItems</h3>
             <p>Update a work item fields.</p>
-        <p>This procedure is a wrapper around REST API. See <a href="https://www.visualstudio.com/en-us/docs/integrate/api/wit/work-items#create-a-work-item" target="_blank">Update a Work Item</a> for reference.</p><!-- UpdateaWorkItem METADATA END -->
-                <!-- UpdateaWorkItem BEGIN -->
+        <p>This procedure is a wrapper around REST API. See <a href="https://www.visualstudio.com/en-us/docs/integrate/api/wit/work-items#create-a-work-item" target="_blank">UpdateWorkItems</a> for reference.</p><!-- UpdateWorkItems METADATA END -->
+                <!-- UpdateWorkItems BEGIN -->
             <table class="grid">
                 <thead>
                     <tr>
@@ -329,7 +329,7 @@ https://www.visualstudio.com/en-us/docs/integrate/api/wit/work-item-types</a>
                 </tr>
                  </tbody>
             </table>
-        <!-- UpdateaWorkItem END -->
+        <!-- UpdateWorkItems END -->
         <img src="../../plugins/@PLUGIN_NAME@/images/UpdateWorkItem.png" />
             </div>
                 <div id="GetaWorkItem">
@@ -474,12 +474,12 @@ https://www.visualstudio.com/en-us/docs/integrate/api/wit/work-item-types</a>
             </table>
             <img src="../../plugins/@PLUGIN_NAME@/images/QueryWorkItems.png" />
             </div>
-                <div id="UpdateaWorkItemQuery">
-                <!-- UpdateaWorkItemQuery METADATA BEGIN -->
-            <h3>Update a Work Item Query</h3>
+                <div id="UpdateWorkItemsQuery">
+                <!-- UpdateWorkItemsQuery METADATA BEGIN -->
+            <h3>UpdateWorkItems Query</h3>
             <p>Updates a work item search query.</p>
-        <p>This procedure is a wrapper around REST API. See <a href="https://www.visualstudio.com/en-us/docs/integrate/api/wit/queries#update-a-query" target="_blank">Update a Work Item Query</a> for reference.</p><!-- UpdateaWorkItemQuery METADATA END -->
-                <!-- UpdateaWorkItemQuery BEGIN -->
+        <p>This procedure is a wrapper around REST API. See <a href="https://www.visualstudio.com/en-us/docs/integrate/api/wit/queries#update-a-query" target="_blank">UpdateWorkItems Query</a> for reference.</p><!-- UpdateWorkItemsQuery METADATA END -->
+                <!-- UpdateWorkItemsQuery BEGIN -->
             <table class="grid">
                 <thead>
                     <tr>
@@ -507,7 +507,7 @@ https://www.visualstudio.com/en-us/docs/integrate/api/wit/work-item-types</a>
                 </tr>
                  </tbody>
             </table>
-        <!-- UpdateaWorkItemQuery END -->
+        <!-- UpdateWorkItemsQuery END -->
             </div>
                 <div id="RunaWorkItemQuery">
                 <!-- RunaWorkItemQuery METADATA BEGIN -->

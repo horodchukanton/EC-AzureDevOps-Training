@@ -479,7 +479,7 @@
       "endpoint" : "#{{endpoint}}/#{{collection}}/#{project}/_apis/build/builds",
       "attachCredentials" : "true"
    },
-   "update a work item" : {
+   "update work items" : {
       "resultProperty" : {
          "show" : "true",
          "format" : [
@@ -488,9 +488,9 @@
          ],
          "default" : "/myJob/updatedWorkItem"
       },
-      "name" : "Update a Work Item",
+      "name" : "UpdateWorkItems",
       "description" : "Update a work item fields.",
-      "stepName" : "update a work item",
+      "stepName" : "update work items",
       "parameters" : [
          {
             "required" : "1",
