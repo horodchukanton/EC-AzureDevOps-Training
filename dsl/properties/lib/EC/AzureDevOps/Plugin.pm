@@ -11,7 +11,6 @@ use EC::Plugin::Microrest;
 use EC::AzureDevOps::WorkItems;
 
 use constant {
-    RESULT_PROPERTY_SHEET_FIELD => 'resultPropertySheet',
     FORBIDDEN_FIELD_NAME_PREFIX => '_'
 };
 use constant FORBIDDEN_FIELD_NAME_PROPERTY_SHEET => qw(acl createTime lastModifiedBy modifyTime owner propertySheetId description);
@@ -20,7 +19,7 @@ use constant FORBIDDEN_FIELD_NAME_PROPERTY_SHEET => qw(acl createTime lastModifi
 my %MS_FIELDS_MAPPING = (
     title       => 'System.Title',
     description => 'System.Description',
-    assignTo    => 'System.AssignedTo',
+    assignto    => 'System.AssignedTo',
     priority    => 'Microsoft.VSTS.Common.Priority',
 );
 
@@ -75,18 +74,27 @@ sub after_init_hook {
 sub step_create_work_items {
     my ($self) = @_;
 
-    my @fields = qw/config project type title priority assignTo
-        description additionalFields requestBody sourceProperty
-        resultPropertySheet resultFormat/;
-    my $parameters = $self->get_params_as_hashref(@fields);
+    my %procedure_parameters = (
+        config              => { label => 'Configuration name', required => 1 },
+        project             => { label => 'Project Name', required => 1 },
+        type                => { label => 'Type', required => 1 },
+        title               => { label => 'Title', required => 1 },
+        priority            => { label => 'Priority', check => 'number' },
+        assignTo            => { label => 'Assign To' },
+        description         => { label => 'Description' },
+        additionalFields    => { label => 'Additional Fields' },
+        requestBody         => { label => 'Request Body' },
+        workItemsJSON       => { label => 'Work Items JSON' },
+        resultPropertySheet => { label => 'Result Property Sheet', required => 1 },
+        resultFormat        => { label => 'Result Format', required => 1 },
+    );
 
-    $self->logger->debug("Parameters", $parameters);
+    my $params = $self->get_params_as_hashref(sort keys %procedure_parameters );
+    $self->logger->debug("Parameters", $params);
 
-    for my $required (qw/config project title type resultPropertySheet resultFormat/){
-        $self->bail_out("Parameter '$required' is mandatory") unless $parameters->{$required};
-    }
+    $self->check_parameters($params, \%procedure_parameters);
 
-    my $config = $self->get_config_values($parameters->{config});
+    my $config = $self->get_config_values($params->{config});
 
      my $client = EC::Plugin::MicroRest->new(
          url        => $self->get_base_url($config),
@@ -94,34 +102,55 @@ sub step_create_work_items {
          user       => $config->{userName},
          password   => $config->{password},
          ctype      => 'application/json-patch+json',
-         encode_sub => \&encode_json,
+         encode_sub => \&JSON::XS::encode_json,
          decode_sub => sub {
              $self->decode_json_or_bail_out(shift, "Failed to parse JSON response from $config->{endpoint}).")
          }
     );
 
-    # Prepend $ to the type name
-    my $type = ($parameters->{type} =~ /^\$/) ? $parameters->{type} : '$' . $parameters->{type};
-
-    my $method_path = $parameters->{project} . '/_apis/wit/workitems/' . $type;
-    $self->logger->debug("Path: $method_path");
-
     # Api version should be sent in query
-    my %query = ();
-    $query{'api-version'} = EC::AzureDevOps::WorkItems::get_api_version($method_path, $config);
+    my $api_version = EC::AzureDevOps::WorkItems::get_api_version('/_apis/wit/workitems/', $config);
 
-    my @work_item_payloads = $self->build_createupdate_workitem_payloads($parameters);
+    # Reading values from the parameters
+    my %generic_fields = $self->parse_generic_create_update_parameters($params);
+
+    my @work_item_hashes = @{ $self->build_create_multi_entity_payload($params, %generic_fields) };
 
     # Sending requests one by one
     my @created_items = ();
-    for my $payload (@work_item_payloads){
-        my $result = $client->post($method_path, \%query, $payload);
+    for my $work_item (@work_item_hashes) {
+
+        # Prepending '$' to the type name and removing from hash
+        my $type = ( $work_item->{type} =~ /^\$/ ) ? $work_item->{type} : '$' . $work_item->{type};
+        delete $work_item->{type};
+
+        # Building API path (includes type)
+        my $api_path = $params->{project} . '/_apis/wit/workitems/' . $type;
+        $self->logger->debug("API Path: $api_path");
+
+        # Forming request payload
+        my @payload = map { _generate_field_op_hash($_, $work_item->{$_}) } keys %$work_item;
+
+        # Adding Additional fields
+        if ($params->{additionalFields}){
+            # Check it is JSON
+            my $additional_fields_decoded = $self->decode_json_or_bail_out($params->{additionalFields}, "Failed to parse Additional Fields.");
+
+            if (ref $additional_fields_decoded eq 'HASH'){
+                push @payload, $additional_fields_decoded;
+            }
+            elsif (ref $additional_fields_decoded eq 'ARRAY'){
+                push @payload, @$additional_fields_decoded;
+            }
+        }
+
+        my $result = $client->post($api_path, { 'api-version' => $api_version }, \@payload);
+
         push @created_items, $result;
     }
 
-    my $result_property_sheet = $parameters->{resultPropertySheet};
-    my $result_ids_property_name =  $result_property_sheet . '/workItemIds';
-    $self->save_entities(\@created_items, $result_property_sheet, $parameters->{resultFormat}, $result_ids_property_name);
+    # Save the properties
+    $self->save_result_entities(\@created_items, $params->{resultPropertySheet}, $params->{resultFormat});
 
     my $count = scalar(@created_items);
     my $summary = "Successfully created $count work item" . (($count > 1) ? 's' : '') . '.';
@@ -130,10 +159,93 @@ sub step_create_work_items {
     $self->set_summary($summary);
 }
 
-sub build_createupdate_workitem_payloads {
+sub step_update_work_items {
+    my ( $self ) = @_;
+
+    my %procedure_parameters = (
+        config              => { label => 'Configuration name', required => 1 },
+        workItemIds         => { label => 'Work Item ID(s)', required => 1 },
+        title               => { label => 'Title', required => 1 },
+        priority            => { label => 'Priority', check => 'number' },
+        assignTo            => { label => 'Assign To' },
+        description         => { label => 'Description' },
+        additionalFields    => { label => 'Additional Fields' },
+        requestBody         => { label => 'Request Body' },
+        resultPropertySheet => { label => 'Result Property Sheet', required => 1 },
+        resultFormat        => { label => 'Result Format', required => 1 },
+    );
+
+    my $params = $self->get_params_as_hashref(sort keys %procedure_parameters);
+    $self->logger->debug("Parameters", $params);
+
+    $self->check_parameters($params, \%procedure_parameters);
+
+    my $config = $self->get_config_values($params->{config});
+    my $client = EC::Plugin::MicroRest->new(
+        url        => $self->get_base_url($config),
+        auth       => $config->{auth} || 'basic',
+        user       => $config->{userName},
+        password   => $config->{password},
+        ctype      => 'application/json-patch+json',
+        encode_sub => \&encode_json,
+        decode_sub => sub {
+            $self->decode_json_or_bail_out(shift, "Failed to parse JSON response from $config->{endpoint})")
+        }
+    );
+
+    # Api version should be sent in query
+    my $api_version = EC::AzureDevOps::WorkItems::get_api_version('/_apis/wit/workitems/', $config);
+
+    # Generating the payload from the parameters
+    my %generic_fields = $self->parse_generic_create_update_parameters($params);
+
+    # Sending requests one by one
+    my @updated_items = ();
+    for my $id (split(',\s?', $params->{workItemIds})) {
+        my $api_path = '/_apis/wit/workitems/' . $id;
+        $self->logger->debug("API Path: $api_path");
+
+        my @payload = map {_generate_field_op_hash($_, $generic_fields{$_})} keys %generic_fields;
+
+        # Adding Additional fields
+        if ($params->{additionalFields}){
+            # Check it is JSON
+            my $additional_fields_decoded = $self->decode_json_or_bail_out($params->{additionalFields}, "Failed to parse Additional Fields.");
+
+            if (ref $additional_fields_decoded eq 'HASH'){
+                push @payload, $additional_fields_decoded;
+            }
+            elsif (ref $additional_fields_decoded eq 'ARRAY'){
+                push @payload, @$additional_fields_decoded;
+            }
+        }
+
+        my $result = $client->patch($api_path, { 'api-version' => $api_version }, \@payload);
+        push @updated_items, $result;
+    }
+
+    # Save the properties
+    $self->save_result_entities(\@updated_items, $params->{resultPropertySheet}, $params->{resultFormat});
+
+    my $count = scalar(@updated_items);
+    my $summary = "Successfully updated $count work item" . ( ( $count > 1 ) ? 's' : '' ) . '.';
+
+    $self->set_pipeline_summary($summary);
+    $self->set_summary($summary);
+}
+
+sub _generate_field_op_hash {
+    my ($field_name, $field_value, $operation) = @_;
+
+    $operation ||= 'add';
+
+    return { op => $operation, path => '/fields/' . $MS_FIELDS_MAPPING{lc ($field_name)}, value => $field_value }
+}
+
+sub parse_generic_create_update_parameters {
     my ($self, $parameters) = @_;
 
-    my @results = ();
+    my %generic_fields = ();
 
     # If we have a request body, will not read other parameters.
     # But should be sure that it is valid.
@@ -146,65 +258,53 @@ sub build_createupdate_workitem_payloads {
         return $payload;
     }
 
-    my @generic_fields = ();
-
-    # Map parameters to Azure operations
-    for my $param (qw/priority assignTo description/){
-        next unless $parameters->{$param};
-        my $ms_name = $MS_FIELDS_MAPPING{$param};
-        push @generic_fields, { op => 'add', path => '/fields/' . $ms_name, value => $parameters->{$param} };
+    # Map parameters to Azure operations (Update does not contain "type" parameter)
+    for my $param (qw/priority assignTo description title type/){
+        $generic_fields{ lc ($param) } = $parameters->{$param} if $parameters->{$param};
     }
 
-    # Add additional fields
-    if ($parameters->{additionalFields}){
-        my $err_msg = 'Value for "Additional Fields" parameter should contain valid JSON array.';
-        my $additional_fields = $self->decode_json_or_bail_out($parameters->{additionalFields}, $err_msg);
-        $self->bail_out($err_msg) unless (ref($additional_fields) eq 'ARRAY');
+    return wantarray ? %generic_fields : \%generic_fields;
+}
 
-        push @generic_fields, @$additional_fields;
+sub build_create_multi_entity_payload {
+    my ($self, $parameters, %generic_fields) = @_;
+    my @results = ();
+
+    # If we have Request Body, than this is the only payload
+    if ($parameters->{requestBody}){
+        @results = \%generic_fields;
     }
+    elsif ($parameters->{workItemsJSON}) {
+        my $work_items_json = $parameters->{workItemsJSON};
 
-    # Add title. In this point we will know if have to create more that one work items;
-    my @titles = ();
-    if ($parameters->{sourceProperty}) {
-        my $propertyValue = '';
-        eval {
-            $propertyValue = $self->ec()->getProperty($parameters->{sourceProperty});
-            1;
-        } or do {
-            $self->bail_out("Failed to read property '$parameters->{sourceProperty}'. $@");
-        };
+        my $err_msg = 'Value for "Work Items JSON" should contain valid non-empty JSON array.';
+        my $work_items = $self->decode_json_or_bail_out($work_items_json, $err_msg);
+        $self->bail_out($err_msg) unless ref($work_items) eq 'ARRAY' && scalar @$work_items;
 
-        if (!$propertyValue){
-            $self->bail_out("Failed to get value of the \"Source Property\"");
+        my @field_params = (qw/Type Title Priority Description/, 'Assign To');
+
+        # JSON object keys are the same as Parameter label
+        # Item hash keys are the same as Parameter property names (lower cased)
+        for my $predefined_work_item (@$work_items){
+            my %work_item = ();
+
+            for my $key (@field_params) {
+                my $search_key = ( $key eq 'Assign To' ) ? 'assignto' :  lc($key);
+                $work_item{$search_key} = $predefined_work_item->{$key} || $generic_fields{$search_key};
+            }
+
+            push @results, \%work_item;
         }
-
-        my $err_msg = 'Value for "Source Property" should contain valid JSON array.';
-        my $source_titles = $self->decode_json_or_bail_out($propertyValue, $err_msg);
-        $self->bail_out($err_msg) unless ref($source_titles) eq 'ARRAY' && scalar @$source_titles;
-        push @titles, map { $_->{Title} } @$source_titles;
     }
     else {
-        push @titles, $parameters->{title};
+        push @results, { map { $_ => $generic_fields{$_} } keys %generic_fields };
     }
-
-    @results = map {
-        [
-            @generic_fields,
-            {
-                op => 'add',
-                path => '/fields/' . $MS_FIELDS_MAPPING{title},
-                value => $_
-            }
-        ]
-    } @titles;
-
 
     return wantarray ? @results : \@results;
 }
 
-sub save_entities {
-    my ($self, $entities_list, $result_property, $result_format, $ids_property) = @_;
+sub save_result_entities {
+    my ($self, $entities_list, $result_property, $result_format) = @_;
 
     my @ids = ();
     for my $entity (@$entities_list){
@@ -213,10 +313,52 @@ sub save_entities {
         $self->save_parsed_data($entity, $result_property . "/$id", $result_format)
     }
 
-    $self->logger->info("Created work item IDs saved to a property $ids_property", );
-    $self->set_property($ids_property, join(', ', @ids));
+    my $ids_property = $result_property . '/workItemIds';
+    my $ids = join(', ', @ids);
+    $self->logger->info("Work item IDs ($ids) will be saved to a property '$ids_property'.", );
+    $self->ec->setProperty($ids_property, $ids);
 
     return 1;
+}
+
+sub save_parsed_data {
+    my ($self, $parsed_data, $result_property, $result_format) = @_;
+
+    unless($result_format) {
+        return $self->bail_out('No format has been selected');
+    }
+
+    unless($parsed_data) {
+        $self->logger->info("Nothing to save");
+        return;
+    }
+
+    $self->logger->info("Got data", JSON->new->pretty->encode($parsed_data));
+    if ($result_format eq 'none'){
+        $self->logger->info("Results will not be saved to a property");
+    }
+    elsif ($result_format eq 'propertySheet') {
+
+        my $flat_map = $self->_self_flatten_map($parsed_data, $result_property, 'check_errors!');
+
+        for my $key (sort keys %$flat_map) {
+            $self->logger->info("Saving $key -> $flat_map->{$key}");
+            $self->ec->setProperty($key, $flat_map->{$key});
+        }
+    }
+    elsif ($result_format eq 'json') {
+        my $json = encode_json($parsed_data);
+        $json = decode('utf8', $json);
+        $self->logger->trace(Dumper($json));
+        $self->ec->setProperty($result_property, $json);
+        $self->logger->info("Saved answer under $result_property");
+    }
+    elsif ($result_format eq 'file') {
+        #saving data implementation is on Hooks side!
+    }
+    else {
+        $self->bail_out("Cannot process format $result_format: not implemented");
+    }
 }
 
 sub get_base_url {
@@ -236,45 +378,6 @@ sub get_base_url {
 
     return "$config->{endpoint}/$config->{collection}";
 }
-
-sub save_parsed_data {
-    my ($self, $parsed_data, $result_property, $result_format) = @_;
-
-    unless($result_format) {
-        return $self->bail_out('No format has beed selected');
-    }
-
-    unless($parsed_data) {
-        $self->logger->info("Nothing to save");
-        return;
-    }
-
-    $self->logger->info("Got data", JSON->new->pretty->encode($parsed_data));
-
-    if ($result_format eq 'propertySheet') {
-
-        my $flat_map = $self->_self_flatten_map($parsed_data, $result_property, 'check_errors!');
-
-        for my $key (sort keys %$flat_map) {
-            $self->ec->setProperty($key, $flat_map->{$key});
-            $self->logger->info("Saved $key -> $flat_map->{$key}");
-        }
-    }
-    elsif ($result_format eq 'json') {
-        my $json = encode_json($parsed_data);
-        $json = decode('utf8', $json);
-        $self->logger->trace(Dumper($json));
-        $self->ec->setProperty($result_property, $json);
-        $self->logger->info("Saved answer under $result_property");
-    }
-    elsif ($result_format eq 'file') {
-        #saving data implementation is on Hooks side!
-    }
-    else {
-        $self->bail_out("Cannot process format $result_format: not implemented");
-    }
-}
-
 
 sub _self_flatten_map {
     my ($self, $map, $prefix, $check) = @_;

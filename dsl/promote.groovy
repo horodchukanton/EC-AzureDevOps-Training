@@ -22,7 +22,7 @@ def stepsWithAttachedCredentials = [
 
 	[procedureName: 'Get Default Values', stepName: 'get default values'],
 	[procedureName: 'TriggerBuild', stepName: 'trigger a build'],
-	[procedureName: 'Update a Work Item', stepName: 'update a work item'],
+	[procedureName: 'UpdateWorkItems', stepName: 'update work items'],
 	[procedureName: 'Upload a Work Item Attachment', stepName: 'upload a work item attachment'],
 	[procedureName: 'Query Work Items', stepName: 'query work items'],
 ]
@@ -34,9 +34,9 @@ def unavailableProcedures = [
 	[procedureName: 'CreateWorkItems Query', stepName: 'create work items query'],
 	[procedureName: 'Delete a Work Item Query', stepName: 'delete a work item query'],
 	[procedureName: 'Run a Work Item Query', stepName: 'run a work item query'],
-	[procedureName: 'Update a Work Item Query', stepName: 'updates a work item query'],
+	[procedureName: 'UpdateWorkItems Query', stepName: 'updates a work item query'],
 
-	// Git operations should be done in ECSCM plugins
+	// Git operations should be done in ECSCM plugin
 	[procedureName: 'Download an Artifact from a Git Repository', stepName: 'download an artifact from a git repository'],
 
 	// Out of the scope
@@ -47,6 +47,7 @@ def unavailableProcedures = [
 
 	//Single entity operations were refactored to multiple entity operations
 	[procedureName: 'Create a Work Item', stepName: 'create a work item'],
+	[procedureName: 'Update a Work Item', stepName: 'update a work item'],
 	[procedureName: 'Get a Work Item', stepName: 'get a work item'],
 ]
 
@@ -72,6 +73,14 @@ project pluginName, {
 	}
 
 	property 'ec_formXmlCompliant', value : "true"
+
+	property 'ecp_azuredevops_workitemtypes', {
+		property 'Bug', value: 'Bug'
+		property 'Epic', value: 'Epic'
+		property 'Feature', value: 'Feature'
+		property 'Issue', value: 'Issue'
+		property 'User Story', value: 'User Story'
+	}
 }
 
 // Copy existing plugin configurations from the previous

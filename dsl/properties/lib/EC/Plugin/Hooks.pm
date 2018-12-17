@@ -77,8 +77,8 @@ Available hooks types:
 sub define_hooks {
     my ($self) = @_;
 
-    $self->define_hook('create work items', 'parsed', \&create_work_item_response_parsed);
-    $self->define_hook('update a work item', 'parsed', \&update_work_item_response_parsed);
+    # $self->define_hook('create work items', 'parsed', \&create_work_item_response_parsed);
+    # $self->define_hook('update work items', 'parsed', \&update_work_item_response_parsed);
     $self->define_hook('create work items', 'parameters', \&create_work_item_parameters);
     $self->define_hook('get default values', 'parameters', \&get_default_values);
     $self->define_hook('get a work item', 'parsed', \&get_work_item_response_parsed);
@@ -654,38 +654,38 @@ sub get_default_values {
     $parameters->{workItemTypeName} = $type;
 }
 
-sub create_work_item_parameters {
-    my ($self, $parameters) = @_;
-
-    my $type = $parameters->{type};
-    $type = '$' . $type unless $type =~ m/^\$/;
-    $parameters->{type} = $type;
-}
-
-sub create_work_item_response_parsed {
-    my ($self, $response) = @_;
-
-    my $id = $response->{id};
-    my $url = $self->create_item_url($response->{fields}->{'System.TeamProject'}, $id);
-
-    $self->plugin->logger->info("A new work item has been created with id: $id");
-    $self->plugin->logger->info("URL: $url");
-    $self->plugin->set_summary("New work item URL: $url");
-    my $pipeline_summary = qq{<html><a href="$url" target="_blank">$url</a></html>};
-    $self->plugin->set_pipeline_summary("Work item URL", $pipeline_summary);
-}
-
-sub update_work_item_response_parsed {
-    my ($self, $response) = @_;
-
-    my $id = $response->{id};
-    my $url = $self->create_item_url($response->{fields}->{'System.TeamProject'}, $id);
-
-    $self->plugin->logger->info("URL: $url");
-    $self->plugin->set_summary("Updated work item URL: $url");
-    my $pipeline_summary = qq{<html><a href="$url" target="_blank">$url</a></html>};
-    $self->plugin->set_pipeline_summary("Updated work item URL", $pipeline_summary);
-}
+# sub create_work_item_parameters {
+#     my ($self, $parameters) = @_;
+#
+#     my $type = $parameters->{type};
+#     $type = '$' . $type unless $type =~ m/^\$/;
+#     $parameters->{type} = $type;
+# }
+#
+# sub create_work_item_response_parsed {
+#     my ($self, $response) = @_;
+#
+#     my $id = $response->{id};
+#     my $url = $self->create_item_url($response->{fields}->{'System.TeamProject'}, $id);
+#
+#     $self->plugin->logger->info("A new work item has been created with id: $id");
+#     $self->plugin->logger->info("URL: $url");
+#     $self->plugin->set_summary("New work item URL: $url");
+#     my $pipeline_summary = qq{<html><a href="$url" target="_blank">$url</a></html>};
+#     $self->plugin->set_pipeline_summary("Work item URL", $pipeline_summary);
+# }
+#
+# sub update_work_item_response_parsed {
+#     my ($self, $response) = @_;
+#
+#     my $id = $response->{id};
+#     my $url = $self->create_item_url($response->{fields}->{'System.TeamProject'}, $id);
+#
+#     $self->plugin->logger->info("URL: $url");
+#     $self->plugin->set_summary("Updated work item URL: $url");
+#     my $pipeline_summary = qq{<html><a href="$url" target="_blank">$url</a></html>};
+#     $self->plugin->set_pipeline_summary("Updated work item URL", $pipeline_summary);
+# }
 
 
 sub get_work_item_response_parsed {

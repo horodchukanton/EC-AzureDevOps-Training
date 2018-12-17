@@ -33,18 +33,18 @@
     </formElement>
     <formElement>
         <type>entry</type>
-        <label>AzureDevOps Server/Services endpoint:</label>
+        <label>AzureDevOps Server/Services Endpoint:</label>
         <property>endpoint</property>
         <required>1</required>
-        <documentation>VS Team Services endpoint (https://myaccount.visualstudio.com) or TFS server (scheme://server:port/tfs).</documentation>
+        <documentation>AzureDevOps endpoint (https://dev.azure.com) or TFS server (scheme://server:port/tfs) URL.</documentation>
     </formElement>
     <formElement>
         <type>entry</type>
-        <label>Collection name for TFS:</label>
+        <label>Collection/Organization Name:</label>
         <property>collection</property>
         <required>1</required>
         <value>DefaultCollection</value>
-        <documentation>Collection name. If not defined, DefaultCollection will be used.</documentation>
+        <documentation>Collection name for TFS or Organization name for AzureDevOps. If not defined, DefaultCollection will be used. (which is applicable only for the TFS server)</documentation>
     </formElement>
     <formElement>
         <type>select</type>
@@ -60,7 +60,7 @@
             <name>NTLM</name>
             <value>ntlm</value>
         </option>
-        <documentation>Select the type of authentication to use.</documentation>
+        <documentation>Select the type of authentication to use. Note: Some endpoints acceps only PAT for Basic Authentication.</documentation>
     </formElement>
     <formElement>
         <type>credential</type>
@@ -71,18 +71,71 @@
         <documentation>Username and password to connect to AzureDevOps Server/Services.</documentation>
     </formElement>
     <formElement>
-        <type>textarea</type>
-        <label>API versions:</label>
-        <property>apiVersions</property>
+        <type>select</type>
+        <documentation>TFS and AzureDevOps Server/Services requires version to be specified. For AzureDevOps Services select the latest version.</documentation>
+        <label>API version:</label>
+        <property>apiVersion</property>
         <required>1</required>
-        <value>
-wit/workitems=1.0
+        <option>
+            <name>TFS vNext</name>
+            <value>5.0</value>
+        </option>
+        <option>
+            <name>TFS 2018 Update 2/3</name>
+            <value>4.1</value>
+        </option>
+        <option>
+            <name>TFS 2018 Update RTW/1</name>
+            <value>4.0</value>
+        </option>
+        <option>
+            <name>TFS 2017 Update 2</name>
+            <value>3.2</value>
+        </option>
+        <option>
+            <name>TFS 2017 Update 1</name>
+            <value>3.1</value>
+        </option>
+        <option>
+            <name>TFS 2017 RTW</name>
+            <value>3.0</value>
+        </option>
+        <option>
+            <name>TFS 2015 Update 3/4</name>
+            <value>2.3</value>
+        </option>
+        <option>
+            <name>TFS 2015 Update 2</name>
+            <value>2.2</value>
+        </option>
+        <option>
+            <name>TFS 2015 Update 1</name>
+            <value>2.1</value>
+        </option>
+        <option>
+            <name>TFS 2015 RTW</name>
+            <value>2.0</value>
+        </option>
+        <option>
+            <name>Use Custom API versions</name>
+            <value>custom</value>
+        </option>
+        <value>4.1</value>
+    </formElement>
+    <formElement>
+        <type>textarea</type>
+        <label>Custom API versions:</label>
+        <property>customApiVersions</property>
+        <required>0</required>
+        <value>wit/workitems=1.0
 wit/wiql=1.0
 git/repositories=1.0
 wit/queries=2.2
 build/builds=2.0
 </value>
+        <documentation>Versions for different APIs, one version per line. API names can look like wit/workitems, wit/wiql, git/repositories - generally, part of the API endpoint after the _apis part. If no version is provided, version 1.0 will be used.</documentation>
         <htmlDocumentation>Versions for different APIs, one version per line. API names can look like wit/workitems, wit/wiql, git/repositories - generally, part of the API endpoint after the _apis part. If no version is provided, version 1.0 will be used.</htmlDocumentation>
+        <dependsOn>apiVersion</dependsOn>
+        <condition>${apiVersion} == 'custom'</condition>
     </formElement>
-    
 </editor>

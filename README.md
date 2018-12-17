@@ -13,7 +13,7 @@ Retrieves a list of the work items.
 
 Creates a new work item.
 
-## Update a Work Item
+## UpdateWorkItems
 
 Update a work item fields.
 

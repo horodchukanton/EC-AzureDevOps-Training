@@ -97,7 +97,7 @@ sub define_processors {
     my ($self) = @_;
 
     $self->define_processor('create work items', 'serialize_body', \&create_workitem);
-    $self->define_processor('update a work item', 'serialize_body', \&update_workitem);
+    $self->define_processor('update work items', 'serialize_body', \&update_workitem);
     $self->define_processor('trigger a build', 'serialize_body', \&queue_build);
     $self->define_processor('upload a work item attachment', 'serialize_body', \&upload_attachment);
     # $self->define_processor('download an artifact from a git repository', 'parse_response', \&download_artifact);
@@ -179,68 +179,68 @@ sub queue_build {
     return $new_body;
 }
 
-
-sub create_workitem {
-    my ($self, $body) = @_;
-    $self->_create_update_workitem($body);
-}
-
-
-sub update_workitem {
-    my ($self, $body) = @_;
-    $self->_create_update_workitem($body);
-}
-
-sub _create_update_workitem {
-    my ($self, $body) = @_;
-
-    my @list = ();
-    my %mapping = (
-        title => 'System.Title',
-        description => 'System.Description',
-        assignTo => 'System.AssignedTo',
-        priority => 'Microsoft.VSTS.Common.Priority',
-    );
-
-    my $parameters = $self->plugin->parameters;
-    if ($parameters->{additionalFields}) {
-        my $o;
-        eval {
-            $o = decode_json($parameters->{additionalFields});
-            1;
-        } or do {
-            return $self->plugin->bail_out("Additional fields should contain a valid JSON map: $@");
-        };
-        unless(ref $o eq 'HASH') {
-            return $self->plugin->bail_out('Additional fields should contain a valid JSON map');
-        }
-        for my $key (keys %$o) {
-            push @list, {op => 'add', path => "/fields/$key", value => $o->{$key}};
-        }
-    }
-
-    if ($parameters->{requestBody}) {
-        my $request_body;
-        eval {
-            $request_body = decode_json($parameters->{requestBody});
-            1;
-        } or do {
-            return $self->plugin->bail_out('Request body should contain a valid JSON');
-        };
-        unless(ref $request_body eq 'ARRAY') {
-            return $self->plugin->bail_out('Request body should contain JSON array');
-        }
-        push @list, @$request_body;
-    }
-
-    for my $key (keys %mapping) {
-        if ($body->{$key}) {
-            push @list, {op => 'add', path => "/fields/$mapping{$key}", value => $body->{$key}};
-        }
-    }
-    my $new_body = encode_json(\@list);
-    $self->plugin->logger->debug('New body', $new_body);
-    return $new_body;
-}
+#
+# sub create_workitem {
+#     my ($self, $body) = @_;
+#     $self->_create_update_workitem($body);
+# }
+#
+#
+# sub update_workitem {
+#     my ($self, $body) = @_;
+#     $self->_create_update_workitem($body);
+# }
+#
+# sub _create_update_workitem {
+#     my ($self, $body) = @_;
+#
+#     my @list = ();
+#     my %mapping = (
+#         title => 'System.Title',
+#         description => 'System.Description',
+#         assignTo => 'System.AssignedTo',
+#         priority => 'Microsoft.VSTS.Common.Priority',
+#     );
+#
+#     my $parameters = $self->plugin->parameters;
+#     if ($parameters->{additionalFields}) {
+#         my $o;
+#         eval {
+#             $o = decode_json($parameters->{additionalFields});
+#             1;
+#         } or do {
+#             return $self->plugin->bail_out("Additional fields should contain a valid JSON map: $@");
+#         };
+#         unless(ref $o eq 'HASH') {
+#             return $self->plugin->bail_out('Additional fields should contain a valid JSON map');
+#         }
+#         for my $key (keys %$o) {
+#             push @list, {op => 'add', path => "/fields/$key", value => $o->{$key}};
+#         }
+#     }
+#
+#     if ($parameters->{requestBody}) {
+#         my $request_body;
+#         eval {
+#             $request_body = decode_json($parameters->{requestBody});
+#             1;
+#         } or do {
+#             return $self->plugin->bail_out('Request body should contain a valid JSON');
+#         };
+#         unless(ref $request_body eq 'ARRAY') {
+#             return $self->plugin->bail_out('Request body should contain JSON array');
+#         }
+#         push @list, @$request_body;
+#     }
+#
+#     for my $key (keys %mapping) {
+#         if ($body->{$key}) {
+#             push @list, {op => 'add', path => "/fields/$mapping{$key}", value => $body->{$key}};
+#         }
+#     }
+#     my $new_body = encode_json(\@list);
+#     $self->plugin->logger->debug('New body', $new_body);
+#     return $new_body;
+# }
 
 1;

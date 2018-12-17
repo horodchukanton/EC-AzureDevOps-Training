@@ -193,9 +193,14 @@ sub _parse_api_versions {
 sub get_api_version {
     my ($uri, $config) = @_;
 
+    if ($config->{apiVersion} ne 'custom'){
+        return $config->{apiVersion};
+    }
+
     my $api_versions = _parse_api_versions($config->{apiVersions});
     my ($first_name, $second_name) = $uri =~ m{/_apis/(\w+)/(\w+)};
     my $version = $api_versions->{"$first_name/$second_name"} || '1.0';
+
     return $version;
 }
 
