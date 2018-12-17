@@ -111,7 +111,7 @@ sub step_create_work_items {
     # Api version should be sent in query
     my $api_version = EC::AzureDevOps::WorkItems::get_api_version('/_apis/wit/workitems/', $config);
 
-    # Generating the payload from the parameters
+    # Reading values from the parameters
     my %generic_fields = $self->parse_generic_create_update_parameters($params);
 
     my @work_item_hashes = @{ $self->build_create_multi_entity_payload($params, %generic_fields) };
@@ -130,6 +130,19 @@ sub step_create_work_items {
 
         # Forming request payload
         my @payload = map { _generate_field_op_hash($_, $work_item->{$_}) } keys %$work_item;
+
+        # Adding Additional fields
+        if ($params->{additionalFields}){
+            # Check it is JSON
+            my $additional_fields_decoded = $self->decode_json_or_bail_out($params->{additionalFields}, "Failed to parse Additional Fields.");
+
+            if (ref $additional_fields_decoded eq 'HASH'){
+                push @payload, $additional_fields_decoded;
+            }
+            elsif (ref $additional_fields_decoded eq 'ARRAY'){
+                push @payload, @$additional_fields_decoded;
+            }
+        }
 
         my $result = $client->post($api_path, { 'api-version' => $api_version }, \@payload);
 
@@ -193,6 +206,19 @@ sub step_update_work_items {
         $self->logger->debug("API Path: $api_path");
 
         my @payload = map {_generate_field_op_hash($_, $generic_fields{$_})} keys %generic_fields;
+
+        # Adding Additional fields
+        if ($params->{additionalFields}){
+            # Check it is JSON
+            my $additional_fields_decoded = $self->decode_json_or_bail_out($params->{additionalFields}, "Failed to parse Additional Fields.");
+
+            if (ref $additional_fields_decoded eq 'HASH'){
+                push @payload, $additional_fields_decoded;
+            }
+            elsif (ref $additional_fields_decoded eq 'ARRAY'){
+                push @payload, @$additional_fields_decoded;
+            }
+        }
 
         my $result = $client->patch($api_path, { 'api-version' => $api_version }, \@payload);
         push @updated_items, $result;
