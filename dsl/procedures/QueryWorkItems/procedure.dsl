@@ -7,8 +7,8 @@ procedure procName, description: 'Queries work items and saves them under the sp
     step stepName,
         command: """
 \$[/myProject/scripts/preamble]
-use EC::Plugin::WorkItems;
-EC::Plugin::WorkItems->new->step_query_work_items;
+use EC::AzureDevOps::WorkItems;
+EC::AzureDevOps::WorkItems->new->step_query_work_items;
 """,
         errorHandling: 'failProcedure',
         exclusiveMode: 'none',

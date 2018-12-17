@@ -44,3 +44,5 @@ BEGIN {
 
     push @INC, $load;
 };
+
+1;

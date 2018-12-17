@@ -164,6 +164,20 @@
       "parameters" : [
          {
             "required" : "1",
+            "documentation" : "ID of the work item.",
+            "type" : "entry",
+            "label" : "Work Item ID",
+            "property" : "workItemId"
+         },
+         {
+            "required" : "0",
+            "documentation" : "Comment for the attachment",
+            "type" : "entry",
+            "label" : "Comment",
+            "property" : "comment"
+         },
+         {
+            "required" : "1",
             "in" : "query",
             "documentation" : "The name of the file in the attachment store (typically the same as the name of the source of the attachment).",
             "type" : "entry",
@@ -171,6 +185,7 @@
             "property" : "filename"
          },
          {
+            "in" : "query",
             "documentation" : "Default is simple. Use chunked upload type for uploading large files (>130 MB).",
             "option" : [
                {
@@ -202,6 +217,8 @@
          }
       ],
       "fields" : [
+         "workItemId",
+         "comment",
          "filename",
          "uploadType",
          "filePath",
@@ -264,7 +281,7 @@
       "endpoint" : "#{{endpoint}}/#{{collection}}/#{project}/_apis/wit/workitems/#{itemId}",
       "attachCredentials" : "true"
    },
-   "create a work item" : {
+   "create work items" : {
       "resultProperty" : {
          "show" : "true",
          "format" : [
@@ -273,9 +290,9 @@
          ],
          "default" : "/myJob/newWorkItem"
       },
-      "name" : "Create a Work Item",
+      "name" : "CreateWorkItems",
       "description" : "Creates a new work item.",
-      "stepName" : "create a work item",
+      "stepName" : "create work items",
       "parameters" : [
          {
             "required" : "1",
@@ -364,179 +381,7 @@
       "endpoint" : "#{{endpoint}}/#{{collection}}/#{project}/_apis/wit/workitems/#{type}",
       "attachCredentials" : "true"
    },
-   "updates a work item query" : {
-      "resultProperty" : {
-         "show" : "true",
-         "format" : [
-            "json",
-            "propertySheet"
-         ],
-         "default" : "/myJob/updateQueryResult"
-      },
-      "name" : "Update a Work Item Query",
-      "description" : "Updates a work item search query.",
-      "stepName" : "updates a work item query",
-      "parameters" : [
-         {
-            "required" : "1",
-            "in" : "path",
-            "documentation" : "Name or ID of a team project where the work item type is defined.",
-            "label" : "Project",
-            "type" : "entry",
-            "property" : "project"
-         },
-         {
-            "required" : "1",
-            "in" : "path",
-            "documentation" : "ID or Path to the folder you want to create the query in",
-            "label" : "Folder path",
-            "type" : "entry",
-            "property" : "folderPath"
-         },
-         {
-            "required" : "1",
-            "in" : "path",
-            "documentation" : "Name or ID the query to update.",
-            "label" : "Query ID",
-            "type" : "entry",
-            "property" : "query"
-         },
-         {
-            "htmlDocumentation" : "<a href=\"http://msdn.microsoft.com/library/bb130306.aspx\" target=\"_blank\">Query string</a>.\n",
-            "required" : "1",
-            "in" : "body",
-            "documentation" : "Query string.",
-            "type" : "textarea",
-            "label" : "Query string",
-            "property" : "wiql"
-         }
-      ],
-      "fields" : [
-         "project",
-         "folderPath",
-         "query",
-         "wiql"
-      ],
-      "basicAuth" : "true",
-      "hasConfig" : "true",
-      "method" : "PATCH",
-      "documentationLinks" : [
-         "https://www.visualstudio.com/en-us/docs/integrate/api/wit/queries#update-a-query"
-      ],
-      "contentType" : "application/json",
-      "endpoint" : "#{{endpoint}}/#{{collection}}/#{project}/_apis/wit/queries/#{folderPath}/#{query}",
-      "attachCredentials" : "true"
-   },
-   "get a build" : {
-      "resultProperty" : {
-         "show" : "true",
-         "format" : [
-            "json",
-            "propertySheet"
-         ],
-         "default" : "/myJob/build"
-      },
-      "name" : "Get a Build",
-      "description" : "Gets a specified build info",
-      "stepName" : "get a build",
-      "parameters" : [
-         {
-            "htmlDocumentation" : "ID or name of the <a href=\"https://www.visualstudio.com/en-us/docs/integrate/api/tfs/projects\">team project</a>.\n",
-            "required" : "1",
-            "in" : "path",
-            "documentation" : "ID or name of the team project.",
-            "type" : "entry",
-            "label" : "Project name",
-            "property" : "project"
-         },
-         {
-            "required" : "1",
-            "in" : "path",
-            "documentation" : "ID or number of the build.",
-            "type" : "entry",
-            "label" : "Build number or ID",
-            "property" : "buildId"
-         },
-         {
-            "checkedValue" : "1",
-            "value" : "1",
-            "uncheckedValue" : "0",
-            "documentation" : "If checked, the procedure will poll the build status until the build is finished.",
-            "type" : "checkbox",
-            "label" : "Wait for build",
-            "property" : "waitForBuild"
-         },
-         {
-            "value" : "300",
-            "documentation" : "Time (in seconds) to wait for build to be finished. Used if \"Wait for build\" flag is set.",
-            "type" : "entry",
-            "label" : "Timeout to wait",
-            "property" : "waitTimeout"
-         },
-         {
-            "checkedValue" : "1",
-            "value" : "1",
-            "uncheckedValue" : "0",
-            "documentation" : "If checked, the procedure status will mimic build status, e.g. if the build has failed, the procedure will fail too.",
-            "type" : "checkbox",
-            "label" : "Mimic build status",
-            "property" : "mimicProcedureStatus"
-         }
-      ],
-      "fields" : [
-         "project",
-         "buildId",
-         "waitForBuild",
-         "waitTimeout",
-         "mimicProcedureStatus"
-      ],
-      "hasConfig" : "true",
-      "basicAuth" : "true",
-      "method" : "GET",
-      "documentationLinks" : [
-         "https://www.visualstudio.com/en-us/docs/integrate/api/build/builds#get-a-build"
-      ],
-      "contentType" : "application/json",
-      "endpoint" : "#{{endpoint}}/#{{collection}}/#{project}/_apis/build/builds/#{buildId}",
-      "attachCredentials" : "true"
-   },
-   "delete a work item query" : {
-      "name" : "Delete a Work Item Query",
-      "description" : "Deletes the specified work item search query.",
-      "stepName" : "delete a work item query",
-      "parameters" : [
-         {
-            "required" : "1",
-            "in" : "path",
-            "documentation" : "Name or ID of a team project where the work item type is defined.",
-            "label" : "Project",
-            "type" : "entry",
-            "property" : "project"
-         },
-         {
-            "required" : "1",
-            "in" : "query",
-            "documentation" : "ID or path of the query or folder to delete.",
-            "type" : "entry",
-            "label" : "Query path",
-            "property" : "queryPath"
-         }
-      ],
-      "fields" : [
-         "project",
-         "queryPath"
-      ],
-      "hasConfig" : "true",
-      "basicAuth" : "true",
-      "method" : "DELETE",
-      "documentationLinks" : [
-         "https://www.visualstudio.com/en-us/docs/integrate/api/wit/queries#delete-a-query-or-folder"
-      ],
-      "contentType" : "application/json",
-      "endpoint" : "#{{endpoint}}/#{{collection}}/#{project}/_apis/wit/queries/#{queryPath}",
-      "attachCredentials" : "true"
-   },
-   "queue a build" : {
+   "trigger a build" : {
       "resultProperty" : {
          "show" : "true",
          "format" : [
@@ -545,9 +390,9 @@
          ],
          "default" : "/myJob/queueBuild"
       },
-      "name" : "Queue a build",
+      "name" : "TriggerBuild",
       "description" : "Queues a new build.",
-      "stepName" : "queue a build",
+      "stepName" : "trigger a build",
       "parameters" : [
          {
             "required" : "1",
@@ -725,232 +570,6 @@
       "endpoint" : "#{{endpoint}}/#{{collection}}/_apis/wit/workitems/#{itemId}",
       "attachCredentials" : "true"
    },
-   "download an artifact from a git repository" : {
-      "resultProperty" : {
-         "show" : "true",
-         "format" : [
-            "json",
-            "propertySheet"
-         ],
-         "default" : "/myJob/downloadGitArtifact"
-      },
-      "name" : "Download an Artifact from a Git Repository",
-      "description" : "Downloads a file from a Git repository.",
-      "stepName" : "download an artifact from a git repository",
-      "parameters" : [
-         {
-            "htmlDocumentation" : "ID or name of the <a href=\"https://www.visualstudio.com/en-us/docs/integrate/api/tfs/projects\">team project</a>.\n",
-            "required" : "1",
-            "in" : "path",
-            "documentation" : "ID or name of the team project.",
-            "type" : "entry",
-            "label" : "Project name",
-            "property" : "project"
-         },
-         {
-            "htmlDocumentation" : "ID or name of the <a href=\"https://www.visualstudio.com/en-us/docs/integrate/api/git/repositories\">repository</a>.\n",
-            "required" : "1",
-            "in" : "path",
-            "documentation" : "ID or name of the repository.",
-            "type" : "entry",
-            "label" : "Repository name",
-            "property" : "repository"
-         },
-         {
-            "required" : "1",
-            "in" : "query",
-            "value" : "/",
-            "documentation" : "Path to the item in the repository. e.g. /WebSite/WebSite/Views/Home/_Home.cshtml",
-            "type" : "entry",
-            "label" : "File path",
-            "property" : "scopePath"
-         },
-         {
-            "documentation" : "Destination folder for file. If not specified, defaults to the current job workspace.",
-            "type" : "entry",
-            "label" : "Destination folder for file",
-            "property" : "destination"
-         },
-         {
-            "value" : "application/octet-stream",
-            "required" : "true",
-            "in" : "header",
-            "documentation" : "Specify the format for dowloading an artifact.",
-            "label" : "Download format",
-            "type" : "select",
-            "option" : [
-               {
-                  "value" : "application/octet-stream",
-                  "name" : "Binary"
-               },
-               {
-                  "value" : "application/zip",
-                  "name" : "Zip"
-               },
-               {
-                  "value" : "application/json",
-                  "name" : "JSON (metadata)"
-               }
-            ],
-            "property" : "Accept"
-         },
-         {
-            "checkedValue" : "true",
-            "value" : "false",
-            "uncheckedValue" : "false",
-            "in" : "query",
-            "documentation" : "Use true to include additional metadata about the item content, like the file type.\nUseful only when metadata is retrived.\n",
-            "label" : "Include content metadata",
-            "type" : "checkbox",
-            "property" : "includeContentMetadata"
-         },
-         {
-            "checkedValue" : "true",
-            "uncheckedValue" : "false",
-            "value" : "false",
-            "documentation" : "true gets the commit that contains the previous change to the retrieved version of the item.\nOf course, the root item (\"/\") has no commits associated with it, so there will not be a\ncommit returned with the root item.\nUseful only when metadata is retrived.\n",
-            "type" : "checkbox",
-            "label" : "Latest processed change",
-            "property" : "latestProcessedChange"
-         },
-         {
-            "value" : "branch",
-            "in" : "query",
-            "documentation" : "Use the versionType and version parameters together. For example, to get an item from \"mybranch\", use versionType=branch and version=mybranch.",
-            "option" : [
-               {
-                  "value" : "branch",
-                  "name" : "Branch"
-               },
-               {
-                  "value" : "commit",
-                  "name" : "Commit"
-               },
-               {
-                  "value" : "tag",
-                  "name" : "Tag"
-               }
-            ],
-            "type" : "select",
-            "label" : "Version type",
-            "property" : "versionType"
-         },
-         {
-            "htmlDocumentation" : "<table>\n<tr>\n<th>If versionType is...</th><th>Version is interpreted as...</th>\n</tr>\n<tr>\n  <td>Branch</td><td>The name of a branch.</td>\n</tr>\n<tr>\n  <td>Tag</td><td>The name of a tag.</td>\n</tr>\n<tr>\n  <td>Commit</td><td>The ID of a commit.</td>\n  </tr>\n</table>\n\nYou can also modify the version with the versionOptions parameter.\n",
-            "in" : "query",
-            "value" : "master",
-            "type" : "entry",
-            "label" : "Version",
-            "property" : "version"
-         },
-         {
-            "htmlDocumentation" : "<b>First parent</b>: The parent branch to the version specified by the versionType and version parameters.\n<br />\n<b>Previous change</b>: The last version of the item that was changed prior to the version specified by the versionType and version parameters.\n<br />\n<b>None</b>: No modification to the version specified by the versionType and version parameters.\n",
-            "value" : "None",
-            "in" : "query",
-            "option" : [
-               {
-                  "value" : "firstParent",
-                  "name" : "First parent"
-               },
-               {
-                  "value" : "previousChange",
-                  "name" : "Previous change"
-               },
-               {
-                  "value" : "None",
-                  "name" : "None"
-               }
-            ],
-            "type" : "select",
-            "label" : "Version options",
-            "property" : "versionOptions"
-         }
-      ],
-      "fields" : [
-         "project",
-         "repository",
-         "scopePath",
-         "destination",
-         "Accept",
-         "includeContentMetadata",
-         "latestProcessedChange",
-         "versionType",
-         "version",
-         "versionOptions"
-      ],
-      "hasConfig" : "true",
-      "basicAuth" : "true",
-      "method" : "GET",
-      "documentationLinks" : [
-         "https://www.visualstudio.com/en-us/docs/integrate/api/git/items#get-a-file"
-      ],
-      "contentType" : "application/json",
-      "endpoint" : "#{{endpoint}}/#{{collection}}/#{project}/_apis/git/repositories/#{repository}/items",
-      "attachCredentials" : "true"
-   },
-   "create a work item query" : {
-      "resultProperty" : {
-         "show" : "true",
-         "format" : [
-            "json",
-            "propertySheet"
-         ],
-         "default" : "/myJob/createQueryResult"
-      },
-      "name" : "Create a Work Item Query",
-      "description" : "Create a new work item search query.",
-      "stepName" : "create a work item query",
-      "parameters" : [
-         {
-            "required" : "1",
-            "in" : "path",
-            "documentation" : "Name or ID of a team project where the work item type is defined.",
-            "label" : "Project",
-            "type" : "entry",
-            "property" : "project"
-         },
-         {
-            "required" : "1",
-            "in" : "path",
-            "documentation" : "ID or Path to the folder you want to create the query in",
-            "label" : "Folder path",
-            "type" : "entry",
-            "property" : "folderPath"
-         },
-         {
-            "required" : "1",
-            "in" : "body",
-            "documentation" : "Name of the query.",
-            "label" : "Name",
-            "type" : "entry",
-            "property" : "name"
-         },
-         {
-            "htmlDocumentation" : "<a href=\"http://msdn.microsoft.com/library/bb130306.aspx\" target=\"_blank\">Query string</a>.\n",
-            "required" : "1",
-            "in" : "body",
-            "documentation" : "Query string.",
-            "type" : "textarea",
-            "label" : "Query string",
-            "property" : "wiql"
-         }
-      ],
-      "fields" : [
-         "project",
-         "folderPath",
-         "name",
-         "wiql"
-      ],
-      "basicAuth" : "true",
-      "hasConfig" : "true",
-      "method" : "POST",
-      "documentationLinks" : [
-         "https://www.visualstudio.com/en-us/docs/integrate/api/wit/queries#create-a-query"
-      ],
-      "contentType" : "application/json",
-      "endpoint" : "#{{endpoint}}/#{{collection}}/#{project}/_apis/wit/queries/#{folderPath}",
-      "attachCredentials" : "true"
-   },
    "get default values" : {
       "resultProperty" : {
          "show" : "true",
@@ -993,63 +612,6 @@
       ],
       "contentType" : "application/json",
       "endpoint" : "#{{endpoint}}/#{{collection}}/#{project}/_apis/wit/workitems/#{workItemTypeName}",
-      "attachCredentials" : "true"
-   },
-   "run a work item query" : {
-      "resultProperty" : {
-         "show" : "true",
-         "format" : [
-            "json",
-            "propertySheet"
-         ],
-         "default" : "/myJob/runQueryResult"
-      },
-      "name" : "Run a Work Item Query",
-      "description" : "Runs a new work item search query.",
-      "stepName" : "run a work item query",
-      "parameters" : [
-         {
-            "required" : "1",
-            "in" : "path",
-            "documentation" : "Name or ID of a team project where the work item type is defined.",
-            "label" : "Project",
-            "type" : "entry",
-            "property" : "project"
-         },
-         {
-            "htmlDocumentation" : "<a href=\"http://msdn.microsoft.com/library/bb130306.aspx\" target=\"_blank\">Query string</a>.\n",
-            "required" : "1",
-            "in" : "body",
-            "documentation" : "Query string.",
-            "type" : "textarea",
-            "label" : "Query string",
-            "property" : "query"
-         },
-         {
-            "checkedValue" : "true",
-            "value" : "false",
-            "uncheckedValue" : "false",
-            "required" : "0",
-            "in" : "query",
-            "documentation" : "True if time precision is allowed in the date time comparisons.",
-            "label" : "Time precision",
-            "type" : "checkbox",
-            "property" : "timePrecision"
-         }
-      ],
-      "fields" : [
-         "project",
-         "query",
-         "timePrecision"
-      ],
-      "basicAuth" : "true",
-      "hasConfig" : "true",
-      "method" : "POST",
-      "documentationLinks" : [
-         "https://www.visualstudio.com/en-us/docs/integrate/api/wit/wiql#run-a-query"
-      ],
-      "contentType" : "application/json",
-      "endpoint" : "#{{endpoint}}/#{{collection}}/#{project}/_apis/wit/wiql",
       "attachCredentials" : "true"
    }
 }

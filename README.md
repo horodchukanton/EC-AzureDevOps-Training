@@ -1,6 +1,6 @@
 # EC-AzureDevOps
 
-This plugin allows to work with REST API of Azure DevOps Server/Services (former Visual Studio Team Services/Team Foundation Server).
+This plugin allows to work with REST API of AzureDevOps Server/Services (former TFS/VSTS).
 
 
 # Procedures
@@ -9,7 +9,7 @@ This plugin allows to work with REST API of Azure DevOps Server/Services (former
 
 Retrieves a list of the work items.
 
-## Create a Work Item
+## CreateWorkItems
 
 Creates a new work item.
 
@@ -29,37 +29,13 @@ Deletes the specified work item.
 
 Get the default values that will be filled in automatically when you create a new work item of a specific type.
 
-## Create a Work Item Query
-
-Create a new work item search query.
-
-## Update a Work Item Query
-
-Updates a work item search query.
-
-## Run a Work Item Query
-
-Runs a new work item search query.
-
-## Delete a Work Item Query
-
-Deletes the specified work item search query.
-
-## Queue a build
+## TriggerBuild
 
 Queues a new build.
 
 ## Upload a Work Item Attachment
 
 To attach a file to a work item, upload the attachment to the attachment store, then attach it to the work item.
-
-## Download an Artifact from a Git Repository
-
-Downloads a file from a Git repository.
-
-## Get a Build
-
-Gets a specified build info
 
 
 

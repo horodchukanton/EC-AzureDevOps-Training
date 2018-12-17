@@ -96,9 +96,9 @@ Code may look like the following:
 sub define_processors {
     my ($self) = @_;
 
-    $self->define_processor('create a work item', 'serialize_body', \&create_workitem);
+    $self->define_processor('create work items', 'serialize_body', \&create_workitem);
     $self->define_processor('update a work item', 'serialize_body', \&update_workitem);
-    $self->define_processor('queue a build', 'serialize_body', \&queue_build);
+    $self->define_processor('trigger a build', 'serialize_body', \&queue_build);
     $self->define_processor('upload a work item attachment', 'serialize_body', \&upload_attachment);
     # $self->define_processor('download an artifact from a git repository', 'parse_response', \&download_artifact);
 }

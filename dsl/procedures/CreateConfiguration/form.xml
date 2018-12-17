@@ -20,6 +20,7 @@
         <type>entry</type>
         <label>Configuration:</label>
         <property>config</property>
+        <configuration>1</configuration>
         <required>1</required>
         <documentation>Unique name for the plugin configuration.</documentation>
     </formElement>
@@ -32,7 +33,7 @@
     </formElement>
     <formElement>
         <type>entry</type>
-        <label>VSTS/TFS endpoint:</label>
+        <label>AzureDevOps Server/Services endpoint:</label>
         <property>endpoint</property>
         <required>1</required>
         <documentation>VS Team Services endpoint (https://myaccount.visualstudio.com) or TFS server (scheme://server:port/tfs).</documentation>
@@ -46,12 +47,28 @@
         <documentation>Collection name. If not defined, DefaultCollection will be used.</documentation>
     </formElement>
     <formElement>
+        <type>select</type>
+        <label>Auth Type:</label>
+        <property>auth</property>
+        <required>1</required>
+        <value>basic</value>
+        <option>
+            <name>Basic (Password/PAT)</name>
+            <value>basic</value>
+        </option>
+        <option>
+            <name>NTLM</name>
+            <value>ntlm</value>
+        </option>
+        <documentation>Select the type of authentication to use.</documentation>
+    </formElement>
+    <formElement>
         <type>credential</type>
         <label>Credentials:</label>
         <property>credential</property>
         <required>1</required>
         <attachedAsParameterToStep>createAndAttachCredential</attachedAsParameterToStep>
-        <documentation>Username and password to connect to VSTS/TFS.</documentation>
+        <documentation>Username and password to connect to AzureDevOps Server/Services.</documentation>
     </formElement>
     <formElement>
         <type>textarea</type>
@@ -67,4 +84,5 @@ build/builds=2.0
 </value>
         <htmlDocumentation>Versions for different APIs, one version per line. API names can look like wit/workitems, wit/wiql, git/repositories - generally, part of the API endpoint after the _apis part. If no version is provided, version 1.0 will be used.</htmlDocumentation>
     </formElement>
+    
 </editor>

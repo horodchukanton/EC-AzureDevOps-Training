@@ -71,7 +71,7 @@ sub after_init_hook {
 
 }
 
-
+#@returns EC::Plugin::Hooks
 sub hooks {
     my ($self) = @_;
     unless($self->{hooks}) {
@@ -80,6 +80,7 @@ sub hooks {
     return $self->{hooks};
 }
 
+#@returns EC::Plugin::BatchCommander
 sub batch_commander {
     my ($self) = @_;
     unless($self->{batch_commander}) {
@@ -107,6 +108,7 @@ sub refiners {
     return $self->{refiners};
 }
 
+#@returns EC::Plugin::ContentProcessor
 sub content_processor {
     my ($self) = @_;
 
@@ -195,10 +197,12 @@ sub generate_step_request {
 
     $self->logger->debug("Endpoint: $uri");
 
-
     my $request = HTTP::Request->new($method, $uri);
 
-    if ($self->config->{$step_name}->{basicAuth} && $self->config->{$step_name}->{basicAuth} eq 'true') {
+    if ($config->{auth} eq 'basic'
+        && $self->config->{$step_name}->{basicAuth}
+        && $self->config->{$step_name}->{basicAuth} eq 'true'
+    ) {
         $self->logger->debug('Adding basic auth');
 
         my $username = $config->{userName};
@@ -213,6 +217,9 @@ sub generate_step_request {
             }
         }
         $request->authorization_basic($username, $password);
+    }
+    else {
+        $self->logger->debug('Skipping basic auth');
     }
 
     if (%headers) {
@@ -238,7 +245,7 @@ sub generate_step_request {
 sub request {
     my ($self, $step_name, $request) = @_;
 
-    my $ua = LWP::UserAgent->new;
+    my $ua = $self->new_lwp();
     $self->hooks->ua_hook($step_name, $ua);
     my $callback = undef;
 
@@ -251,7 +258,35 @@ sub request {
         $ua->requests_redirectable([qw/GET POST PUT PATCH GET HEAD OPTIONS DELETE/]);
     }
     $self->logger->info($request->method . ' ' . $request->uri);
-    my $response = $ua->request($request, $callback);
+    my HTTP::Response $response = $ua->request($request, $callback);
+
+    # # NTLM handling
+    # if ($response->code == 401){
+    #
+    #     # Check if should use NTLM
+    #     my $config_name = $self->get_param('config');
+    #     my $config = $self->get_config_values($config_name);
+    #
+    #     return $response unless ($config->{auth} eq 'ntlm');
+    #
+    #     # Check if have NTLM auth header
+    #     # my HTTP::Headers $headers = $response->headers();
+    #     # my @supported_schemes = $headers->header('www-authenticate');
+    #     #
+    #     # return $response unless (grep {$_ =~ /ntlm/i} @supported_schemes );
+    #
+    #     # Now will try to authenticate
+    #     print "Authentication \n";
+    #
+    #     require LWP::Authen::Ntlm;
+    #     my $auth_resp =  LWP::Authen::Ntlm->authenticate($ua, undef, {
+    #         realm => '10.200.1.245:8080'
+    #     }, $response, $request);
+    #
+    #     print Dumper $auth_resp;
+    #     return $auth_resp;
+    # }
+
     return $response;
 }
 
@@ -271,7 +306,7 @@ sub run_one_step{
         $self->logger->debug('Config', $config);
     }
 
-    my $request = $self->generate_step_request($step_name, $config, $parameters);
+    my HTTP::Request $request = $self->generate_step_request($step_name, $config, $parameters);
     $self->hooks->request_hook($step_name, $request); # request can be altered by the hook
     $self->logger->info("Going to run request");
     $self->logger->trace("Request", $request->as_string);
@@ -673,6 +708,106 @@ sub _self_flatten_map {
         }
     }
     return \%retval;
+}
+
+sub new_lwp {
+    my ( $self ) = @_;
+
+    my LWP::UserAgent $ua = LWP::UserAgent->new;
+
+    my $config_name = $self->get_param('config');
+    my $config = $self->get_config_values($config_name);
+
+    my $auth_type = $config->{auth};
+
+    if ($auth_type eq 'basic'){
+        $self->logger->debug("Request should be authorized. Nothing to do with the \$ua");
+    }
+    elsif ($auth_type eq 'ntlm'){
+
+        if (!$ua->conn_cache()) {
+            $self->logger->debug("Recreating the LWP::UserAgent to enable keep_alive");
+            $ua = LWP::UserAgent->new(keep_alive => 1);
+        }
+
+        # Get credential
+        my $username = $config->{userName};
+        my $password = $config->{password};
+
+        $self->logger->debug("Password is empty") unless $password;
+
+        if ($username !~ /\\/){
+            $self->logger->debug("Login does not contain a domain. Prepending '\\'");
+            $username = '\\' . $username;
+        }
+
+        # Get url
+        my $url = URI->new($config->{endpoint});
+
+        # Get host:port
+        my ($host, $port) = ($url->host(), $url->port);
+
+        $self->logger->debug("Realm: $host:$port");
+
+        $ua->credentials($host . ":" . $port, '', $username, $password);
+
+        # TFS will return three possible authentication schemes. Bearer (OAuth, Basic and NTLM)
+        # LWP::UserAgent will hug itself at Basic, so we should leave only NTLM for processing
+        $ua->set_my_handler('response_done', sub {
+            my HTTP::Response $response = shift;
+            my HTTP::Headers $headers = $response->headers;
+
+            print "RESPONSE DONE: " . Dumper $response;
+
+            # Get all the headers
+            my @auth_headers = $headers->header('WWW-Authenticate');
+
+            # Leave only NTLM header
+            $headers->header('WWW-Authenticate', grep { $_ =~ /^ntlm/i } @auth_headers);
+
+            # Apply the changed headers
+            $response->headers($headers);
+
+        });
+
+    }
+    else {
+        $self->bail_out("Unknown auth type : '$auth_type'")
+    }
+
+    return $ua;
+}
+
+sub get_new_http_request {
+    my ( $self, $method, $url ) = @_;
+
+    print "[DEBUG] HTTP::Request instantiated for " . join(', ', caller) . "\n";
+
+    my $request = HTTP::Request->new($method, $url);
+
+    my $config_name = $self->get_param('config');
+    my $config = $self->get_config_values($config_name);
+
+    my $auth_type = $config->{auth};
+
+    # Get credential
+    my $username = $config->{userName};
+    my $password = $config->{password};
+
+    $self->logger->debug("Password is empty") unless $password;
+
+    if ($auth_type eq 'basic'){
+        $self->logger->debug("Applying HTTP Basic header to the request.");
+        $request->authorization_basic($username, $password);
+    }
+    elsif ($auth_type eq 'ntlm'){
+        $self->logger->debug("Auth should be applied to LWP::UserAgent instance");
+    }
+    else {
+        $self->bail_out("Unknown auth type : '$auth_type'")
+    }
+
+    return $request;
 }
 
 

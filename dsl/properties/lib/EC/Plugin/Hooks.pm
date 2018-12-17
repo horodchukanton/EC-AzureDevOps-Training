@@ -4,9 +4,11 @@ use strict;
 use warnings;
 use MIME::Base64 qw(encode_base64);
 use JSON;
+use Data::Dumper;
+
 use base qw(EC::Plugin::HooksCore);
 use File::Spec;
-use EC::Plugin::WorkItems;
+use EC::AzureDevOps::WorkItems;
 use File::Path qw(mkpath);
 
 
@@ -75,19 +77,19 @@ Available hooks types:
 sub define_hooks {
     my ($self) = @_;
 
-    $self->define_hook('create a work item', 'parsed', \&create_work_item_response_parsed);
+    $self->define_hook('create work items', 'parsed', \&create_work_item_response_parsed);
     $self->define_hook('update a work item', 'parsed', \&update_work_item_response_parsed);
-    $self->define_hook('create a work item', 'parameters', \&create_work_item_parameters);
+    $self->define_hook('create work items', 'parameters', \&create_work_item_parameters);
     $self->define_hook('get default values', 'parameters', \&get_default_values);
     $self->define_hook('get a work item', 'parsed', \&get_work_item_response_parsed);
     $self->define_hook('delete a work item', 'parsed', \&delete_work_item_response_parsed, {run_before_shared => 1});
     $self->define_hook('delete a work item', 'response', \&delete_work_item_response, {run_before_shared => 1});
     $self->define_hook('get a list of work items', 'parsed', \&get_work_items_response_parsed);
     $self->define_hook('query work items', 'parsed', \&query_work_items_parsed);
-    $self->define_hook('queue a build', 'parsed', \&queue_build_parsed);
-    $self->define_hook('queue a build', 'parameters', \&queue_build_parameters);
-    $self->define_hook('queue a build', 'parsed', \&queue_build_parsed);
-    $self->define_hook('queue a build', 'after', \&queue_build_after);
+    $self->define_hook('trigger a build', 'parsed', \&queue_build_parsed);
+    $self->define_hook('trigger a build', 'parameters', \&queue_build_parameters);
+    $self->define_hook('trigger a build', 'parsed', \&queue_build_parsed);
+    $self->define_hook('trigger a build', 'after', \&queue_build_after);
     $self->define_hook('get a build', 'request', \&poll_build_status);
     $self->define_hook('get a build', 'parameters', \&get_build_id);
     $self->define_hook('get a build', 'after', \&get_build_after);
@@ -95,10 +97,54 @@ sub define_hooks {
     $self->define_hook('upload a work item attachment', 'parsed', \&upload_attachment_parsed);
     $self->define_hook('upload a work item attachment', 'request', \&upload_attachment_request);
     $self->define_hook('upload a work item attachment', 'response', \&upload_attachment_response);
+    $self->define_hook('upload a work item attachment', 'after', \&add_attachment_link);
     $self->define_hook('*', 'response', \&parse_json_error);
     $self->define_hook('*', 'request', \&general_request);
+
 }
 
+sub add_attachment_link {
+    my ( $self, $parsed ) = @_;
+
+    my $params = $self->plugin->parameters;
+    my $config = $self->plugin->get_config_values($params->{config});
+
+    for my $required (qw/workItemId/){
+        $self->plugin->bail_out("Parameter '$required' is mandatory") unless $params->{$required};
+    }
+
+    #PATCH
+    my $endpoint = $config->{endpoint} . "/$config->{collection}/_apis/wit/workitems/$params->{workItemId}";
+
+    my $payload = [ {
+        op    => "add",
+        path  => "/relations/-",
+        value => {
+            rel => "AttachedFile",
+            url => $parsed->{url},
+            %{$params->{comment} ? { attributes => { comment => $params->{comment} } } : {}}
+        }
+    }];
+
+    my $encoded_payload = encode_json($payload);
+
+    my HTTP::Request $request = $self->plugin->get_new_http_request('PATCH' => $endpoint);
+    $request->headers->header('Content-Type', 'application/json-patch+json');
+    $request->content($encoded_payload);
+
+    # Apply api version
+    $self->general_request($request);
+
+    my LWP::UserAgent $ua = $self->plugin->new_lwp();
+    my HTTP::Response $response = $ua->request($request);
+
+    if ($response->is_success){
+      $self->plugin->success("Successfully linked the attachment");
+    }
+    else {
+        $self->plugin->error($response->status_line());
+    }
+}
 
 sub get_build_link {
     my ($self, $project_name, $build_id) = @_;
@@ -143,7 +189,7 @@ sub poll_build {
     my $request = $self->create_request('GET',
         '#{{endpoint}}/#{{collection}}/#{project}/_apis/build/builds/' . $build_id . '?api-version=2.0',
         {}, '');
-    my $ua = LWP::UserAgent->new;
+    my $ua = $self->plugin->new_lwp();
     my $time = 0;
 
     my $result;
@@ -183,7 +229,7 @@ sub ua {
     my ($self) = @_;
 
     unless($self->{ua}) {
-        $self->{ua} = LWP::UserAgent->new;
+        $self->{ua} = $self->plugin->new_lwp();
     }
     return $self->{ua};
 }
@@ -268,7 +314,7 @@ sub get_queue_id {
         '#{{endpoint}}/#{{collection}}/#{project}/_apis/distributedtask/queues?api-version=3.0-preview.1',
         {queueName => $queue}, '');
     $self->plugin->logger->trace($request);
-    my $ua = LWP::UserAgent->new;
+    my $ua = $self->plugin->new_lwp();
     my $response = $ua->request($request);
     $self->plugin->logger->trace($response);
     $self->parse_json_error($response);
@@ -301,7 +347,7 @@ sub get_definition_id {
 
     my $request = $self->create_request('GET', '#{{endpoint}}/#{{collection}}/#{project}/_apis/build/definitions?api-version=2.0',
         {name => $definition}, '');
-    my $ua = LWP::UserAgent->new;
+    my $ua = $self->plugin->new_lwp();
     $self->plugin->logger->debug("Get definition id request URI: " . $request->uri);
     $self->plugin->logger->trace($request);
 
@@ -339,7 +385,7 @@ sub get_build_id {
         '#{{endpoint}}/#{{collection}}/#{project}/_apis/build/builds?api-version=2.0',
         {buildNumber => $build_id}, '');
 
-    my $ua = LWP::UserAgent->new;
+    my $ua = $self->plugin->new_lwp();
     $self->plugin->logger->debug("Get build id request URI: " . $request->uri);
     $self->plugin->logger->trace($request);
     my $response = $ua->request($request);
@@ -374,7 +420,7 @@ sub poll_build_status {
     return unless $params->{waitForBuild};
 
     my $status;
-    my $agent = LWP::UserAgent->new;
+    my $agent = $self->new_lwp();
     my $timeout = $params->{waitTimeout} || 60;
     my $wait_time = 0;
     my $time_to_sleep = 30;
@@ -426,7 +472,7 @@ sub general_request {
     my $params = $self->plugin->parameters;
     my $config = $self->plugin->get_config_values($params->{config});
 
-    my $api_version = EC::Plugin::WorkItems::get_api_version($request->uri, $config);
+    my $api_version = EC::AzureDevOps::WorkItems::get_api_version($request->uri, $config);
 
     my %query_form = $uri->query_form;
     $query_form{'api-version'} = $api_version;
@@ -533,7 +579,7 @@ sub upload_attachment_response {
     my %request_query_form = URI->new($response->request->url)->query_form;
 
     $self->plugin->logger->debug("Auth: $auth");
-    my $ua = LWP::UserAgent->new;
+    my $ua = $self->plugin->new_lwp();
 
     my $url = URI->new($data->{url});
     $url->query_form($url->query_form, uploadType => 'chunked', 'api-version' => $request_query_form{'api-version'});
@@ -546,7 +592,7 @@ sub upload_attachment_response {
         $cl_end = $bytes_read - 1 + $cl_start;
         my $content_length = "$cl_start-$cl_end";
 
-        my $request = HTTP::Request->new(PUT => $url);
+        my $request = $self->get_new_http_request(PUT => $url);
         $request->header('Authorization' => $auth);
         $request->header('Content-Range' => "bytes $content_length/$total");
         $request->header('Content-Type' => 'application/octet-stream');
@@ -781,12 +827,11 @@ sub create_request {
     $self->plugin->logger->debug("Endpoint: $uri");
 
 
-    my $request = HTTP::Request->new($method, $uri);
+    my $request = $self->plugin->get_new_http_request($method, $uri);
 
     my $username = $config->{userName};
     my $password = $config->{password};
 
-    $request->authorization_basic($username, $password);
     $request->content($body) if $body;
     $request->header('Content-Type' => 'application/json');
     return $request;

@@ -4,10 +4,8 @@
 <formElement>
   <documentation>Previously defined plugin configuration.</documentation>
   <label>Configuration name:</label>
-  <!-- Improvements for CEV-18687 -->
-  <configuration>1</configuration>
-  <!-- End of improvements for CEV-18687 -->
   <property>config</property>
+  <configuration>1</configuration>
   <propertyReference>/plugins/@PLUGIN_NAME@/project/ec_plugin_cfgs</propertyReference>
   <required>1</required>
   <type>entry</type>
@@ -18,7 +16,7 @@
   <property>project</property>
   <required>1</required>
   <type>entry</type>
-  <value></value>
+  <value/>
 </formElement>
 <formElement>
   <documentation>Name of the work item type.</documentation>
@@ -26,7 +24,7 @@
   <property>workItemTypeName</property>
   <required>1</required>
   <type>entry</type>
-  <value></value>
+  <value/>
 </formElement>
 <formElement>
   <documentation>Results will be saved into this property/property sheet.</documentation>
@@ -40,14 +38,15 @@
   <documentation>Format to save request results.</documentation>
   <label>Result format:</label>
   <option>
-    <name>json</name>
+    <name>JSON</name>
     <value>json</value>
   </option>
   <option>
-    <name>propertySheet</name>
+    <name>Property Sheet</name>
     <value>propertySheet</value>
   </option>
   <property>resultFormat</property>
+  <value>propertySheet</value>
   <required>1</required>
   <type>select</type>
 </formElement>

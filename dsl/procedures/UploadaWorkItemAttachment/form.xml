@@ -4,13 +4,27 @@
 <formElement>
   <documentation>Previously defined plugin configuration.</documentation>
   <label>Configuration name:</label>
-  <!-- Improvements for CEV-18687 -->
-  <configuration>1</configuration>
-  <!-- End of improvements for CEV-18687 -->
   <property>config</property>
+  <configuration>1</configuration>
   <propertyReference>/plugins/@PLUGIN_NAME@/project/ec_plugin_cfgs</propertyReference>
   <required>1</required>
   <type>entry</type>
+</formElement>
+<formElement>
+  <documentation>ID of the work item.</documentation>
+  <label>Work Item ID:</label>
+  <property>workItemId</property>
+  <required>1</required>
+  <type>entry</type>
+  <value/>
+</formElement>
+<formElement>
+  <documentation>Comment for the attachment</documentation>
+  <label>Comment:</label>
+  <property>comment</property>
+  <required>0</required>
+  <type>entry</type>
+  <value/>
 </formElement>
 <formElement>
   <documentation>The name of the file in the attachment store (typically the same as the name of the source of the attachment).</documentation>
@@ -18,7 +32,7 @@
   <property>filename</property>
   <required>1</required>
   <type>entry</type>
-  <value></value>
+  <value/>
 </formElement>
 <formElement>
   <documentation>Default is simple. Use chunked upload type for uploading large files (&gt;130 MB).</documentation>
@@ -34,7 +48,7 @@
   <property>uploadType</property>
   <required>0</required>
   <type>select</type>
-  <value></value>
+  <value/>
 </formElement>
 <formElement>
   <documentation>Path to the file to be uploaded. Either this field or file content field must be specified.</documentation>
@@ -42,7 +56,7 @@
   <property>filePath</property>
   <required>0</required>
   <type>entry</type>
-  <value></value>
+  <value/>
 </formElement>
 <formElement>
   <documentation>File content to be uploaded. Either this field or file path field must be specified.</documentation>
@@ -50,7 +64,7 @@
   <property>fileContent</property>
   <required>0</required>
   <type>textarea</type>
-  <value></value>
+  <value/>
 </formElement>
 <formElement>
   <documentation>Results will be saved into this property/property sheet.</documentation>
@@ -64,16 +78,16 @@
   <documentation>Format to save request results.</documentation>
   <label>Result format:</label>
   <option>
-    <name>json</name>
+    <name>JSON</name>
     <value>json</value>
   </option>
   <option>
-    <name>propertySheet</name>
+    <name>Property Sheet</name>
     <value>propertySheet</value>
   </option>
   <property>resultFormat</property>
+  <value>propertySheet</value>
   <required>1</required>
   <type>select</type>
 </formElement>
-
 </editor>
