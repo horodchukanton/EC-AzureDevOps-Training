@@ -75,6 +75,7 @@
         <documentation>TFS and AzureDevOps Server/Services requires version to be specified. For AzureDevOps Services select the latest version.</documentation>
         <label>API version:</label>
         <property>apiVersion</property>
+        <required>1</required>
         <option>
             <name>TFS vNext</name>
             <value>5.0</value>
@@ -119,12 +120,13 @@
             <name>Use Custom API versions</name>
             <value>custom</value>
         </option>
+        <value>4.1</value>
     </formElement>
     <formElement>
         <type>textarea</type>
         <label>Custom API versions:</label>
         <property>customApiVersions</property>
-        <required>1</required>
+        <required>0</required>
         <value>wit/workitems=1.0
 wit/wiql=1.0
 git/repositories=1.0
