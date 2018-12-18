@@ -218,7 +218,6 @@ sub step_update_work_items {
 sub step_delete_work_items {
     my ($self) = @_;
 
-    exit 0;
     my %procedure_parameters = (
         config              => { label => 'Configuration name', required => 1 },
         workItemIds         => { label => 'Work Item Id(s)', required => 1 },
