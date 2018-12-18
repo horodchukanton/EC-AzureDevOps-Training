@@ -53,7 +53,7 @@
   <formElement>
     <documentation>Comment with given text will be added to the work item.</documentation>
     <label>Comment Body:</label>
-    <property>comment</property>
+    <property>commentBody</property>
     <required>0</required>
     <type>textarea</type>
     <value/>
