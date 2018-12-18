@@ -50,21 +50,20 @@
   <type>textarea</type>
   <value/>
 </formElement>
-<formElement>
-  <documentation>Additional fields to be added, e.g. {&quot;Microsoft.VSTS.Common.Severity&quot;: 2}.
+  <formElement>
+    <documentation>Comment with given text will be added to the work item.</documentation>
+    <label>Comment Body:</label>
+    <property>commentBody</property>
+    <required>0</required>
+    <type>textarea</type>
+    <value/>
+  </formElement>
+  <formElement>
+  <documentation>Additional fields to be added, e.g. [{&quot;Microsoft.VSTS.Common.Severity&quot;: 2}].
 For field names see https://www.visualstudio.com/en-us/docs/integrate/api/wit/work-item-types.</documentation>
-  <htmlDocumentation>Additional fields to be added, e.g. {&quot;Microsoft.VSTS.Common.Severity&quot;: 2}. For field names see &lt;a href=&quot;https://www.visualstudio.com/en-us/docs/integrate/api/wit/work-item-types&quot; target=&quot;_blank&quot; style=&quot;text-decoration: none !important; border-bottom-style: dashed; border-bottom-width: thin; font-size: inherit; color: inherit; font-family: inherit; border-color: #d8d8d8; border-spacing: 2px;&quot;&gt; https://www.visualstudio.com/en-us/docs/integrate/api/wit/work-item-types&lt;/a&gt;.</htmlDocumentation>
+  <htmlDocumentation>Additional fields to be added, e.g. [{&quot;Microsoft.VSTS.Common.Severity&quot;: 2}]. For field names see &lt;a href=&quot;https://www.visualstudio.com/en-us/docs/integrate/api/wit/work-item-types&quot; target=&quot;_blank&quot; style=&quot;text-decoration: none !important; border-bottom-style: dashed; border-bottom-width: thin; font-size: inherit; color: inherit; font-family: inherit; border-color: #d8d8d8; border-spacing: 2px;&quot;&gt; https://www.visualstudio.com/en-us/docs/integrate/api/wit/work-item-types&lt;/a&gt;.</htmlDocumentation>
   <label>Additional fields:</label>
   <property>additionalFields</property>
-  <required>0</required>
-  <type>textarea</type>
-  <value/>
-</formElement>
-<formElement>
-  <documentation>Pre-set request body, e.g. [{&quot;op&quot;: &quot;add&quot;, &quot;path&quot;: &quot;/relations/-&quot;, &quot;value&quot;: {&quot;rel&quot;: &quot;System.LinkTypes.Hierarchy-Reverse&quot;, &quot;url&quot;: &quot;https://fabrikam-fiber-inc.visualstudio.com/DefaultCollection/_apis/wit/workItems/297&quot;, &quot;attributes&quot;: {&quot;comment&quot;: &quot;decomposition of work&quot;} } } ].</documentation>
-  <htmlDocumentation>Pre-set request body, e.g. [{&quot;op&quot;: &quot;add&quot;, &quot;path&quot;: &quot;/relations/-&quot;, &quot;value&quot;: {&quot;rel&quot;: &quot;System.LinkTypes.Hierarchy-Reverse&quot;, &quot;url&quot;: &quot;https://fabrikam-fiber-inc.visualstudio.com/DefaultCollection/_apis/wit/workItems/297&quot;, &quot;attributes&quot;: {&quot;comment&quot;: &quot;decomposition of work&quot;} } } ].</htmlDocumentation>
-  <label>Request body:</label>
-  <property>requestBody</property>
   <required>0</required>
   <type>textarea</type>
   <value/>
