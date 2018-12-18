@@ -124,7 +124,8 @@ sub ec {
 
     if (!$self->{_ec}) {
         require ElectricCommander;
-        import ElectricCommander;
+        ElectricCommander->import();
+
         $self->{_ec} = ElectricCommander->new();
     }
     return $self->{_ec};

@@ -21,6 +21,7 @@ my %MS_FIELDS_MAPPING = (
     description => 'System.Description',
     assignto    => 'System.AssignedTo',
     priority    => 'Microsoft.VSTS.Common.Priority',
+    comment     => 'System.History'
 );
 
 
@@ -83,7 +84,6 @@ sub step_create_work_items {
         assignTo            => { label => 'Assign To' },
         description         => { label => 'Description' },
         additionalFields    => { label => 'Additional Fields' },
-        requestBody         => { label => 'Request Body' },
         workItemsJSON       => { label => 'Work Items JSON' },
         resultPropertySheet => { label => 'Result Property Sheet', required => 1 },
         resultFormat        => { label => 'Result Format', required => 1 },
@@ -158,8 +158,8 @@ sub step_update_work_items {
         priority            => { label => 'Priority', check => 'number' },
         assignTo            => { label => 'Assign To' },
         description         => { label => 'Description' },
+        comment             => { label => 'Comment Body' },
         additionalFields    => { label => 'Additional Fields' },
-        requestBody         => { label => 'Request Body' },
         resultPropertySheet => { label => 'Result Property Sheet', required => 1 },
         resultFormat        => { label => 'Result Format', required => 1 },
     );
@@ -307,19 +307,8 @@ sub parse_generic_create_update_parameters {
 
     my %generic_fields = ();
 
-    # If we have a request body, will not read other parameters.
-    # But should be sure that it is valid.
-    if ($parameters->{requestBody}){
-        my $err_msg = 'Value for "Request Body" parameter should contain valid JSON array.';
-
-        my $payload = $self->decode_json_or_bail_out( $parameters->{requestBody}, $err_msg);
-        $self->bail_out($err_msg) unless ref($payload) eq 'ARRAY';
-
-        return $payload;
-    }
-
     # Map parameters to Azure operations (Update does not contain "type" parameter)
-    for my $param (qw/priority assignTo description title type/){
+    for my $param (qw/priority assignTo description title type comment/){
         $generic_fields{ lc ($param) } = $parameters->{$param} if $parameters->{$param};
     }
 
@@ -331,10 +320,7 @@ sub build_create_multi_entity_payload {
     my @results = ();
 
     # If we have Request Body, than this is the only payload
-    if ($parameters->{requestBody}){
-        @results = \%generic_fields;
-    }
-    elsif ($parameters->{workItemsJSON}) {
+    if ($parameters->{workItemsJSON}) {
         my $work_items_json = $parameters->{workItemsJSON};
 
         my $err_msg = 'Value for "Work Items JSON" should contain valid non-empty JSON array.';
