@@ -24,7 +24,6 @@ def stepsWithAttachedCredentials = [
     [procedureName: 'Get a List of Work Items', stepName: 'get a list of work items'],
     [procedureName: 'Get Default Values', stepName: 'get default values'],
     [procedureName: 'TriggerBuild', stepName: 'trigger a build'],
-    [procedureName: 'UpdateWorkItems', stepName: 'update work items'],
     [procedureName: 'Upload a Work Item Attachment', stepName: 'upload a work item attachment'],
     [procedureName: 'Query Work Items', stepName: 'query work items'],
 //	[procedureName: 'Get a Build', stepName: 'get a build'],
