@@ -63,8 +63,8 @@ class TFSHelper {
 
     JSON getWorkItemById(def id){
         assert id
-        String url = this.url + '/' + this.collectionName + '/_apis/wit/workitems/' + id
-        return request(METHOD_GET, url)
+        String path = this.collectionName + '/_apis/wit/workitems/' + id
+        return request(METHOD_GET, path)
     }
 
     /**
@@ -80,13 +80,13 @@ class TFSHelper {
         JSON payload = tfsWorkItems.getAsJSONPayload()
 
         String path = [this.collectionName, this.projectName, '_apis/wit/workitems', "\$${workItemType}"].join("/")
-        String uri = this.client.buildURI('/' + path, [ 'api-version' : getApiVersion() ])
+        String uri = this.client.buildURI( '/' + path, [ 'api-version' : getApiVersion() ])
 
         return postWithContentType(uri, payload, "application/json-patch+json")
     }
 
     JSON deleteWorkItem(def workItemId){
-        String path = ['/_apis/wit/workitems', workItemId].join("/")
+        String path = [this.collectionName, '/_apis/wit/workitems', workItemId].join('/')
         return request(METHOD_DELETE, path)
     }
 
@@ -94,18 +94,22 @@ class TFSHelper {
         return true
     }
 
-    JSON request(String method, URI url, Map parameters = [:], JSON payload = null){
+    JSON request(String method, String path, Map parameters = [:], JSON payload = null){
         assert method
         assert path
 
         // Adding api-version to parameters
         parameters['api-version'] = this.apiVersion
 
-        if (payload && method != METHOD_PUT && method != METHOD_POST){
-            throw new RuntimeException("Payload is implemented only for PUT and POST methods")
+        if (!path =~ /^\//){
+            path = '/' + path
         }
 
-        url = new URI(url.toString(), parameters)
+        def url_with_params = this.client.buildURI(path, parameters)
+
+        if (payload && ( method == METHOD_PUT || method == METHOD_POST)){
+            throw new RuntimeException("Payload is implemented only for PUT and POST methods")
+        }
 
         JSON result = null
 

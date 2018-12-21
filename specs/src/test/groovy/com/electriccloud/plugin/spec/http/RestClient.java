@@ -83,6 +83,11 @@ public class RestClient {
      */
     public URI buildURI(String path, Map<String, String> params) throws URISyntaxException {
         URIBuilder ub = new URIBuilder(uri);
+
+        if (!path.matches("^/")){
+            path = "/" + path;
+        }
+
         ub.setPath(ub.getPath() + path);
 
         if (params != null) {
