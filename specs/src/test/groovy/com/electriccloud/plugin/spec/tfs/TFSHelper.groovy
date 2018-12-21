@@ -74,15 +74,18 @@ class TFSHelper {
      * @return
      */
     JSON createWorkItem(String workItemType, Map workItemParams){
-        def tfsWorkItems = new WorkItemFields(workItemParams)
+        String path = [this.collectionName, this.projectName, '_apis/wit/workitems', "\$${workItemType}"].join("/")
 
-        // Build payload
+        // Transforming parameter map to TFS expected JSON payload format
+        def tfsWorkItems = new WorkItemFields(workItemParams)
         JSON payload = tfsWorkItems.getAsJSONPayload()
 
-        String path = [this.collectionName, this.projectName, '_apis/wit/workitems', "\$${workItemType}"].join("/")
-        String uri = this.client.buildURI( '/' + path, [ 'api-version' : getApiVersion() ])
-
-        return postWithContentType(uri, payload, "application/json-patch+json")
+        return postWithContentType(
+            path,
+            [ 'api-version' : getApiVersion() ],
+            payload,
+            "application/json-patch+json"
+        )
     }
 
     JSON deleteWorkItem(def workItemId){
@@ -141,14 +144,13 @@ class TFSHelper {
         return result
     }
 
-    JSON postWithContentType(String uri, JSON payload, String contentType){
+    JSON postWithContentType(String path, Map queryParameters = [:], JSON payload, String contentType){
+        assert queryParameters['api-version']
+        URI uri = this.client.buildURI(path, queryParameters)
+
         HttpPost request = new HttpPost(uri)
 
-        // Checking if query contains API VERSION
-        assert request.getURI().getQuery() =~ 'api-version'
-
         JSON result = null
-
         try {
             result = this.client.request(request, payload.toString(), contentType)
         } catch (RestException e){
