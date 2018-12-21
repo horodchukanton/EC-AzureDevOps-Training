@@ -63,8 +63,8 @@ class TFSHelper {
 
     JSON getWorkItemById(def id){
         assert id
-        String path = '/_apis/wit/workitems/' + id
-        return request(METHOD_GET, path)
+        String url = this.url + '/' + this.collectionName + '/_apis/wit/workitems/' + id
+        return request(METHOD_GET, url)
     }
 
     /**
@@ -94,19 +94,18 @@ class TFSHelper {
         return true
     }
 
-    JSON request(String method, String path, Map parameters = [:], JSON payload = null){
+    JSON request(String method, URI url, Map parameters = [:], JSON payload = null){
         assert method
         assert path
 
         // Adding api-version to parameters
         parameters['api-version'] = this.apiVersion
 
-        URI url_with_params = this.client.buildURI(this.projectPrefix + path, parameters)
-        String path_with_params = url_with_params.getPath() + '?' + url_with_params.getQuery()
-
         if (payload && method != METHOD_PUT && method != METHOD_POST){
             throw new RuntimeException("Payload is implemented only for PUT and POST methods")
         }
+
+        url = new URI(url.toString(), parameters)
 
         JSON result = null
 
@@ -114,7 +113,7 @@ class TFSHelper {
             // Adding parameters to URI
             switch (method.toUpperCase()) {
                 case METHOD_GET:
-                    result = this.client.get(this.projectPrefix + path, parameters)
+                    result = this.client.get(url_with_params)
                     break
                 case METHOD_POST:
                     result = this.client.post(url_with_params, payload)

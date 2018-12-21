@@ -110,55 +110,43 @@ class PluginTestHelper extends PluginSpockTestSupport {
         /*}*/
     }
 
-    static String getAsserted
-
-    static String getADOSUsername() {
-        String username = System.getenv('ADOS_USERNAME')
-        assert username
-        return username
+    static String getAssertedEnvVariable(String varName){
+        String varValue = System.getenv(varName)
+        assert varValue
+        return varValue
     }
 
-    static String getADOSPassword() {
-        String password = System.getenv('ADOS_PASSWORD')
-        assert password
-        return password
-    }
+    static String getADOSUsername() { getAssertedEnvVariable("ADOS_USERNAME") }
+    static String getADOSPassword() { getAssertedEnvVariable('ADOS_PASSWORD')}
+    static String getADOSToken() { getAssertedEnvVariable('ADOS_TOKEN') }
+    static String getADOSURL() { getAssertedEnvVariable('ADOS_URL') }
+    static String getADOSCollectionName() { getAssertedEnvVariable( 'ADOS_COLLECTION' )}
+    static String getADOSProjectName() { getAssertedEnvVariable('ADOS_PROJECT_NAME') }
+    static String getADOSApiVersion() { getAssertedEnvVariable('ADOS_API_VERSION') }
 
-    static String getADOSToken() {
-        String token = System.getenv('ADOS_TOKEN')
-        assert token
-        return token
-    }
+    static String getTFSUsername() { getAssertedEnvVariable("TFS_USERNAME") }
+    static String getTFSPassword() { getAssertedEnvVariable('TFS_PASSWORD')}
+    static String getTFSToken() { getAssertedEnvVariable('TFS_TOKEN') }
+    static String getTFSURL() { getAssertedEnvVariable('TFS_URL') }
+    static String getTFSCollectionName() { getAssertedEnvVariable( 'TFS_COLLECTION' )}
+    static String getTFSProjectName() { getAssertedEnvVariable('TFS_PROJECT_NAME') }
+    static String getTFSApiVersion() { getAssertedEnvVariable('TFS_API_VERSION') }
 
-    static String getADOSURL() {
-        String url = System.getenv('ADOS_URL')
-        assert url
-        return url
-    }
-
-    static String getADOSCollectionName() {
-        String collectionName = System.getenv('ADOS_COLLECTION')
-        assert collectionName
-        return collectionName
-    }
-
-    static String getADOSProjectName() {
-        String projectName = System.getenv('ADOS_PROJECT_NAME')
-        assert projectName
-        return projectName
-    }
-
-    static String getADOSApiVersion() {
-        String apiVersion = System.getenv('ADOS_API_VERSION')
-        assert apiVersion
-        return apiVersion
-    }
-
-    static TFSHelper getTFSHelper(String apiVersion = "1.0") {
+    static TFSHelper getADOSHelper(String apiVersion = "4.1") {
         TFSHelper helper = new TFSHelper(getADOSURL(), getADOSUsername(), getADOSToken(), getADOSCollectionName(), getADOSProjectName())
 
         helper.setApiVersion(apiVersion)
         helper.setProjectName(getADOSProjectName())
+
+        assert helper.isAuthenticated()
+        return helper
+    }
+
+    static TFSHelper getTFSHelper(String apiVersion = "1.0") {
+        TFSHelper helper = new TFSHelper(getTFSURL(), getTFSUsername(), getTFSToken(), getTFSCollectionName(), getTFSProjectName())
+
+        helper.setApiVersion(apiVersion)
+        helper.setProjectName(getTFSProjectName())
 
         assert helper.isAuthenticated()
         return helper
