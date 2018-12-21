@@ -18,8 +18,7 @@ abstract class BasePlugin extends DslDelegatingScript {
 		String propDescription = description ?: procedureName
 
 		property "/server/ec_customEditors/pickerStep/$pickerLabel",
-				value:
-						"""<step>
+				value: """<step>
 						<project>/plugins/$pluginKey/project</project>
 						<procedure>$procedureName</procedure>
 						<category>$category</category>

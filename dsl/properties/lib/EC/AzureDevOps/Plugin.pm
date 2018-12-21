@@ -21,7 +21,7 @@ my %MS_FIELDS_MAPPING = (
     description => 'System.Description',
     assignto    => 'System.AssignedTo',
     priority    => 'Microsoft.VSTS.Common.Priority',
-    commentbody     => 'System.History'
+    commentbody => 'System.History'
 );
 
 
