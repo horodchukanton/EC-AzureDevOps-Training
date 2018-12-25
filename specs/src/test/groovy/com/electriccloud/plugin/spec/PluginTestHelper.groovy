@@ -94,7 +94,7 @@ class PluginTestHelper extends PluginSpockTestSupport {
         return helper
     }
 
-    def createWorkItems(int count){
+    def createWorkItems(TFSHelper tfsClient, int count){
         def createdWorkItems = []
 
         for (def i = 0; i < count; i++) {

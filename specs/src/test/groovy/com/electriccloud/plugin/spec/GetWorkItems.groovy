@@ -54,8 +54,12 @@ class GetWorkItems extends PluginTestHelper {
         resultPropertySheet = '/myJob/workItems'
         resultFormat = 'propertySheet'
 
-        def createdWorkItems = createWorkItems(count)
+        def createdWorkItems = createWorkItems(tfsClient, count)
+        assert createdWorkItems.size() == count
+
         def workItemIds = createdWorkItems.collect({ it -> it.id })
+        assert workItemIds.size() == count
+
         String workItemIdsStr = workItemIds.join(",")
 
         def procedureParams = [
@@ -88,7 +92,7 @@ class GetWorkItems extends PluginTestHelper {
         assert arrEquals(resultIdsArrList, workItemIds)
 
         cleanup:
-        if (workItemIds.size()) {
+        if (workItemIds && workItemIds.size()) {
             workItemIds.each({ id ->
                 tfsClient.deleteWorkItem(id)
             })
@@ -106,8 +110,11 @@ class GetWorkItems extends PluginTestHelper {
         resultPropertySheet = '/myJob/workItems'
         resultFormat = 'propertySheet'
 
-        def createdWorkItems = createWorkItems(count)
+        def createdWorkItems = createWorkItems(tfsClient, count)
+        assert createdWorkItems.size() == count
+
         def workItemIds = createdWorkItems.collect({ it -> it.id })
+        assert workItemIds.size() == count
 
         // Adding unexisting work item's id
         def unexistingId = (workItemIds[workItemIds.size()-1]) + 1
@@ -136,7 +143,7 @@ class GetWorkItems extends PluginTestHelper {
         assert summary =~ expectedSummary
 
         cleanup:
-        if (workItemIds.size()) {
+        if (workItemIds && workItemIds.size()) {
             workItemIds.each({ id ->
                 tfsClient.deleteWorkItem(id)
             })
