@@ -5,7 +5,7 @@ This plugin allows to work with REST API of AzureDevOps Server/Services (former 
 
 # Procedures
 
-## Get a List of Work Items
+## GetWorkItems
 
 Retrieves a list of the work items.
 

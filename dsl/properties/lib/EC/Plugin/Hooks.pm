@@ -84,7 +84,7 @@ sub define_hooks {
     # $self->define_hook('get a work item', 'parsed', \&get_work_item_response_parsed);
     # $self->define_hook('delete work items', 'parsed', \&delete_work_item_response_parsed, {run_before_shared => 1});
     # $self->define_hook('delete work items', 'response', \&delete_work_item_response, {run_before_shared => 1});
-    $self->define_hook('get a list of work items', 'parsed', \&get_work_items_response_parsed);
+    $self->define_hook('get work items', 'parsed', \&get_work_items_response_parsed);
     $self->define_hook('query work items', 'parsed', \&query_work_items_parsed);
     $self->define_hook('trigger a build', 'parsed', \&queue_build_parsed);
     $self->define_hook('trigger a build', 'parameters', \&queue_build_parameters);

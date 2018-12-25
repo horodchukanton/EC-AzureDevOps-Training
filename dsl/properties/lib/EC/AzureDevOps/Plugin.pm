@@ -152,7 +152,7 @@ sub step_update_work_items {
 
     my %procedure_parameters = (
         config              => { label => 'Configuration name', required => 1 },
-        workItemIds         => { label => 'Work Item ID(s)', required => 1 },
+        workItemIds         => { label => 'Work Item ID(s)', required => 1, check => \&number_array_check },
         title               => { label => 'Title', required => 1 },
         priority            => { label => 'Priority', check => 'number' },
         assignTo            => { label => 'Assign To' },
@@ -220,7 +220,7 @@ sub step_delete_work_items {
 
     my %procedure_parameters = (
         config              => { label => 'Configuration name', required => 1 },
-        workItemIds         => { label => 'Work Item Id(s)', required => 1 },
+        workItemIds         => { label => 'Work Item Id(s)', required => 1, check => \&number_array_check },
         resultPropertySheet => { label => 'Result Property Sheet', required => 1 },
         resultFormat        => { label => 'Result Format', required => 1 },
     );
@@ -277,6 +277,91 @@ sub step_delete_work_items {
 
     $self->set_pipeline_summary($summary);
     $self->set_summary($summary);
+}
+
+sub step_get_work_items {
+    my ( $self ) = @_;
+
+    my %procedure_parameters = (
+        config              => { label => 'Configuration name', required => 1 },
+        workItemIds         => { label => 'Work Item Id(s)', required => 1, check => \&number_array_check },
+        fields              => { label => 'Fields' },
+        asOf                => { label => 'As of (date)', check => \&_date_time_check },
+        expandRelations     => { label => 'Expand relationships' },
+        resultPropertySheet => { label => 'Result Property Sheet', required => 1 },
+        resultFormat        => { label => 'Result Format', required => 1 },
+    );
+
+    my $params = $self->get_params_as_hashref(keys %procedure_parameters);
+    $self->check_parameters($params, \%procedure_parameters);
+
+    my $config = $self->get_config_values($params->{config});
+    my $client = $self->get_microrest_client($config);
+    my $api_version = EC::AzureDevOps::WorkItems::get_api_version('/_apis/wit/workitems/', $config);
+
+    # We should check the IDs later so should have it in the scope
+    my @work_item_ids = split(',\s?', $params->{workItemIds});
+
+    # GET https://dev.azure.com/{organization}/{project}/_apis/wit/workitems?ids={ids}&fields={fields}&asOf={asOf}&$expand={$expand}&errorPolicy={errorPolicy}&api-version=4.1
+    my %query_params = (
+        'api-version' => $api_version,
+        ids           => join(',', @work_item_ids),
+
+        # Missing items should be handled on our side
+        errorPolicy   => 'Omit'
+    );
+
+    # Adding optional query parameters
+    if ($params->{fields}) {
+        my @fields = split(',\s?', $params->{fields});
+        my @correct_fields = grep {$_ =~ /^[a-zA-Z\.]$/} @fields;
+
+        $query_params{fields} = join(',', @correct_fields);
+    }
+    if ($params->{expandRelations}) {
+        $query_params{'$expand'} = $params->{expandRelations};
+    }
+    if ($params->{asOf}) {
+        $query_params{asOf} = $params->{asOf};
+    }
+
+    my $result = $client->get("/_apis/wit/workitems", \%query_params);
+
+    if (! $result || ! $result->{value} || ref $result->{value} ne 'ARRAY') {
+        $self->bail_out("Received wrong result format", $result);
+    }
+
+    # API will return 'undef' for workItems that were not found
+    my @clear_list = grep {defined $_} @{$result->{value}};
+
+    $self->save_result_entities(\@clear_list, $params->{resultPropertySheet}, $params->{resultFormat});
+
+    my @result_ids = map {$_->{id}} @clear_list;
+
+    my $summary = '';
+    # Checking for not existing workItems
+    if (scalar @result_ids != scalar @work_item_ids) {
+        my @not_found = ();
+        my @sorted_work_item_ids = sort @work_item_ids;
+
+        for my $id (sort @result_ids) {
+            print "DEBUUUUUUG: checking $id exists\n";
+            if (! grep {$_ == $id} @sorted_work_item_ids) {
+                push @not_found, $id;
+            }
+        }
+        $summary = "Work Item(s) with the following IDs were not found: " . join(@not_found);
+        $self->warning($summary);
+    }
+    else {
+        $summary = "Work items are saved to a property sheet.";
+        $self->success($summary);
+    }
+
+    $self->set_pipeline_summary($summary);
+    $self->set_summary($summary);
+
+    exit 0;
 }
 
 sub _generate_field_op_hash {
@@ -356,6 +441,8 @@ sub save_result_entities {
 
     my @ids = ();
     for my $entity (@$entities_list){
+        next unless $entity;
+
         my $id = $entity->{id};
         push @ids, $id;
         $self->save_parsed_data($entity, $result_property . "/$id", $result_format)
@@ -381,7 +468,8 @@ sub save_parsed_data {
         return;
     }
 
-    $self->logger->info("Got data", JSON->new->pretty->encode($parsed_data));
+    $self->logger->debug("Got data", JSON->new->pretty->encode($parsed_data));
+
     if ($result_format eq 'none'){
         $self->logger->info("Results will not be saved to a property");
     }
@@ -489,5 +577,32 @@ sub fix_propertysheet_forbidden_key{
     elsif(ref($ref_var) eq 'SCALAR'){
         $$ref_var = $new_key;
     }
+}
+
+sub _date_time_check {
+    my ($label, $value) = @_;
+
+    return unless $value;
+    # 2009-06-15T13:45:30
+    my $regexp = qr/\d{4}-\d{2}-\d{2}(T\d{2}:\d{2}:\d{2})?/;
+    if ($value =~ $regexp) {
+        return 1;
+    }
+    else {
+        return "$label has wrong date format '$value', but should be in ISO 8601 e.g. ('2019-06-15T13:45:30')";
+    }
+}
+
+sub number_array_check {
+    my ($label, $value) = @_;
+
+    return unless $value;
+
+    my @list = split(',\s?', $value);
+    if ( grep { $_ !~ /^\d+$/ } @list ){
+        return (0, "Parameter '$label' should contain a comma-separated list of numbers. Got '$value'");
+    }
+
+    return 1;
 }
 1;

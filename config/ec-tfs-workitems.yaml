@@ -14,8 +14,8 @@ help:
     - https://www.visualstudio.com/en-us/docs/work/backlogs/create-your-backlog
   hasConfig: true
 procedures:
-  - name: Get a List of Work Items
-    stepName: get a list of work items
+  - name: GetWorkItems
+    stepName: get work items
     description: Retrieves a list of the work items.
     # https://{instance}/DefaultCollection/_apis/wit/workitems?api-version={version}&ids={string}[&fields={string}&asOf={DateTime}&$expand={enum{relations}&ErrorPolicy={string}]
     documentationLinks:

@@ -19,9 +19,9 @@ def stepsWithAttachedCredentials = [
     [procedureName: 'CreateWorkItems', stepName: 'create work items'],
     [procedureName: 'UpdateWorkItems', stepName: 'update work items'],
     [procedureName: 'DeleteWorkItems', stepName: 'delete work items'],
+    [procedureName: 'GetWorkItems', stepName: 'get work items'],
 
     // Still REST
-    [procedureName: 'Get a List of Work Items', stepName: 'get a list of work items'],
     [procedureName: 'Get Default Values', stepName: 'get default values'],
     [procedureName: 'TriggerBuild', stepName: 'trigger a build'],
     [procedureName: 'Upload a Work Item Attachment', stepName: 'upload a work item attachment'],
@@ -43,6 +43,7 @@ def unavailableProcedures = [
 
     // Procedure was renamed
     [procedureName: 'Query a build', stepName: 'query a build'],
+    [procedureName: 'Get a List of Work Items', stepName: 'get a list of work items'],
 
     //Single entity operations were refactored to multiple entity operations
     [procedureName: 'Create a Work Item', stepName: 'create a work item'],

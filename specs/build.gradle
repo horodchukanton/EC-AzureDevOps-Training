@@ -22,9 +22,10 @@ repositories {
 
 dependencies {
     compile 'org.codehaus.groovy:groovy-all:2.4.5:indy'
-    compile 'org.spockframework:spock-core:1.1-groovy-2.4-SNAPSHOT'
-    compile 'com.electriccloud:commander-spec-tests:latest.release'
+    compile 'org.spockframework:spock-core:1.1-groovy-c2.4-SNAPSHOT'
+//    compile 'com.electriccloud:commander-spec-tests:latest.release'
     compile 'com.jayway.restassured:rest-assured:2.4.0'
+    compile 'com.electriccloud:ec-specs-plugins-core:1.6.1'
 
     compile group: 'org.slf4j', name: 'slf4j-api', version: '1.7.25'
 
