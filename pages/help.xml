@@ -29,7 +29,7 @@
 <!-- LINKS END -->
         <h1>Contents</h1>
         <ul>
-        <!-- TOC BEGIN --><li><a href="#GetaListofWorkItems">Get a List of Work Items</a></li>
+        <!-- TOC BEGIN --><li><a href="#GetWorkItems">GetWorkItems</a></li>
 <li><a href="#CreateaWorkItem">CreateWorkItems</a></li>
 <li><a href="#UpdateWorkItems">UpdateWorkItems</a></li>
 <li><a href="#GetaWorkItem">Get a Work Item</a></li>
@@ -148,12 +148,12 @@
         </div>
         <h1>Procedures</h1>
         <!-- PROCEDURES BEGIN -->
-                <div id="GetaListofWorkItems">
-                <!-- GetaListofWorkItems METADATA BEGIN -->
-            <h3>Get a List of Work Items</h3>
+                <div id="GetWorkItems">
+                <!-- GetWorkItems METADATA BEGIN -->
+            <h3>GetWorkItems</h3>
             <p>Retrieves a list of the work items.</p>
-        <p>This procedure is a wrapper around REST API. See <a href="https://www.visualstudio.com/en-us/docs/integrate/api/wit/work-items#get-a-list-of-work-items" target="_blank">Get a List of Work Items</a> for reference.</p><!-- GetaListofWorkItems METADATA END -->
-                <!-- GetaListofWorkItems BEGIN -->
+        <p>This procedure is a wrapper around REST API. See <a href="https://www.visualstudio.com/en-us/docs/integrate/api/wit/work-items#get-a-list-of-work-items" target="_blank">GetWorkItems</a> for reference.</p><!-- GetWorkItems METADATA END -->
+                <!-- GetWorkItems BEGIN -->
             <table class="grid">
                 <thead>
                     <tr>
@@ -198,7 +198,7 @@
                 </tr>
                  </tbody>
             </table>
-        <!-- GetaListofWorkItems END -->
+        <!-- GetWorkItems END -->
         <img src="../../plugins/@PLUGIN_NAME@/images/GetWorkItems.png" />
             </div>
                 <div id="CreateaWorkItem">

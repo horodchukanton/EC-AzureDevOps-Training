@@ -57,7 +57,7 @@
       "endpoint" : "#{{endpoint}}/#{{collection}}/_apis/wit/workitems/#{itemId}",
       "attachCredentials" : "true"
    },
-   "get a list of work items" : {
+   "get work items" : {
       "resultProperty" : {
          "show" : "true",
          "format" : [
@@ -66,9 +66,9 @@
          ],
          "default" : "/myJob/workItemsList"
       },
-      "name" : "Get a List of Work Items",
+      "name" : "GetWorkItems",
       "description" : "Retrieves a list of the work items.",
-      "stepName" : "get a list of work items",
+      "stepName" : "get work items",
       "parameters" : [
          {
             "required" : "1",

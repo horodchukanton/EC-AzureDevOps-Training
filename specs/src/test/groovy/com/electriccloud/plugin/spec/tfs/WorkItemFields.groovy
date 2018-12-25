@@ -70,7 +70,7 @@ class WorkItemFields {
             operationsList.push([
                 op   : 'add',
                 path : '/fields/' + k,
-                value: v
+                value: (String) v
             ])
         }
 

@@ -18,17 +18,14 @@ class TFSHelper {
     final static String METHOD_DELETE = 'DELETE'
 
     String url
-    String login
-    String password
 
     String collectionName
     String apiVersion = '1.0'
     String projectName
-    String projectPrefix
 
     RestClient client
 
-    TFSHelper(String url, String login, String password, String collectionName, String projectName = "DefaultCollection") {
+    TFSHelper(String url, String login, String password, String collectionName, String projectName) {
         assert url
         assert login
         assert password
@@ -39,26 +36,20 @@ class TFSHelper {
 
         this.url = url
 
-        this.login = login
-        this.password = password
-
-        // Credentials
-        ICredentials credentials = new HeaderCredentials(login, password)
-
         // Instantiate client
         DefaultHttpClient httpclient = new DefaultHttpClient()
+        ICredentials credentials = new HeaderCredentials(login, password)
         client = new RestClient(httpclient, credentials, URI.create(this.url))
 
-        // TODO: check auth
     }
 
     void setApiVersion(String apiVersion){
         this.apiVersion = apiVersion
     }
 
-    void setProjectName(String projectName){
-        this.projectName = projectName
-        this.projectPrefix = '/' + this.collectionName + '/' + this.projectName
+
+    boolean isAuthenticated(){
+        return true
     }
 
     JSON getWorkItemById(def id){
@@ -89,12 +80,8 @@ class TFSHelper {
     }
 
     JSON deleteWorkItem(def workItemId){
-        String path = [this.collectionName, '/_apis/wit/workitems', workItemId].join('/')
+        String path = [this.collectionName, '_apis/wit/workitems', workItemId].join('/')
         return request(METHOD_DELETE, path)
-    }
-
-    boolean isAuthenticated(){
-        return true
     }
 
     JSON request(String method, String path, Map parameters = [:], JSON payload = null){

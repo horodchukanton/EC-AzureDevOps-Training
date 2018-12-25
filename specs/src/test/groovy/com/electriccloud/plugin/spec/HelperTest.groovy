@@ -10,20 +10,16 @@ import spock.lang.*
 class HelperTest extends PluginTestHelper {
 
     @Shared
-    TFSHelper azureDevOps, tfs
+    TFSHelper tfsClient
 
     @Shared
     int workItemId
 
     def doSetupSpec() {
-        def adosApiVersion = getADOSApiVersion()
-        def tfsApiVersion = getTFSApiVersion()
-
-        azureDevOps = getADOSHelper(adosApiVersion)
-        tfs = getTFSHelper(tfsApiVersion)
+        tfsClient = getClient()
     }
 
-    def "AzureDevOpsServices. CreateWorkItem"(){
+    def "Helper. CreateWorkItem"(){
         given:
         Map params = [
             title: "Spec Test Work Item",
@@ -31,14 +27,13 @@ class HelperTest extends PluginTestHelper {
         ]
 
         when:
-        JSON workItem = azureDevOps.createWorkItem('Task', params)
+        JSON workItem = tfsClient.createWorkItem('Task', params)
 
         // Saving id
         workItemId = workItem.id
 
         then:
         assert workItem.id
-
         assert workItem.fields
 
         Map resultMap = WorkItemFields.toParametersMap(workItem.fields)
@@ -47,61 +42,21 @@ class HelperTest extends PluginTestHelper {
         assert resultMap.intersect(params) == params
     }
 
-    def "AzureDevOpsServices. GetWorkItem"(){
+    def "Helper. GetWorkItem"(){
         when:
-        JSON workItem = azureDevOps.getWorkItemById(workItemId)
+        JSON workItem = tfsClient.getWorkItemById(workItemId)
 
         then:
         assert workItem.id == workItemId
     }
 
-    def "AzureDevOpsServices. DeleteWorkItem"(){
+    def "Helper. DeleteWorkItem"(){
         when:
-        JSON workItem = azureDevOps.deleteWorkItem(workItemId)
+        JSON workItem = tfsClient.deleteWorkItem(workItemId)
 
         then:
         assert workItem.id == workItemId
     }
-
-    def "TFS. CreateWorkItem"(){
-        given:
-        Map params = [
-            title: "Spec Test Work Item",
-            description: "Test description"
-        ]
-
-        when:
-        JSON workItem = tfs.createWorkItem('Task', params)
-        assert workItem.id
-
-        // Saving id
-        workItemId = workItem.id
-
-        then:
-        assert workItem.fields
-
-        Map resultMap = WorkItemFields.toParametersMap(workItem.fields)
-
-        // Will get the 'params' existing keys from resultMap and then assert that values are equal
-        assert resultMap.intersect(params) == params
-    }
-
-    def "TFS. GetWorkItem"(){
-        when:
-        JSON workItem = tfs.getWorkItemById(workItemId)
-
-        then:
-        assert workItem.id == workItemId
-    }
-
-    def "TFS. DeleteWorkItem"(){
-        when:
-        JSON workItem = tfs.deleteWorkItem(workItemId)
-
-        then:
-        assert workItem.id == workItemId
-    }
-
 
 }
 

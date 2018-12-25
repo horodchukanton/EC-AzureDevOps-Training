@@ -104,8 +104,6 @@ public class RestClient {
         if (creds != null)
             creds.authenticate(req);
 
-        System.out.println("uri = " + req.getURI());
-
         HttpResponse resp = httpClient.execute(req);
 
         HttpEntity ent = resp.getEntity();
