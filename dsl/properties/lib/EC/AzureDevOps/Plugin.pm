@@ -155,7 +155,7 @@ sub step_update_work_items {
     my %procedure_parameters = (
         config              => { label => 'Configuration name', required => 1 },
         workItemIds         => { label => 'Work Item ID(s)', required => 1, check => \&number_array_check },
-        title               => { label => 'Title', required => 1 },
+        title               => { label => 'Title'},
         priority            => { label => 'Priority', check => 'number' },
         assignTo            => { label => 'Assign To' },
         description         => { label => 'Description' },
