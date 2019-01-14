@@ -420,7 +420,7 @@ sub poll_build_status {
     return unless $params->{waitForBuild};
 
     my $status;
-    my $agent = $self->new_lwp();
+    my $agent = $self->plugin->new_lwp();
     my $timeout = $params->{waitTimeout} || 60;
     my $wait_time = 0;
     my $time_to_sleep = 30;
