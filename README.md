@@ -33,6 +33,10 @@ Get the default values that will be filled in automatically when you create a ne
 
 Queues a new build.
 
+## GetaBuild
+
+Get information about a build.
+
 ## Upload a Work Item Attachment
 
 To attach a file to a work item, upload the attachment to the attachment store, then attach it to the work item.

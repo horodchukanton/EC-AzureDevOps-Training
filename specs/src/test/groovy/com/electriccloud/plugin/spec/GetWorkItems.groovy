@@ -99,9 +99,9 @@ class GetWorkItems extends PluginTestHelper {
         }
 
         where:
-        caseId | count | expectedSummary
-        'CHANGEME_1'    | 1     | 'Work items are saved to a property sheet.'
-        'CHANGEME_2'    | 2     | 'Work items are saved to a property sheet.'
+        caseId       | count | expectedSummary
+        'CHANGEME_1' | 1     | 'Work items are saved to a property sheet.'
+        'CHANGEME_2' | 2     | 'Work items are saved to a property sheet.'
     }
 
     @Unroll
@@ -117,10 +117,10 @@ class GetWorkItems extends PluginTestHelper {
         assert workItemIds.size() == count
 
         // Adding unexisting work item's id
-        def unexistingId = (workItemIds[workItemIds.size()-1]) + 1
+        def unexistingId = (workItemIds[workItemIds.size() - 1]) + 1
 
         String workItemIdsStr = workItemIds.join(",")
-        workItemIdsStr += ', ' + unexistingId
+        workItemIdsStr += ',' + unexistingId
 
         def procedureParams = [
             config             : configName,
@@ -132,6 +132,9 @@ class GetWorkItems extends PluginTestHelper {
             resultFormat       : resultFormat,
         ]
 
+        // Prepare check string
+        expectedSummary = expectedSummary.replace('#unexistingId', (String) unexistingId)
+
         when:
         def result = runProcedure(projectName, procedureName, procedureParams)
 
@@ -140,18 +143,20 @@ class GetWorkItems extends PluginTestHelper {
 
         assert result.outcome == 'warning'
         def summary = getJobUpperStepSummary(result.jobId)
-        assert summary =~ expectedSummary
+        assert summary == expectedSummary
 
         cleanup:
+        // Removing only work items we created by ourselves
         if (workItemIds && workItemIds.size()) {
             workItemIds.each({ id ->
+                logger.debug("Removing work item with id ${id}")
                 tfsClient.deleteWorkItem(id)
             })
         }
 
         where:
-        caseId | count | expectedSummary
-        'CHANGEME_1'    | 1     | /Work Item\(s\) with the following IDs were not found:/
+        caseId       | count | expectedSummary
+        'CHANGEME_1' | 3     | "Work Item(s) with the following IDs were not found: #unexistingId"
 
     }
 }

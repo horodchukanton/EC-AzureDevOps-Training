@@ -613,5 +613,78 @@
       "contentType" : "application/json",
       "endpoint" : "#{{endpoint}}/#{{collection}}/#{project}/_apis/wit/workitems/#{workItemTypeName}",
       "attachCredentials" : "true"
+   },
+   "get a build" : {
+      "resultProperty" : {
+         "show" : "true",
+         "format" : [
+            "json",
+            "propertySheet"
+         ],
+         "default" : "/myJob/build"
+      },
+      "name" : "Get a Build",
+      "description" : "Gets a specified build info",
+      "stepName" : "get a build",
+      "parameters" : [
+         {
+            "htmlDocumentation" : "ID or name of the <a href=\"https://www.visualstudio.com/en-us/docs/integrate/api/tfs/projects\">team project</a>.\n",
+            "required" : "1",
+            "in" : "path",
+            "documentation" : "ID or name of the team project.",
+            "type" : "entry",
+            "label" : "Project name",
+            "property" : "project"
+         },
+         {
+            "required" : "1",
+            "in" : "path",
+            "documentation" : "ID of the build. e.g. 150",
+            "type" : "entry",
+            "label" : "Build ID",
+            "property" : "buildId"
+         },
+         {
+            "checkedValue" : "1",
+            "value" : "1",
+            "uncheckedValue" : "0",
+            "documentation" : "If checked, the procedure will poll the build status until the build is finished.",
+            "type" : "checkbox",
+            "label" : "Wait for build",
+            "property" : "waitForBuild"
+         },
+         {
+            "value" : "300",
+            "documentation" : "Time (in seconds) to wait for build to be finished. Used if \"Wait for build\" flag is set.",
+            "type" : "entry",
+            "label" : "Timeout to wait",
+            "property" : "waitTimeout"
+         },
+         {
+            "checkedValue" : "1",
+            "value" : "1",
+            "uncheckedValue" : "0",
+            "documentation" : "If checked, the procedure status will mimic build status, e.g. if the build has failed, the procedure will fail too.",
+            "type" : "checkbox",
+            "label" : "Mimic build status",
+            "property" : "mimicProcedureStatus"
+         }
+      ],
+      "fields" : [
+         "project",
+         "buildId",
+         "waitForBuild",
+         "waitTimeout",
+         "mimicProcedureStatus"
+      ],
+      "hasConfig" : "true",
+      "basicAuth" : "true",
+      "method" : "GET",
+      "documentationLinks" : [
+         "https://www.visualstudio.com/en-us/docs/integrate/api/build/builds#get-a-build"
+      ],
+      "contentType" : "application/json",
+      "endpoint" : "#{{endpoint}}/#{{collection}}/#{project}/_apis/build/builds/#{buildId}",
+      "attachCredentials" : "true"
    }
 }

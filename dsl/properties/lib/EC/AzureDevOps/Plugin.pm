@@ -132,6 +132,8 @@ sub step_create_work_items {
             }
         }
 
+        $self->logger->debug("PAYLOAD", \@payload);
+
         my $result = $client->post($api_path, { 'api-version' => $api_version }, \@payload);
 
         push @created_items, $result;
@@ -153,7 +155,7 @@ sub step_update_work_items {
     my %procedure_parameters = (
         config              => { label => 'Configuration name', required => 1 },
         workItemIds         => { label => 'Work Item ID(s)', required => 1, check => \&number_array_check },
-        title               => { label => 'Title', required => 1 },
+        title               => { label => 'Title'},
         priority            => { label => 'Priority', check => 'number' },
         assignTo            => { label => 'Assign To' },
         description         => { label => 'Description' },
@@ -342,15 +344,15 @@ sub step_get_work_items {
     # Checking for not existing workItems
     if (scalar @result_ids != scalar @work_item_ids) {
         my @not_found = ();
-        my @sorted_work_item_ids = sort @work_item_ids;
+        my @sorted_result_ids = sort @result_ids;
 
-        for my $id (sort @result_ids) {
-            print "DEBUUUUUUG: checking $id exists\n";
-            if (! grep {$_ == $id} @sorted_work_item_ids) {
+        for my $id (sort @work_item_ids) {
+
+            if (! grep {$_ eq $id} @sorted_result_ids) {
                 push @not_found, $id;
             }
         }
-        $summary = "Work Item(s) with the following IDs were not found: " . join(@not_found);
+        $summary = "Work Item(s) with the following IDs were not found: " . join(', ', @not_found);
         $self->warning($summary);
     }
     else {
@@ -423,14 +425,25 @@ sub build_create_multi_entity_payload {
 
             for my $key (@field_params) {
                 my $search_key = ( $key eq 'Assign To' ) ? 'assignto' :  lc($key);
-                $work_item{$search_key} = $predefined_work_item->{$key} || $generic_fields{$search_key};
+                my $value = $predefined_work_item->{$key} || $generic_fields{$search_key};
+
+                # Skipping undefined fields
+                next unless $value;
+
+                $work_item{$search_key} = $value;
             }
 
             push @results, \%work_item;
         }
     }
     else {
-        push @results, { map { $_ => $generic_fields{$_} } keys %generic_fields };
+        my %work_item = ();
+        for my $wi_field_name (keys %generic_fields){
+            next unless $generic_fields{$wi_field_name};
+            $work_item{$wi_field_name} = $generic_fields{$wi_field_name}
+        }
+
+        push @results, \%work_item;
     }
 
     return wantarray ? @results : \@results;
@@ -511,6 +524,7 @@ sub get_base_url {
 
     # Strip value
     $config->{endpoint} =~ s|/+$||g;
+    $config->{collection} =~ s|/+$||g;
 
     return "$config->{endpoint}/$config->{collection}";
 }

@@ -89,21 +89,6 @@
     <value/>
   </formElement>
   <formElement>
-    <documentation>Pre-set request body, e.g. [{&quot;op&quot;: &quot;add&quot;, &quot;path&quot;: &quot;/relations/-&quot;,
-      &quot;value&quot;: {&quot;rel&quot;: &quot;System.LinkTypes.Hierarchy-Reverse&quot;, &quot;url&quot;: &quot;https://fabrikam-fiber-inc.visualstudio.com/DefaultCollection/_apis/wit/workItems/297&quot;,
-      &quot;attributes&quot;: {&quot;comment&quot;: &quot;decomposition of work&quot;} } } ].
-    </documentation>
-    <htmlDocumentation>Pre-set request body, e.g. [{&quot;op&quot;: &quot;add&quot;, &quot;path&quot;: &quot;/relations/-&quot;,
-      &quot;value&quot;: {&quot;rel&quot;: &quot;System.LinkTypes.Hierarchy-Reverse&quot;, &quot;url&quot;: &quot;https://fabrikam-fiber-inc.visualstudio.com/DefaultCollection/_apis/wit/workItems/297&quot;,
-      &quot;attributes&quot;: {&quot;comment&quot;: &quot;decomposition of work&quot;} } } ].
-    </htmlDocumentation>
-    <label>Request body:</label>
-    <property>requestBody</property>
-    <required>0</required>
-    <type>textarea</type>
-    <value/>
-  </formElement>
-  <formElement>
     <documentation>JSON with the work items to create. All missing fields will be read from usual parameters.</documentation>
     <htmlDocumentation>This property should contain JSON with the work items to create. All missing fields will be read from usual parameters.<br/> Example: &lt;pre&gt;[{"Title": "Title for the first work item", "Type": "Task"}, {"Title": "Title for the second work item", "Priority": 2}]&lt;pre&gt;</htmlDocumentation>
     <label>Work Items JSON:</label>
