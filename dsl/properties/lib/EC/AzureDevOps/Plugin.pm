@@ -439,7 +439,7 @@ sub build_create_multi_entity_payload {
     else {
         my %work_item = ();
         for my $wi_field_name (keys %generic_fields){
-            next unless $generic_fields{$_};
+            next unless $generic_fields{$wi_field_name};
             $work_item{$wi_field_name} = $generic_fields{$wi_field_name}
         }
 
