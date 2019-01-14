@@ -132,6 +132,8 @@ sub step_create_work_items {
             }
         }
 
+        $self->logger->debug("PAYLOAD", \@payload);
+
         my $result = $client->post($api_path, { 'api-version' => $api_version }, \@payload);
 
         push @created_items, $result;
@@ -423,14 +425,25 @@ sub build_create_multi_entity_payload {
 
             for my $key (@field_params) {
                 my $search_key = ( $key eq 'Assign To' ) ? 'assignto' :  lc($key);
-                $work_item{$search_key} = $predefined_work_item->{$key} || $generic_fields{$search_key};
+                my $value = $predefined_work_item->{$key} || $generic_fields{$search_key};
+
+                # Skipping undefined fields
+                next unless $value;
+
+                $work_item{$search_key} = $value;
             }
 
             push @results, \%work_item;
         }
     }
     else {
-        push @results, { map { $_ => $generic_fields{$_} } keys %generic_fields };
+        my %work_item = ();
+        for my $wi_field_name (keys %generic_fields){
+            next unless $generic_fields{$_};
+            $work_item{$wi_field_name} = $generic_fields{$wi_field_name}
+        }
+
+        push @results, \%work_item;
     }
 
     return wantarray ? @results : \@results;
