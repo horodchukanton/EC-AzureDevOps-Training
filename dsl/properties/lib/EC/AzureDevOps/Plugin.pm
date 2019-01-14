@@ -342,15 +342,15 @@ sub step_get_work_items {
     # Checking for not existing workItems
     if (scalar @result_ids != scalar @work_item_ids) {
         my @not_found = ();
-        my @sorted_work_item_ids = sort @work_item_ids;
+        my @sorted_result_ids = sort @result_ids;
 
-        for my $id (sort @result_ids) {
-            print "DEBUUUUUUG: checking $id exists\n";
-            if (! grep {$_ == $id} @sorted_work_item_ids) {
+        for my $id (sort @work_item_ids) {
+
+            if (! grep {$_ eq $id} @sorted_result_ids) {
                 push @not_found, $id;
             }
         }
-        $summary = "Work Item(s) with the following IDs were not found: " . join(@not_found);
+        $summary = "Work Item(s) with the following IDs were not found: " . join(', ', @not_found);
         $self->warning($summary);
     }
     else {
@@ -511,6 +511,7 @@ sub get_base_url {
 
     # Strip value
     $config->{endpoint} =~ s|/+$||g;
+    $config->{collection} =~ s|/+$||g;
 
     return "$config->{endpoint}/$config->{collection}";
 }
