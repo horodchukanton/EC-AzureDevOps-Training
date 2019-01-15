@@ -1,4 +1,5 @@
 def projName = args.projectName
+def procName = 'GetWorkItems'
 
 def parameters = [
     config             : '',
@@ -11,11 +12,11 @@ def parameters = [
 ]
 
 project projName, {
-    procedure 'GetWorkItems', {
+    procedure procName, {
 
-        step 'GetWorkItems', {
+        step procName, {
             description = ''
-            subprocedure = 'GetWorkItems'
+            subprocedure = procName
             subproject = '/plugins/EC-AzureDevOps/project'
             subpluginKey = 'EC-AzureDevOps'
             projectName = projName

@@ -7,7 +7,7 @@ import net.sf.json.JSON
 import spock.lang.*
 
 @Stepwise
-class HelperTest extends PluginTestHelper {
+class TFSHelperTest extends PluginTestHelper {
 
     @Shared
     TFSHelper tfsClient
