@@ -366,6 +366,47 @@ sub step_get_work_items {
     exit 0;
 }
 
+sub step_query_work_items {
+    my ( $self ) = @_;
+
+    my %procedure_parameters = (
+        config              => { label => 'Configuration name', required => 1 },
+        project             => { label => 'Project' },
+        queryId             => { label => 'Query ID' },
+        queryText           => { label => 'Query Text' },
+        timePrecision       => { label => 'Time precision' },
+        resultPropertySheet => { label => 'Result Property Sheet', required => 1 },
+        resultFormat        => { label => 'Result Format', required => 1 },
+    );
+
+    my $params = $self->get_params_as_hashref(keys %procedure_parameters);
+    $self->check_parameters($params, \%procedure_parameters);
+
+    # One of this should be present
+    if (! ($params->{queryId} || $params->{queryText})){
+        $self->bail_out("Either '$params->{queryId}{label}' or '$params->{queryText}{label}' should be present");
+    }
+
+    # If queryText contains @project, "Project" should be specified
+    if (!$params->{queryId} && $params->{queryText}
+        && !$params->{project} && $params->{queryText} =~ /\@project/
+    ){
+        $self->bail_out("Your query contains reference to a project, but parameter 'Project' is not specified.")
+    }
+
+    my $config = $self->get_config_values($params->{config});
+    my $client = $self->get_microrest_client($config);
+    my $api_version = '1.0'; # EC::AzureDevOps::WorkItems::get_api_version('/_apis/wit/wiql/', $config);
+
+    my $result = $client->get('_apis/wit/wiql/' . $params->{queryId}, { 'api-version' => $api_version });
+
+    print Dumper $result;
+
+    exit 0;
+
+
+}
+
 sub _generate_field_op_hash {
     my ($field_name, $field_value, $operation) = @_;
 
@@ -515,7 +556,6 @@ sub get_base_url {
 
     $config ||= $self->{_config};
     $self->bail_out("No configuration was given to EC::AzureDevOps::Plugin\n") unless($config);
-
 
     # Check mandatory
     for my $param (qw/endpoint collection/){
