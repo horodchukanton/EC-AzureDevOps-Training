@@ -6,6 +6,7 @@ import com.electriccloud.plugin.spec.http.ICredentials
 import com.electriccloud.plugin.spec.http.RestClient
 import com.electriccloud.plugin.spec.http.RestException
 import net.sf.json.JSON
+import net.sf.json.JSONObject
 import org.apache.http.client.methods.HttpPost
 import org.apache.http.impl.client.DefaultHttpClient
 
@@ -84,6 +85,21 @@ class TFSHelper {
         return request(METHOD_DELETE, path)
     }
 
+    JSON createWorkItemQuery(String name, String wiql, Map queryParams = [:], String parent = 'My Queries'){
+
+        String path = [ this.collectionName, this.projectName, '_apis/wit/queries', parent ].join('/')
+
+        JSON payload = new JSONObject([
+            wiql : wiql,
+            name : name,
+        ])
+
+        queryParams.each { String k, String v -> payload[k]= v }
+
+        return request(METHOD_POST, path, [:], payload)
+
+    }
+
     JSON request(String method, String path, Map parameters = [:], JSON payload = null){
         assert method
         assert path
@@ -97,7 +113,7 @@ class TFSHelper {
 
         def url_with_params = this.client.buildURI(path, parameters)
 
-        if (payload && ( method == METHOD_PUT || method == METHOD_POST)){
+        if (payload && !( method == METHOD_PUT || method == METHOD_POST)){
             throw new RuntimeException("Payload is implemented only for PUT and POST methods")
         }
 
@@ -131,6 +147,18 @@ class TFSHelper {
         return result
     }
 
+    def deleteWorkItemQuery(String id) {
+        String path = [ this.collectionName, this.projectName, '_apis/wit/queries', id ].join('/')
+
+        // This request does not return the content, and request method don't likes that
+        try {
+            request(METHOD_DELETE, path)
+        }
+        catch (AssertionError ignored){}
+
+        return true
+    }
+
     JSON postWithContentType(String path, Map queryParameters = [:], JSON payload, String contentType){
         assert queryParameters['api-version']
         URI uri = this.client.buildURI(path, queryParameters)
@@ -147,4 +175,6 @@ class TFSHelper {
         assert result
         return result
     }
+
+
 }

@@ -79,7 +79,7 @@ sub define_hooks {
 
     # $self->define_hook('create work items', 'parsed', \&create_work_item_response_parsed);
     # $self->define_hook('update a work item', 'parsed', \&update_work_item_response_parsed);
-    $self->define_hook('create work items', 'parameters', \&create_work_item_parameters);
+    # $self->define_hook('create work items', 'parameters', \&create_work_item_parameters);
     $self->define_hook('get default values', 'parameters', \&get_default_values);
     # $self->define_hook('get a work item', 'parsed', \&get_work_item_response_parsed);
     # $self->define_hook('delete work items', 'parsed', \&delete_work_item_response_parsed, {run_before_shared => 1});
@@ -93,7 +93,7 @@ sub define_hooks {
     $self->define_hook('get a build', 'request', \&poll_build_status);
     $self->define_hook('get a build', 'parameters', \&get_build_id);
     $self->define_hook('get a build', 'after', \&get_build_after);
-    $self->define_hook('download an artifact from a git repository', 'content_callback', \&download_artifact_content_callback);
+    # $self->define_hook('download an artifact from a git repository', 'content_callback', \&download_artifact_content_callback);
     $self->define_hook('upload a work item attachment', 'parsed', \&upload_attachment_parsed);
     $self->define_hook('upload a work item attachment', 'request', \&upload_attachment_request);
     $self->define_hook('upload a work item attachment', 'response', \&upload_attachment_response);
@@ -472,7 +472,7 @@ sub general_request {
     my $params = $self->plugin->parameters;
     my $config = $self->plugin->get_config_values($params->{config});
 
-    my $api_version = EC::AzureDevOps::WorkItems::get_api_version($request->uri, $config);
+    my $api_version = EC::AzureDevOps::Plugin::get_api_version($request->uri, $config);
 
     my %query_form = $uri->query_form;
     $query_form{'api-version'} = $api_version;

@@ -271,7 +271,10 @@ class PluginTestHelper extends PluginSpockTestSupport {
 
     def runProcedure(String projectName, String procedureName, Map parameters){
 
-        def parametersString = parameters.collect { k, v -> "$k: '''$v'''" }.join(', ')
+        def parametersString = parameters.collect { k, String v ->
+            v = v.replace('\'', '\\\'')
+            "$k: '''$v'''"
+        }.join(', ')
 
         def code = """
             runProcedure(

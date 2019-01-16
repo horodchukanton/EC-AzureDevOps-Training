@@ -14,323 +14,6 @@ help:
     - https://www.visualstudio.com/en-us/docs/work/backlogs/create-your-backlog
   hasConfig: true
 procedures:
-  - name: GetWorkItems
-    stepName: get work items
-    description: Retrieves a list of the work items.
-    # https://{instance}/DefaultCollection/_apis/wit/workitems?api-version={version}&ids={string}[&fields={string}&asOf={DateTime}&$expand={enum{relations}&ErrorPolicy={string}]
-    documentationLinks:
-      - https://www.visualstudio.com/en-us/docs/integrate/api/wit/work-items#get-a-list-of-work-items
-    endpoint: '#{{endpoint}}/#{{collection}}/_apis/wit/workitems'
-    #  #{{instance}} means that "instance" will ba taken from config
-    # #{repository} will be taken from the procedure parameters
-    method: GET
-    # HTTP method
-    hasConfig: true
-     # a field for configuration name will be added to the form
-    attachCredentials: true
-     # credentials will be attached to the procedure
-    basicAuth: true
-     # credentials will be turned into basic auth header
-    # if no credentials found, the procedure won't fail, the request will be made without credentials
-
-    # The result will be saved in this property
-    resultProperty:
-      show: true
-      # Selectbox with formats will appear
-      format:
-        - json
-        - propertySheet
-      default: /myJob/workItemsList
-    parameters:
-      - property: ids
-        type: textarea
-        label: IDs
-        documentation: A comma-separated list of up to 200 IDs of the work items to get.
-        required: 1
-        in: query
-      - property: fields
-        type: textarea
-        label: Fields
-        required: 0
-        in: query
-        documentation: >
-          A comma-separated list of up to 100 fields to get with each work item.
-          If not specified, all fields with values are returned. Calculated fields such as Attached File Count must be specifically queried for using this parameter.
-      - property: asOf
-        type: entry
-        label: As of (date)
-        in: query
-        documentation: Gets the work items as they existed at this time.
-        htmlDocumentation: Gets the work items as they existed at this time.
-        validators:
-          - date_time
-      - property: $expand
-        label: Expand relationships
-        type: select
-        in: query
-        option:
-          - name: All
-            value: all
-          - name: Relations
-            value: relations
-          - name: None
-            value: none
-        documentation: Gets work item relationships (work item links, hyperlinks, file attachements, etc.).
-        value: none
-      - property: ErrorPolicy
-        type: checkbox
-        in: query
-        label: Strict mode
-        checkedValue: throw
-        uncheckedValue: omit
-        value: throw
-        documentation: >
-          Determines if the call will throw an error when encountering a work item (default behavior) that doesn't exist or simply omit it.
-
-  - name: CreateWorkItems
-    stepName: create work items
-    description: Creates a new work item.
-    # https://{instance}/DefaultCollection/_apis/wit/workitems?api-version={version}&ids={string}[&fields={string}&asOf={DateTime}&$expand={enum{relations}&ErrorPolicy={string}]
-    endpoint: '#{{endpoint}}/#{{collection}}/#{project}/_apis/wit/workitems/#{type}'
-    #  #{{instance}} means that "instance" will ba taken from config
-    # #{repository} will be taken from the procedure parameters
-    method: PATCH
-    # HTTP method
-    hasConfig: true
-     # a field for configuration name will be added to the form
-    attachCredentials: true
-     # credentials will be attached to the procedure
-    basicAuth: true
-     # credentials will be turned into basic auth header
-    contentType: application/json-patch+json
-    documentationLinks:
-      - https://www.visualstudio.com/en-us/docs/integrate/api/wit/work-items#create-a-work-item
-    resultProperty:
-      show: true
-      # Selectbox with formats will appear
-      format:
-        - json
-        - propertySheet
-      default: /myJob/newWorkItem
-    parameters:
-      - property: title
-        type: entry
-        label: Title
-        documentation: Short description of the work item.
-        required: 1
-        in: body
-      - property: project
-        type: entry
-        label: Project name
-        documentation: Name or ID of a team project where the work item should be created.
-        htmlDocumentation: |
-          Name or ID of a <a href="https://www.visualstudio.com/en-us/docs/integrate/api/tfs/projects" target="_blank">team project</a> where the work item should be created.
-        required: 1
-        in: path
-      - property: type
-        type: entry
-        label: Type
-        documentation: Name of the work item type.
-        htmlDocumentation: |
-          Name of the <a target="_blank" href="https://www.visualstudio.com/en-us/docs/integrate/api/wit/work-item-types">work item type</a>.
-        required: 1
-        in: path
-      - property: priority
-        type: entry
-        label: Priority
-        documentation: Priority for completing the work item, based on business goals
-        required: 0
-        in: body
-      - property: assignTo
-        type: entry
-        label: Assign to
-        documentation: The person currently assigned to the work item.
-        required: 0
-        in: body
-      - property: description
-        type: textarea
-        label: Description
-        documentation: Description for the work item
-        required: 0
-        in: body
-      - property: additionalFields
-        type: textarea
-        label: Additional fields
-        required: 0
-        documentation: |
-          Additional fields to be added, e.g. {"Microsoft.VSTS.Common.Severity": 2}.
-          For field names see https://www.visualstudio.com/en-us/docs/integrate/api/wit/work-item-types
-        htmlDocumentation: |
-          Additional fields to be added, e.g. {"Microsoft.VSTS.Common.Severity": 2}.
-          For field names see
-          <a href="https://www.visualstudio.com/en-us/docs/integrate/api/wit/work-item-types" target="_blank">
-          https://www.visualstudio.com/en-us/docs/integrate/api/wit/work-item-types</a>
-      - property: requestBody
-        type: textarea
-        label: Request body
-        required: 0
-        documentation: |
-          Pre-set request body, e.g. [{"op": "add", "path": "/relations/-", "value": {"rel": "System.LinkTypes.Hierarchy-Reverse", "url": "https://fabrikam-fiber-inc.visualstudio.com/DefaultCollection/_apis/wit/workItems/297", "attributes": {"comment": "decomposition of work"} } } ]
-        htmlDocumentation: |
-          Pre-set request body, e.g. [{"op": "add", "path": "/relations/-", "value": {"rel": "System.LinkTypes.Hierarchy-Reverse", "url": "https://fabrikam-fiber-inc.visualstudio.com/DefaultCollection/_apis/wit/workItems/297", "attributes": {"comment": "decomposition of work"} } } ]
-
-
-  - name: UpdateWorkItems
-    stepName: update work items
-    description: Update a work item fields.
-    documentationLinks:
-      - https://www.visualstudio.com/en-us/docs/integrate/api/wit/work-items#create-a-work-item
-    endpoint: '#{{endpoint}}/#{{collection}}/_apis/wit/workitems/#{itemId}'
-    method: PATCH
-    hasConfig: true
-    attachCredentials: true
-    basicAuth: true
-    contentType: application/json-patch+json
-    resultProperty:
-      show: true
-      format:
-        - json
-        - propertySheet
-      default: /myJob/updatedWorkItem
-    parameters:
-      - property: itemId
-        type: entry
-        label: Item ID
-        documentation: ID of the work item to be updated.
-        required: 1
-        in: path
-      - property: title
-        type: entry
-        label: Title
-        documentation: Short description of the work item.
-        required: 0
-        in: body
-      - property: priority
-        type: entry
-        label: Priority
-        documentation: Priority for completing the work item, based on business goals
-        required: 0
-        in: body
-      - property: assignTo
-        type: entry
-        label: Assign to
-        documentation: The person currently assigned to the work item.
-        required: 0
-        in: body
-      - property: description
-        type: textarea
-        label: Description
-        documentation: Description for the work item
-        required: 0
-        in: body
-      - property: additionalFields
-        type: textarea
-        label: Additional fields
-        required: 0
-        in: body
-        documentation: |
-          Additional fields to be added, e.g. {"Microsoft.VSTS.Common.Severity": 2}.
-          For field names see https://www.visualstudio.com/en-us/docs/integrate/api/wit/work-item-types
-        htmlDocumentation: >
-          Additional fields to be added, e.g. {"Microsoft.VSTS.Common.Severity": 2}.
-          For field names see
-          <a href="https://www.visualstudio.com/en-us/docs/integrate/api/wit/work-item-types" target="_blank">
-          https://www.visualstudio.com/en-us/docs/integrate/api/wit/work-item-types</a>
-      - property: requestBody
-        type: textarea
-        label: Request body
-        in: body
-        required: 0
-        documentation: |
-          Pre-set request body, e.g. [{"op": "add", "path": "/relations/-", "value": {"rel": "System.LinkTypes.Hierarchy-Reverse", "url": "https://fabrikam-fiber-inc.visualstudio.com/DefaultCollection/_apis/wit/workItems/297", "attributes": {"comment": "decomposition of work"} } } ]
-        htmlDocumentation: |
-          Pre-set request body, e.g. [{"op": "add", "path": "/relations/-", "value": {"rel": "System.LinkTypes.Hierarchy-Reverse", "url": "https://fabrikam-fiber-inc.visualstudio.com/DefaultCollection/_apis/wit/workItems/297", "attributes": {"comment": "decomposition of work"} } } ]
-
-  - name: Get a Work Item
-    stepName: get a work item
-    description: Returns the content of the work item
-    endpoint: '#{{endpoint}}/#{{collection}}/_apis/wit/workitems/#{itemId}'
-    documentationLinks:
-      - https://www.visualstudio.com/en-us/docs/integrate/api/wit/work-items#get-a-work-item
-    #  #{{instance}} means that "instance" will ba taken from config
-    # #{repository} will be taken from the procedure parameters
-    method: GET
-    # HTTP method
-    hasConfig: true
-     # a field for configuration name will be added to the form
-    attachCredentials: true
-     # credentials will be attached to the procedure
-    basicAuth: true
-     # credentials will be turned into basic auth header
-    contentType: application/json
-    resultProperty:
-      show: true
-      # Selectbox with formats will appear
-      format:
-        - json
-        - propertySheet
-      default: /myJob/workItem
-    parameters:
-      - property: itemId
-        type: entry
-        label: ID
-        documentation: ID of the work item to retrieve.
-        required: 1
-        in: path
-      - property: $expand
-        type: select
-        label: Expand
-        in: query
-        documentation: Gets work item relationships (work item links, hyperlinks and file attachements).
-        option:
-          - name: All
-            value: all
-          - name: Relations
-            value: relations
-          - name: None
-            value: none
-        value: none
-
-  - name: DeleteWorkItems
-    stepName: delete work items
-    description: Deletes the specified work item.
-    endpoint: '#{{endpoint}}/#{{collection}}/#{project}/_apis/wit/workitems/#{itemId}'
-    method: DELETE
-    documentationLinks:
-      - https://www.visualstudio.com/en-us/docs/integrate/api/wit/work-items#delete-a-work-item
-    # HTTP method
-    hasConfig: true
-     # a field for configuration name will be added to the form
-    attachCredentials: true
-     # credentials will be attached to the procedure
-    basicAuth: true
-     # credentials will be turned into basic auth header
-    SkSkipAuth: true
-    # if no credentials found, the procedure won't fail, the request will be made without credentials
-    contentType: application/json
-    resultProperty:
-      show: true
-      # Selectbox with formats will appear
-      format:
-        - json
-        - propertySheet
-      default: /myJob/deletedWorkItem
-    parameters:
-      - property: itemId
-        type: entry
-        label: ID
-        documentation: ID of the work item to delete.
-        required: 1
-        in: path
-      - property: strictMode
-        value: 1
-        required: 0
-        checkedValue: 1
-        uncheckedValue: 0
-        type: checkbox
-        label: Strict mode
-        documentation: If checked, the procedure will fail in case the item does not exist.
-
   - name: Get Default Values
     stepName: get default values
     description: Get the default values that will be filled in automatically when you create a new work item of a specific type.
@@ -670,192 +353,55 @@ procedures:
         type: textarea
         in: body
 
-#  - name: Download an Artifact from a Git Repository
-#    stepName: download an artifact from a git repository
-#    description: Downloads a file from a Git repository.
-#    method: GET
-#    endpoint: '#{{endpoint}}/#{{collection}}/#{project}/_apis/git/repositories/#{repository}/items'
-#    hasConfig: true
-#    attachCredentials: true
-#    basicAuth: true
-#    documentationLinks:
-#     - https://www.visualstudio.com/en-us/docs/integrate/api/git/items#get-a-file
-#    contentType: application/json
-#    resultProperty:
-#      show: true
-#      # Selectbox with formats will appear
-#      format:
-#        - json
-#        - propertySheet
-#      default: /myJob/downloadGitArtifact
-#    parameters:
-#      - property: project
-#        label: Project name
-#        documentation: ID or name of the team project.
-#        htmlDocumentation: |
-#          ID or name of the <a href="https://www.visualstudio.com/en-us/docs/integrate/api/tfs/projects">team project</a>.
-#        type: entry
-#        required: 1
-#        in: path
-#      - property: repository
-#        label: Repository name
-#        documentation: ID or name of the repository.
-#        htmlDocumentation: |
-#          ID or name of the <a href="https://www.visualstudio.com/en-us/docs/integrate/api/git/repositories">repository</a>.
-#        type: entry
-#        required: 1
-#        in: path
-#      - property: scopePath
-#        label: File path
-#        documentation: Path to the item in the repository. e.g. /WebSite/WebSite/Views/Home/_Home.cshtml
-#        value: /
-#        type: entry
-#        required: 1
-#        in: query
-#      - property: destination
-#        label: Destination folder for file
-#        type: entry
-#        documentation: Destination folder for file. If not specified, defaults to the current job workspace.
-#      - property: Accept
-#        label: Download format
-#        in: header
-#        type: select
-#        value: application/octet-stream
-#        documentation: Specify the format for dowloading an artifact.
-#        required: true
-#        option:
-#          - name: Binary
-#            value: application/octet-stream
-#          - name: Zip
-#            value: application/zip
-#          - name: JSON (metadata)
-#            value: application/json
-#      - property: includeContentMetadata
-#        label: Include content metadata
-#        documentation: |
-#          Use true to include additional metadata about the item content, like the file type.
-#          Useful only when metadata is retrived.
-#        in: query
-#        type: checkbox
-#        checkedValue: true
-#        uncheckedValue: false
-#        value: false
-#      - property: latestProcessedChange
-#        label: Latest processed change
-#        documentation: |
-#          true gets the commit that contains the previous change to the retrieved version of the item.
-#          Of course, the root item ("/") has no commits associated with it, so there will not be a
-#          commit returned with the root item.
-#          Useful only when metadata is retrived.
-#        value: false
-#        type: checkbox
-#        checkedValue: true
-#        uncheckedValue: false
-#      - property: versionType
-#        label: Version type
-#        type: select
-#        in: query
-#        option:
-#          - name: Branch
-#            value: branch
-#          - name: Commit
-#            value: commit
-#          - name: Tag
-#            value: tag
-#        value: branch
-#        documentation: Use the versionType and version parameters together. For example, to get an item from "mybranch", use versionType=branch and version=mybranch.
-#      - property: version
-#        label: Version
-#        type: entry
-#        value: master
-#        in: query
-#        htmlDocumentation: |
-#          <table>
-#          <tr>
-#          <th>If versionType is...</th><th>Version is interpreted as...</th>
-#          </tr>
-#          <tr>
-#            <td>Branch</td><td>The name of a branch.</td>
-#          </tr>
-#          <tr>
-#            <td>Tag</td><td>The name of a tag.</td>
-#          </tr>
-#          <tr>
-#            <td>Commit</td><td>The ID of a commit.</td>
-#            </tr>
-#          </table>
-#
-#          You can also modify the version with the versionOptions parameter.
-#
-#      - property: versionOptions
-#        in: query
-#        label: Version options
-#        type: select
-#        option:
-#          - name: First parent
-#            value: firstParent
-#          - name: Previous change
-#            value: previousChange
-#          - name: None
-#            value: None
-#        value: None
-#        htmlDocumentation: |
-#         <b>First parent</b>: The parent branch to the version specified by the versionType and version parameters.
-#         <br />
-#         <b>Previous change</b>: The last version of the item that was changed prior to the version specified by the versionType and version parameters.
-#         <br />
-#         <b>None</b>: No modification to the version specified by the versionType and version parameters.
-
-
-#  - name: Get a Build
-#    stepName: get a build
-#    description: Gets a specified build info
-#    method: GET
-#    endpoint: '#{{endpoint}}/#{{collection}}/#{project}/_apis/build/builds/#{buildId}'
-#    hasConfig: true
-#    attachCredentials: true
-#    basicAuth: true
-#    documentationLinks:
-#     - https://www.visualstudio.com/en-us/docs/integrate/api/build/builds#get-a-build
-#    contentType: application/json
-#    resultProperty:
-#      show: true
-#      # Selectbox with formats will appear
-#      format:
-#        - json
-#        - propertySheet
-#      default: /myJob/build
-#    parameters:
-#      - property: project
-#        label: Project name
-#        documentation: ID or name of the team project.
-#        htmlDocumentation: |
-#          ID or name of the <a href="https://www.visualstudio.com/en-us/docs/integrate/api/tfs/projects">team project</a>.
-#        type: entry
-#        required: 1
-#        in: path
-#      - property: buildId
-#        label: Build number or ID
-#        documentation: ID or number of the build.
-#        type: entry
-#        required: 1
-#        in: path
-#      - property: waitForBuild
-#        label: Wait for build
-#        type: checkbox
-#        checkedValue: 1
-#        uncheckedValue: 0
-#        value: 1
-#        documentation: If checked, the procedure will poll the build status until the build is finished.
-#      - property: waitTimeout
-#        label: Timeout to wait
-#        type: entry
-#        value: 300
-#        documentation: Time (in seconds) to wait for build to be finished. Used if "Wait for build" flag is set.
-#      - property: mimicProcedureStatus
-#        label: Mimic build status
-#        type: checkbox
-#        checkedValue: 1
-#        uncheckedValue: 0
-#        value: 1
-#        documentation: If checked, the procedure status will mimic build status, e.g. if the build has failed, the procedure will fail too.
+  - name: Get a Build
+    stepName: get a build
+    description: Gets a specified build info
+    method: GET
+    endpoint: '#{{endpoint}}/#{{collection}}/#{project}/_apis/build/builds/#{buildId}'
+    hasConfig: true
+    attachCredentials: true
+    basicAuth: true
+    documentationLinks:
+     - https://www.visualstudio.com/en-us/docs/integrate/api/build/builds#get-a-build
+    contentType: application/json
+    resultProperty:
+      show: true
+      # Selectbox with formats will appear
+      format:
+        - json
+        - propertySheet
+      default: /myJob/build
+    parameters:
+      - property: project
+        label: Project name
+        documentation: ID or name of the team project.
+        htmlDocumentation: |
+          ID or name of the <a href="https://www.visualstudio.com/en-us/docs/integrate/api/tfs/projects">team project</a>.
+        type: entry
+        required: 1
+        in: path
+      - property: buildId
+        label: Build number or ID
+        documentation: ID or number of the build.
+        type: entry
+        required: 1
+        in: path
+      - property: waitForBuild
+        label: Wait for build
+        type: checkbox
+        checkedValue: 1
+        uncheckedValue: 0
+        value: 1
+        documentation: If checked, the procedure will poll the build status until the build is finished.
+      - property: waitTimeout
+        label: Timeout to wait
+        type: entry
+        value: 300
+        documentation: Time (in seconds) to wait for build to be finished. Used if "Wait for build" flag is set.
+      - property: mimicProcedureStatus
+        label: Mimic build status
+        type: checkbox
+        checkedValue: 1
+        uncheckedValue: 0
+        value: 1
+        documentation: If checked, the procedure status will mimic build status, e.g. if the build has failed, the procedure will fail too.

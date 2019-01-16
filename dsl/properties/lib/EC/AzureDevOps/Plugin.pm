@@ -97,7 +97,7 @@ sub step_create_work_items {
     my $client = $self->get_microrest_client($config);
 
     # Api version should be sent in query
-    my $api_version = EC::AzureDevOps::WorkItems::get_api_version('/_apis/wit/workitems/', $config);
+    my $api_version = get_api_version('/_apis/wit/workitems/', $config);
 
     # Reading values from the parameters
     my %generic_fields = $self->parse_generic_create_update_parameters($params);
@@ -154,7 +154,7 @@ sub step_update_work_items {
 
     my %procedure_parameters = (
         config              => { label => 'Configuration name', required => 1 },
-        workItemIds         => { label => 'Work Item ID(s)', required => 1, check => \&number_array_check },
+        workItemIds         => { label => 'Work Item ID(s)', required => 1, check => \&_number_array_check },
         title               => { label => 'Title'},
         priority            => { label => 'Priority', check => 'number' },
         assignTo            => { label => 'Assign To' },
@@ -173,7 +173,7 @@ sub step_update_work_items {
     my $client = $self->get_microrest_client($config);
 
     # Api version should be sent in query
-    my $api_version = EC::AzureDevOps::WorkItems::get_api_version('/_apis/wit/workitems/', $config);
+    my $api_version = get_api_version('/_apis/wit/workitems/', $config);
 
     # Generating the payload from the parameters
     my %generic_fields = $self->parse_generic_create_update_parameters($params);
@@ -222,7 +222,7 @@ sub step_delete_work_items {
 
     my %procedure_parameters = (
         config              => { label => 'Configuration name', required => 1 },
-        workItemIds         => { label => 'Work Item Id(s)', required => 1, check => \&number_array_check },
+        workItemIds         => { label => 'Work Item Id(s)', required => 1, check => \&_number_array_check },
         resultPropertySheet => { label => 'Result Property Sheet', required => 1 },
         resultFormat        => { label => 'Result Format', required => 1 },
     );
@@ -233,7 +233,7 @@ sub step_delete_work_items {
     my $config = $self->get_config_values($params->{config});
     my $client = $self->get_microrest_client($config);
 
-    my $api_version = EC::AzureDevOps::WorkItems::get_api_version('/_apis/wit/workitems/', $config);
+    my $api_version = get_api_version('/_apis/wit/workitems/', $config);
 
     my @deleted = ();
     my @unexisting = ();
@@ -286,7 +286,7 @@ sub step_get_work_items {
 
     my %procedure_parameters = (
         config              => { label => 'Configuration name', required => 1 },
-        workItemIds         => { label => 'Work Item Id(s)', required => 1, check => \&number_array_check },
+        workItemIds         => { label => 'Work Item Id(s)', required => 1, check => \&_number_array_check },
         fields              => { label => 'Fields' },
         asOf                => { label => 'As of (date)', check => \&_date_time_check },
         expandRelations     => { label => 'Expand relationships' },
@@ -297,38 +297,9 @@ sub step_get_work_items {
     my $params = $self->get_params_as_hashref(keys %procedure_parameters);
     $self->check_parameters($params, \%procedure_parameters);
 
-    my $config = $self->get_config_values($params->{config});
-    my $client = $self->get_microrest_client($config);
-    my $api_version = EC::AzureDevOps::WorkItems::get_api_version('/_apis/wit/workitems/', $config);
-
-    # We should check the IDs later so should have it in the scope
+    # Get the work items
     my @work_item_ids = split(',\s?', $params->{workItemIds});
-
-    # GET https://dev.azure.com/{organization}/{project}/_apis/wit/workitems?ids={ids}&fields={fields}&asOf={asOf}&$expand={$expand}&errorPolicy={errorPolicy}&api-version=4.1
-    my %query_params = (
-        'api-version' => $api_version,
-        ids           => join(',', @work_item_ids),
-
-        # Missing items should be handled on our side
-        errorPolicy   => 'Omit'
-    );
-
-    # Adding optional query parameters
-    if ($params->{fields}) {
-        my @fields = split(',\s?', $params->{fields});
-        my @correct_fields = grep {$_ =~ /^[a-zA-Z\.]$/} @fields;
-
-        $query_params{fields} = join(',', @correct_fields);
-    }
-    if ($params->{expandRelations}) {
-        $query_params{'$expand'} = $params->{expandRelations};
-    }
-    if ($params->{asOf}) {
-        $query_params{asOf} = $params->{asOf};
-    }
-
-    my $result = $client->get("/_apis/wit/workitems", \%query_params);
-
+    my $result = $self->get_work_items(\@work_item_ids, $params);
     if (! $result || ! $result->{value} || ref $result->{value} ne 'ARRAY') {
         $self->bail_out("Received wrong result format", $result);
     }
@@ -347,7 +318,7 @@ sub step_get_work_items {
         my @sorted_result_ids = sort @result_ids;
 
         for my $id (sort @work_item_ids) {
-
+            # If ID from user-given list is not present in the result
             if (! grep {$_ eq $id} @sorted_result_ids) {
                 push @not_found, $id;
             }
@@ -366,24 +337,129 @@ sub step_get_work_items {
     exit 0;
 }
 
-sub _generate_field_op_hash {
-    my ($field_name, $field_value, $operation) = @_;
+sub step_query_work_items {
+    my ( $self ) = @_;
 
-    $operation ||= 'add';
+    my %procedure_parameters = (
+        config              => { label => 'Configuration name', required => 1 },
+        project             => { label => 'Project' },
+        queryId             => { label => 'Query ID' },
+        queryText           => { label => 'Query Text' },
+        timePrecision       => { label => 'Time precision' },
+        resultPropertySheet => { label => 'Result Property Sheet', required => 1 },
+        resultFormat        => { label => 'Result Format', required => 1 },
+    );
 
-    return { op => $operation, path => '/fields/' . $MS_FIELDS_MAPPING{lc ($field_name)}, value => $field_value }
+    my $params = $self->get_params_as_hashref(keys %procedure_parameters);
+    $self->check_parameters($params, \%procedure_parameters);
+
+    # One of this should be present
+    if (! ($params->{queryId} || $params->{queryText})){
+        $self->bail_out("Either '$params->{queryId}{label}' or '$params->{queryText}{label}' should be present");
+    }
+
+    # If queryText contains @project, "Project" should be specified
+    if (!$params->{queryId} && $params->{queryText}
+        && !$params->{project} && $params->{queryText} =~ /\@project/
+    ){
+        $self->bail_out("Your query contains reference to a project, but parameter 'Project' is not specified.")
+    }
+
+    my $config = $self->get_config_values($params->{config});
+    my $client = $self->get_microrest_client($config, 'application/json');
+    my $api_version = '1.0'; #get_api_version('/_apis/wit/wiql/', $config);
+
+    my $result = undef;
+    if ($params->{queryId}){
+        $result = $client->get(
+            '_apis/wit/wiql/' . $params->{queryId},
+            { 'api-version' => $api_version }
+        );
+    }
+    else {
+        $result = $client->post(
+            '_apis/wit/wiql',
+            {'api-version' => $api_version },
+            { query => $params->{queryText}}
+        );
+    }
+
+    $self->logger->debug('Parsed response', $result);
+
+    my $ids = [];
+    if ($result->{queryType} eq 'flat') {
+        $ids = EC::AzureDevOps::WorkItems::collect_flat_ids($result);
+    }
+    elsif ($result->{queryType} eq 'tree') {
+        $ids = EC::AzureDevOps::WorkItems::collect_tree_ids($result);
+    }
+    elsif($result->{queryType} eq 'oneHop') {
+        $ids = EC::AzureDevOps::WorkItems::collect_one_hop_ids($result);
+    }
+    else {
+        $self->bail_out("Unknown type of query: $result->{queryType}");
+    }
+
+    if (!scalar(@$ids)){
+        $self->warning("No work items was found for the query.");
+        exit 0;
+    }
+
+    # Save IDS
+    $self->logger->info("IDs of the found work items: " .  join(', ', @$ids) );
+
+    # Get fields from the query
+    my @fields_names = map { $_->{referenceName} } @{$result->{columns}};
+    my $fields_string = join(',', @fields_names);
+
+    $self->logger->info("Fields mentioned in the query:" . $fields_string);
+
+    # Get Work Items for given ids
+    my $work_items_result = $self->get_work_items($ids, {
+        config => $params->{config},
+        fields => $fields_string
+    });
+    $self->logger->debug("Work items result", $work_items_result);
+
+    my $work_items_list = $work_items_result->{value};
+    if (!$work_items_list){
+        $self->bail_out("Failed to receive work items. Check for errors above");
+    }
+
+    $self->save_result_entities($work_items_list, $params->{resultPropertySheet}, $params->{resultFormat});
+
+    my $count = $work_items_result->{count};
+    my @titles = ();
+    my $more = 0;
+    for my $item (@{$work_items_result->{value}}) {
+        my $title = $item->{fields}->{'System.Title'};
+        if ( scalar @titles > 5) {
+            $more = 1;
+            last;
+        }
+        else {
+            push @titles, $title if $title;
+        }
+    }
+
+    my $summary = "Got work items: $count, titles: " . join(", ", @titles);
+    $summary .= ', ' . ($count - 5) . ' items more'  if $more;
+    $self->set_pipeline_summary("Work items retrieved", $summary);
+    $self->set_summary($summary);
 }
+
+
 
 #@returns EC::Plugin::MicroRest
 sub get_microrest_client {
-    my ($self, $config) = @_;
+    my ($self, $config, $content_type) = @_;
 
     return EC::Plugin::MicroRest->new(
         url        => $self->get_base_url($config),
         auth       => $config->{auth} || 'basic',
         user       => $config->{userName},
         password   => $config->{password},
-        ctype      => 'application/json-patch+json',
+        ctype      => $content_type || 'application/json-patch+json',
         encode_sub => \&encode_json,
         decode_sub => sub {
             $self->decode_json_or_bail_out(shift, "Failed to parse JSON response from $config->{endpoint})")
@@ -510,12 +586,49 @@ sub save_parsed_data {
     }
 }
 
+sub get_work_items {
+    my ($self, $work_item_ids, $params) = @_;
+
+    $params ||= {};
+
+    my $config = $self->get_config_values($params->{config});
+    my $client = $self->get_microrest_client($config);
+    my $api_version = get_api_version('/_apis/wit/workitems/', $config);
+
+    # GET https://dev.azure.com/{organization}/{project}/_apis/wit/workitems?ids={ids}&fields={fields}&asOf={asOf}&$expand={$expand}&errorPolicy={errorPolicy}&api-version=4.1
+    my %query_params = (
+        'api-version' => $api_version,
+        ids           => join(',', @$work_item_ids),
+
+        # Missing items should be handled on our side
+        errorPolicy   => 'Omit'
+    );
+
+
+    # Adding optional query parameters
+    if ($params->{fields}) {
+        my @fields = split(',\s?', $params->{fields});
+        my @correct_fields = grep {$_ =~ /^[a-zA-Z\.]+$/} @fields;
+
+        $query_params{fields} = join(',', @correct_fields);
+    }
+    if ($params->{expandRelations}) {
+        $query_params{'$expand'} = $params->{expandRelations};
+    }
+    if ($params->{asOf}) {
+        $query_params{asOf} = $params->{asOf};
+    }
+
+    my $result = $client->get("/_apis/wit/workitems", \%query_params);
+
+    return $result;
+}
+
 sub get_base_url {
     my ($self, $config) = @_;
 
     $config ||= $self->{_config};
     $self->bail_out("No configuration was given to EC::AzureDevOps::Plugin\n") unless($config);
-
 
     # Check mandatory
     for my $param (qw/endpoint collection/){
@@ -527,6 +640,36 @@ sub get_base_url {
     $config->{collection} =~ s|/+$||g;
 
     return "$config->{endpoint}/$config->{collection}";
+}
+
+sub _parse_api_versions {
+    my ($string) = @_;
+
+    my @lines = split(/\n+/, $string);
+    my %retval = map { my ($key, $value) = split(/\s*=\s*/, $_) } grep { $_ } @lines;
+    return \%retval;
+}
+
+sub get_api_version {
+    my ($uri, $config) = @_;
+
+    if ($config->{apiVersion} ne 'custom'){
+        return $config->{apiVersion};
+    }
+
+    my $api_versions = _parse_api_versions($config->{apiVersions});
+    my ($first_name, $second_name) = $uri =~ m{/_apis/(\w+)/(\w+)};
+    my $version = $api_versions->{"$first_name/$second_name"} || '1.0';
+
+    return $version;
+}
+
+sub _generate_field_op_hash {
+    my ($field_name, $field_value, $operation) = @_;
+
+    $operation ||= 'add';
+
+    return { op => $operation, path => '/fields/' . $MS_FIELDS_MAPPING{lc ($field_name)}, value => $field_value }
 }
 
 sub _self_flatten_map {
@@ -557,7 +700,7 @@ sub _self_flatten_map {
             if ($check){
                 foreach my $bad_key(FORBIDDEN_FIELD_NAME_PROPERTY_SHEET){
                     if (exists $value->{$bad_key}){
-                        $self->fix_propertysheet_forbidden_key($value, $bad_key);
+                        $self->_fix_propertysheet_forbidden_key($value, $bad_key);
                     }
                 }
             }
@@ -568,7 +711,7 @@ sub _self_flatten_map {
             if ($check){
                 foreach my $bad_key(FORBIDDEN_FIELD_NAME_PROPERTY_SHEET){
                     if ($key eq $bad_key){
-                        $self->fix_propertysheet_forbidden_key(\$key, $bad_key);
+                        $self->_fix_propertysheet_forbidden_key(\$key, $bad_key);
                     }
                 }
             }
@@ -579,7 +722,7 @@ sub _self_flatten_map {
     return \%retval;
 }
 
-sub fix_propertysheet_forbidden_key{
+sub _fix_propertysheet_forbidden_key{
     my ($self, $ref_var, $key) = @_;
 
     $self->logger->info("\"$key\" is the system property name", "Prefix FORBIDDEN_FIELD_NAME_PREFIX was added to prevent failure.");
@@ -607,7 +750,7 @@ sub _date_time_check {
     }
 }
 
-sub number_array_check {
+sub _number_array_check {
     my ($label, $value) = @_;
 
     return unless $value;

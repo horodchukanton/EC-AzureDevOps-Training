@@ -1,12 +1,12 @@
 def projName = args.projectName
-def procName = 'GetWorkItems'
+def procName = 'QueryWorkItems'
 
 def parameters = [
     config             : '',
-    workItemIds        : '',
-    fields             : '',
-    asOf               : '',
-    expandRelations    : '',
+    project            : '',
+    queryId            : '',
+    queryText          : '',
+    timePrecision      : '',
     resultPropertySheet: '',
     resultFormat       : '',
 ]
@@ -24,7 +24,6 @@ project projName, {
             parameters.each { k, v ->
                 actualParameter k, (parameters[k] ?: '$[' + k + ']')
             }
-
         }
 
         parameters.each { k, defaultValue ->
