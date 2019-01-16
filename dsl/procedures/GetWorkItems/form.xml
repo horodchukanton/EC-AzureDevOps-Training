@@ -19,8 +19,7 @@
   <value/>
 </formElement>
 <formElement>
-  <documentation>A comma-separated list of up to 100 fields to get with each work item. If not specified, all fields with values are returned. Calculated fields such as Attached File Count must be specifically queried for using this parameter.
-</documentation>
+  <documentation>A comma-separated list of up to 100 fields to get with each work item. If not specified, all fields with values are returned. Calculated fields such as Attached File Count must be specifically queried for using this parameter.</documentation>
   <label>Fields:</label>
   <property>fields</property>
   <required>0</required>

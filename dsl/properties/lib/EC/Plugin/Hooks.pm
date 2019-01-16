@@ -472,7 +472,7 @@ sub general_request {
     my $params = $self->plugin->parameters;
     my $config = $self->plugin->get_config_values($params->{config});
 
-    my $api_version = EC::AzureDevOps::WorkItems::get_api_version($request->uri, $config);
+    my $api_version = EC::AzureDevOps::Plugin::get_api_version($request->uri, $config);
 
     my %query_form = $uri->query_form;
     $query_form{'api-version'} = $api_version;

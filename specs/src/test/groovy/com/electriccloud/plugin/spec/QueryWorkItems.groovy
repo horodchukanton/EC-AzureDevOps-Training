@@ -41,14 +41,33 @@ class QueryWorkItems extends PluginTestHelper {
     @Shared
     def queries = [
         flat         : [
-            name : randomize("simple"),
+            name : randomize("flat"),
             query: "Select [System.Id], [System.Title], [System.State] From WorkItems Where [System.WorkItemType] = 'Feature'",
             ref  : null
         ],
-        oneHop       : null,
-        tree         : null,
-        empty        : null,
-        invalidSyntax: null,
+        oneHop       : [
+            name : randomize("oneHop"),
+            query: "Select [System.Id], [System.Title], [System.State] From WorkItems Where [System.WorkItemType] = 'Feature'",
+            ref  : null
+        ],
+        tree         : [
+            name : randomize("tree"),
+            query: "Select [System.Id], [System.Title], [System.State] From WorkItems Where [System.WorkItemType] = 'Feature'",
+            ref  : null
+        ],
+        empty        : [
+            name : randomize("empty"),
+            query: "Select [System.Id], [System.Title], [System.State] From WorkItems Where [System.WorkItemType] = 'Epic'",
+            type : 'flat',
+            ref  : null
+        ],
+        invalid        : [
+            name : randomize("empty"),
+            query: "Give me an error",
+            type : 'flat',
+            ref  : null,
+            doNotCreate: true
+        ]
     ]
 
     def doSetupSpec() {
@@ -60,11 +79,17 @@ class QueryWorkItems extends PluginTestHelper {
 
         // Create an instance of every query
         queries.each { String type, Map parameters ->
-            if (parameters != null) {
+            if (parameters != null && !parameters['doNotCreate']) {
+                // QueryType can be different from the name
+                String queryType = type
+                if (queries[type]['type']){
+                    queryType = queries[type]['type']
+                }
+
                 def queryJSON = tfsClient.createWorkItemQuery(
                     (String) queries[type]['name'],
                     (String) queries[type]['query'],
-                    [queryType: type]
+                    [queryType: queryType]
                 )
 
                 queries[type]['ref'] = queryJSON
@@ -114,5 +139,75 @@ class QueryWorkItems extends PluginTestHelper {
         where:
         caseId       | queryType
         'CHANGEME_1' | 'flat'
+        'CHANGEME_2' | 'oneHop'
+        'CHANGEME_3' | 'tree'
+    }
+
+    def '#caseId. Sanity. Query by WIQL'() {
+        given:
+        def resultFormat = 'propertySheet'
+        def resultSheet = '/myJob/queryWorkItems'
+
+        assert queries[queryType] && queries[queryType]['query']
+
+        queryText = queries[queryType]['query']
+
+        Map procedureParams = [
+            config             : configName,
+            project            : '',
+            queryId            : '',
+            queryText          : queryText,
+            timePrecision      : '',
+            resultPropertySheet: resultSheet,
+            resultFormat       : resultFormat,
+        ]
+
+        when:
+        def result = runProcedure(projectName, procedureName, procedureParams)
+
+        then:
+        println getJobLink(result.jobId)
+        println(result.logs)
+
+        assert result.outcome == 'success'
+
+        where:
+        caseId       | queryType
+        'CHANGEME_4' | 'flat'
+        'CHANGEME_5' | 'oneHop'
+        'CHANGEME_6' | 'tree'
+    }
+
+    def '#caseId. Sanity. Warning for empty query result'() {
+        given:
+        def resultFormat = 'propertySheet'
+        def resultSheet = '/myJob/queryWorkItems'
+
+        assert queries[queryType] && queries[queryType]['query']
+
+        queryText = queries[queryType]['query']
+
+        Map procedureParams = [
+            config             : configName,
+            project            : '',
+            queryId            : '',
+            queryText          : queryText,
+            timePrecision      : '',
+            resultPropertySheet: resultSheet,
+            resultFormat       : resultFormat,
+        ]
+
+        when:
+        def result = runProcedure(projectName, procedureName, procedureParams)
+
+        then:
+        println getJobLink(result.jobId)
+        println(result.logs)
+
+        assert result.outcome == 'warning'
+
+        where:
+        caseId       | queryType
+        'CHANGEME_7' | 'empty'
     }
 }

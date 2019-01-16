@@ -97,7 +97,7 @@ sub step_create_work_items {
     my $client = $self->get_microrest_client($config);
 
     # Api version should be sent in query
-    my $api_version = EC::AzureDevOps::WorkItems::get_api_version('/_apis/wit/workitems/', $config);
+    my $api_version = get_api_version('/_apis/wit/workitems/', $config);
 
     # Reading values from the parameters
     my %generic_fields = $self->parse_generic_create_update_parameters($params);
@@ -173,7 +173,7 @@ sub step_update_work_items {
     my $client = $self->get_microrest_client($config);
 
     # Api version should be sent in query
-    my $api_version = EC::AzureDevOps::WorkItems::get_api_version('/_apis/wit/workitems/', $config);
+    my $api_version = get_api_version('/_apis/wit/workitems/', $config);
 
     # Generating the payload from the parameters
     my %generic_fields = $self->parse_generic_create_update_parameters($params);
@@ -233,7 +233,7 @@ sub step_delete_work_items {
     my $config = $self->get_config_values($params->{config});
     my $client = $self->get_microrest_client($config);
 
-    my $api_version = EC::AzureDevOps::WorkItems::get_api_version('/_apis/wit/workitems/', $config);
+    my $api_version = get_api_version('/_apis/wit/workitems/', $config);
 
     my @deleted = ();
     my @unexisting = ();
@@ -366,10 +366,23 @@ sub step_query_work_items {
     }
 
     my $config = $self->get_config_values($params->{config});
-    my $client = $self->get_microrest_client($config);
-    my $api_version = EC::AzureDevOps::WorkItems::get_api_version('/_apis/wit/wiql/', $config);
+    my $client = $self->get_microrest_client($config, 'application/json');
+    my $api_version = '1.0'; #get_api_version('/_apis/wit/wiql/', $config);
 
-    my $result = $client->get('_apis/wit/wiql/' . $params->{queryId}, { 'api-version' => $api_version });
+    my $result = undef;
+    if ($params->{queryId}){
+        $result = $client->get(
+            '_apis/wit/wiql/' . $params->{queryId},
+            { 'api-version' => $api_version }
+        );
+    }
+    else {
+        $result = $client->post(
+            '_apis/wit/wiql',
+            {'api-version' => $api_version },
+            { query => $params->{queryText}}
+        );
+    }
 
     $self->logger->debug('Parsed response', $result);
 
@@ -395,8 +408,17 @@ sub step_query_work_items {
     # Save IDS
     $self->logger->info("IDs of the found work items: " .  join(', ', @$ids) );
 
+    # Get fields from the query
+    my @fields_names = map { $_->{referenceName} } @{$result->{columns}};
+    my $fields_string = join(',', @fields_names);
+
+    $self->logger->info("Fields mentioned in the query:" . $fields_string);
+
     # Get Work Items for given ids
-    my $work_items_result = $self->get_work_items($ids, $params);
+    my $work_items_result = $self->get_work_items($ids, {
+        config => $params->{config},
+        fields => $fields_string
+    });
     $self->logger->debug("Work items result", $work_items_result);
 
     my $work_items_list = $work_items_result->{value};
@@ -430,14 +452,14 @@ sub step_query_work_items {
 
 #@returns EC::Plugin::MicroRest
 sub get_microrest_client {
-    my ($self, $config) = @_;
+    my ($self, $config, $content_type) = @_;
 
     return EC::Plugin::MicroRest->new(
         url        => $self->get_base_url($config),
         auth       => $config->{auth} || 'basic',
         user       => $config->{userName},
         password   => $config->{password},
-        ctype      => 'application/json-patch+json',
+        ctype      => $content_type || 'application/json-patch+json',
         encode_sub => \&encode_json,
         decode_sub => sub {
             $self->decode_json_or_bail_out(shift, "Failed to parse JSON response from $config->{endpoint})")
@@ -571,7 +593,7 @@ sub get_work_items {
 
     my $config = $self->get_config_values($params->{config});
     my $client = $self->get_microrest_client($config);
-    my $api_version = EC::AzureDevOps::WorkItems::get_api_version('/_apis/wit/workitems/', $config);
+    my $api_version = get_api_version('/_apis/wit/workitems/', $config);
 
     # GET https://dev.azure.com/{organization}/{project}/_apis/wit/workitems?ids={ids}&fields={fields}&asOf={asOf}&$expand={$expand}&errorPolicy={errorPolicy}&api-version=4.1
     my %query_params = (
@@ -582,10 +604,11 @@ sub get_work_items {
         errorPolicy   => 'Omit'
     );
 
+
     # Adding optional query parameters
     if ($params->{fields}) {
         my @fields = split(',\s?', $params->{fields});
-        my @correct_fields = grep {$_ =~ /^[a-zA-Z\.]$/} @fields;
+        my @correct_fields = grep {$_ =~ /^[a-zA-Z\.]+$/} @fields;
 
         $query_params{fields} = join(',', @correct_fields);
     }
