@@ -83,8 +83,8 @@ sub step_create_work_items {
         priority            => { label => 'Priority', check => 'number' },
         assignTo            => { label => 'Assign To' },
         description         => { label => 'Description' },
-        additionalFields    => { label => 'Additional Fields' },
-        workItemsJSON       => { label => 'Work Items JSON' },
+        additionalFields    => { label => 'Additional Fields', check => 'json', json => 'array' },
+        workItemsJSON       => { label => 'Work Items JSON', check => 'json', json => 'array' },
         resultPropertySheet => { label => 'Result Property Sheet', required => 1 },
         resultFormat        => { label => 'Result Format', required => 1 },
     );
@@ -121,15 +121,31 @@ sub step_create_work_items {
 
         # Adding Additional fields
         if ($params->{additionalFields}){
+            my @additional_fields_array = ();
+
             # Check it is JSON
             my $additional_fields_decoded = $self->decode_json_or_bail_out($params->{additionalFields}, "Failed to parse Additional Fields.");
 
             if (ref $additional_fields_decoded eq 'HASH'){
-                push @payload, $additional_fields_decoded;
+                push @additional_fields_array, $additional_fields_decoded;
             }
             elsif (ref $additional_fields_decoded eq 'ARRAY'){
-                push @payload, @$additional_fields_decoded;
+                push @additional_fields_array, @$additional_fields_decoded;
             }
+
+            for my $field_def (@additional_fields_array){
+                # Default operation (for create or update)
+                $field_def->{op} = 'add' if (!$field_def->{op});
+
+                for my $key (qw/value path/){
+                    if (!$field_def->{$key}){
+                        $self->bail_out("ADOS additional field definition should contain key '$key'. Please refer to the format at the plugin's help.")
+                    }
+                }
+            }
+
+            # Pass through to the payload
+            push @payload, @additional_fields_array;
         }
 
         $self->logger->debug("PAYLOAD", \@payload);
@@ -504,10 +520,8 @@ sub build_create_multi_entity_payload {
 
     # If we have Request Body, than this is the only payload
     if ($parameters->{workItemsJSON}) {
-        my $work_items_json = $parameters->{workItemsJSON};
-
         my $err_msg = 'Value for "Work Items JSON" should contain valid non-empty JSON array.';
-        my $work_items = $self->decode_json_or_bail_out($work_items_json, $err_msg);
+        my $work_items = $self->decode_json_or_bail_out($parameters->{workItemsJSON}, $err_msg);
         $self->bail_out($err_msg) unless ref($work_items) eq 'ARRAY' && scalar @$work_items;
 
         my @field_params = (qw/Type Title Priority Description/, 'Assign To');

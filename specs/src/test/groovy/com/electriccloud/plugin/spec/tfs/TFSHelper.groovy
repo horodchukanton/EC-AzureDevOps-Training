@@ -165,10 +165,12 @@ class TFSHelper {
 
         HttpPost request = new HttpPost(uri)
 
+        println("[DEBUG] HELPER REQUEST PATH: " + uri)
+
         JSON result = null
         try {
             result = this.client.request(request, payload.toString(), contentType)
-        } catch (RestException e){
+        } catch (RestException e) {
             println "Error happened for the request" + e.getHttpStatusCode()
             println e.getMessage()
         }

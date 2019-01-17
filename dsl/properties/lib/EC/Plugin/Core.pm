@@ -1361,7 +1361,7 @@ sub check_parameters {
 
             eval {
                 my $uri = URI->new($param_value);
-                if (! $uri->scheme ) {
+                if (! $uri->scheme) {
                     push @errors, "URL in '$param_name' doesn't contain a scheme";
                 }
 
@@ -1379,9 +1379,38 @@ sub check_parameters {
             my @errors = ();
 
             # At least one pair
-            if ($param_value !~ /=/){
+            if ($param_value !~ /=/) {
                 push @errors, "Parameter '$param_name' should contain key-value pairs."
                     . " Please refer to parameter help tip or plugin's help for format";
+            }
+
+            return wantarray
+                ? ( scalar @errors == 0, \@errors )
+                : scalar @errors == 0;
+        },
+        json      => sub {
+            my ( $param_name, $param_value, $param_def ) = @_;
+            my @errors = ();
+
+            # Trying to parse
+            my $parsed = undef;
+            eval {
+                $parsed = JSON::decode_json($param_value);
+                1;
+            } or do {
+              push @errors, "Field '$param_def->{label}' should contain a valid JSON";
+            };
+
+            # Checking if should have a specific type
+            if ($parsed && $param_def->{json}) {
+                if (lc($param_def->{json}) eq 'array') {
+                    push(@errors, "Field '$param_def->{label}' should contain a valid JSON array")
+                        unless (ref $parsed eq 'ARRAY')
+                }
+                elsif (lc($param_def->{json}) eq 'object') {
+                    push(@errors, "Field '$param_def->{label}' should contain a valid JSON object")
+                        unless (ref $parsed eq 'HASH')
+                }
             }
 
             return wantarray

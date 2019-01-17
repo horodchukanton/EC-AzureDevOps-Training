@@ -61,6 +61,19 @@ class CreateWorkItems extends PluginTestHelper {
         invalid       : '?H3I_I_#',
     ]
 
+    static def additionalFieldsJSON = [
+        valid                 : '[{"op": "add", "path": "/fields/System.State", "value": "New" }]',
+        withAttributes        : '[{"op": "add", "path": "/fields/System.State", "value": "New", "attributes": {"comment": "decomposition of work"} }]',
+        withoutOperation      : '[{"path": "/fields/System.State", "value": "New" }]',
+        empty                 : '',
+
+        // Invalid
+        linkWithoutaPermission: '[{"op": "add", "path": "/relations/-", "value": {"rel": "System.LinkTypes.Hierarchy-Reverse", "url": "https://fabrikam-fiber-inc.visualstudio.com/DefaultCollection/_apis/wit/workItems/297"} }]',
+        withoutValue          : '[{"op": "add", "path": "/relations/-"}]',
+        notJson               : 'just a simple text',
+        withoutPath           : '[{"op": "add", "value": "Value that does not matters"}]'
+    ]
+
     def doSetupSpec() {
         createConfiguration(configName)
         dslFile "dsl/$procedureName/procedure.dsl", [projectName: projectName]
@@ -122,9 +135,14 @@ class CreateWorkItems extends PluginTestHelper {
         }
 
         where:
-        caseId       | type                 | assignTo
-        'CHANGEME_1' | types.valid          | assignees.empty
-        'CHANGEME_2' | types.withDollarSign | assignees.empty
+        caseId       | type                 | assignTo        | additionalFields
+        'CHANGEME_1' | types.valid          | assignees.empty | additionalFieldsJSON.empty
+        'CHANGEME_2' | types.withDollarSign | assignees.empty | additionalFieldsJSON.empty
+
+        // This can be moved to a separate regression set
+        'CHANGEME_3' | types.valid          | assignees.empty | additionalFieldsJSON.valid
+        'CHANGEME_4' | types.valid          | assignees.empty | additionalFieldsJSON.withAttributes
+        'CHANGEME_5' | types.valid          | assignees.empty | additionalFieldsJSON.withoutOperation
     }
 
     @Unroll
