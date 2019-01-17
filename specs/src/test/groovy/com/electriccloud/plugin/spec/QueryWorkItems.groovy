@@ -108,6 +108,7 @@ class QueryWorkItems extends PluginTestHelper {
         conditionallyDeleteProject(projectName)
     }
 
+    @Unroll
     def '#caseId. Sanity. Query by ID'() {
         given:
         def resultFormat = 'propertySheet'
@@ -143,6 +144,7 @@ class QueryWorkItems extends PluginTestHelper {
         'CHANGEME_3' | 'tree'
     }
 
+    @Unroll
     def '#caseId. Sanity. Query by WIQL'() {
         given:
         def resultFormat = 'propertySheet'
@@ -178,6 +180,7 @@ class QueryWorkItems extends PluginTestHelper {
         'CHANGEME_6' | 'tree'
     }
 
+    @Unroll
     def '#caseId. Sanity. Warning for empty query result'() {
         given:
         def resultFormat = 'propertySheet'
