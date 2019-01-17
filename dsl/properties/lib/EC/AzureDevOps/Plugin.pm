@@ -139,8 +139,12 @@ sub step_create_work_items {
         push @created_items, $result;
     }
 
-    # Save the properties
-    $self->save_result_entities(\@created_items, $params->{resultPropertySheet}, $params->{resultFormat});
+    # Save to the properties
+    $self->save_result_entities(
+        \@created_items,
+        $params->{resultPropertySheet}, $params->{resultFormat},
+        \&_transform_work_item
+    );
 
     my $count = scalar(@created_items);
     my $summary = "Successfully created $count work item" . (($count > 1) ? 's' : '') . '.';
@@ -208,7 +212,12 @@ sub step_update_work_items {
     }
 
     # Save the properties
-    $self->save_result_entities(\@updated_items, $params->{resultPropertySheet}, $params->{resultFormat});
+    # Save to the properties
+    $self->save_result_entities(
+        \@updated_items,
+        $params->{resultPropertySheet}, $params->{resultFormat},
+        \&_transform_work_item
+    );
 
     my $count = scalar(@updated_items);
     my $summary = "Successfully updated $count work item" . ( ( $count > 1 ) ? 's' : '' ) . '.';
@@ -261,7 +270,12 @@ sub step_delete_work_items {
     }
 
     # Save the properties
-    $self->save_result_entities(\@deleted, $params->{resultPropertySheet}, $params->{resultFormat});
+    # Save to the properties
+    $self->save_result_entities(
+        \@deleted,
+        $params->{resultPropertySheet}, $params->{resultFormat},
+        \&_transform_work_item
+    );
 
     my $count = scalar(@deleted);
     my $summary = '';
@@ -307,8 +321,12 @@ sub step_get_work_items {
     # API will return 'undef' for workItems that were not found
     my @clear_list = grep {defined $_} @{$result->{value}};
 
-    $self->save_result_entities(\@clear_list, $params->{resultPropertySheet}, $params->{resultFormat});
-
+    # Save to the properties
+    $self->save_result_entities(
+        \@clear_list,
+        $params->{resultPropertySheet}, $params->{resultFormat},
+        \&_transform_work_item
+    );
     my @result_ids = map {$_->{id}} @clear_list;
 
     my $summary = '';
@@ -526,14 +544,19 @@ sub build_create_multi_entity_payload {
 }
 
 sub save_result_entities {
-    my ($self, $entities_list, $result_property, $result_format) = @_;
+    my ($self, $entities_list, $result_property, $result_format, $transform_sub) = @_;
 
     my @ids = ();
     for my $entity (@$entities_list){
-        next unless $entity;
+        next if !$entity;
+
+        if ($transform_sub){
+            $entity = $transform_sub->($self, $entity);
+        }
 
         my $id = $entity->{id};
         push @ids, $id;
+
         $self->save_parsed_data($entity, $result_property . "/$id", $result_format)
     }
 
@@ -720,6 +743,19 @@ sub _self_flatten_map {
         }
     }
     return \%retval;
+}
+
+sub _transform_work_item {
+    my ($self, $work_item) = @_;
+
+    delete $work_item->{_links} if $work_item->{_links};
+
+    # Moving 'fields' values to the top level
+    my %fields_copy = %{$work_item->{fields}};
+    delete $work_item->{fields};
+    $work_item = { %$work_item, %fields_copy };
+
+    return $work_item
 }
 
 sub _fix_propertysheet_forbidden_key{
