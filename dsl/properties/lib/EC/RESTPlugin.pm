@@ -803,7 +803,7 @@ sub get_new_http_request {
     elsif ($auth_type eq 'ntlm'){
         $self->logger->debug("Auth should be applied to LWP::UserAgent instance");
     }
-    else {
+    elsif ($auth_type ne '') {
         $self->bail_out("Unknown auth type : '$auth_type'")
     }
 
