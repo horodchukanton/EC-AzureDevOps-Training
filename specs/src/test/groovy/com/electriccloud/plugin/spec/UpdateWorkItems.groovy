@@ -236,13 +236,11 @@ class UpdateWorkItems extends PluginTestHelper {
     }
 
     @Unroll
-    def '#caseId. Sanity. Warning on empty fields'(){
+    def '#caseId. Sanity. Warning on empty fields'() {
         given:
         // Don't need to create anything
         // Random
         workItemIds = '1234'
-        resultFormat = 'none'
-        resultPropertySheet = 'none'
 
         Map procedureParams = [
             config             : config,
@@ -262,6 +260,10 @@ class UpdateWorkItems extends PluginTestHelper {
 
         then:
         assert result.outcome == 'warning'
+
+        where:
+        caseId     | resultFormat
+        'CHNGME_9' | 'none'
     }
 
 
