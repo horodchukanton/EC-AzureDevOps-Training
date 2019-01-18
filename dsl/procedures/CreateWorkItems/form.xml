@@ -89,7 +89,7 @@
   </formElement>
   <formElement>
     <documentation>Format to save request results.</documentation>
-    <label>Result format:</label>
+    <label>Result Format:</label>
     <option>
       <name>JSON</name>
       <value>json</value>

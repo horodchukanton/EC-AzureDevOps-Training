@@ -85,7 +85,7 @@ If not specified, the default variables for the definition will be used.
 </formElement>
 <formElement>
   <documentation>Results will be saved into this property/property sheet.</documentation>
-  <label>Property sheet name for results:</label>
+  <label>Result Property Sheet:</label>
   <property>resultPropertySheet</property>
   <required>1</required>
   <type>entry</type>
@@ -93,7 +93,7 @@ If not specified, the default variables for the definition will be used.
 </formElement>
 <formElement>
   <documentation>Format to save request results.</documentation>
-  <label>Result format:</label>
+  <label>Result Format:</label>
   <option>
     <name>JSON</name>
     <value>json</value>

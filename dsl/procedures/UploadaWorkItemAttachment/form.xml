@@ -68,7 +68,7 @@
 </formElement>
 <formElement>
   <documentation>Results will be saved into this property/property sheet.</documentation>
-  <label>Property sheet name for results:</label>
+  <label>Result Propert Sheet:</label>
   <property>resultPropertySheet</property>
   <required>1</required>
   <type>entry</type>
@@ -76,7 +76,7 @@
 </formElement>
 <formElement>
   <documentation>Format to save request results.</documentation>
-  <label>Result format:</label>
+  <label>Result Format:</label>
   <option>
     <name>JSON</name>
     <value>json</value>
