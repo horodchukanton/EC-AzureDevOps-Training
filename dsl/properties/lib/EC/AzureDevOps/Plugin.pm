@@ -6,6 +6,8 @@ use base 'EC::Plugin::Core';
 
 use Data::Dumper;
 use JSON::XS qw/decode_json encode_json/;
+use Encode 'decode';
+
 
 use EC::Plugin::Microrest;
 use EC::AzureDevOps::WorkItems;
@@ -267,7 +269,7 @@ sub step_delete_work_items {
     $self->save_result_entities(
         \@deleted,
         $params->{resultPropertySheet}, $params->{resultFormat},
-        \&_transform_work_item
+        \&_transform_delete_result
     );
 
     my $count = scalar(@deleted);
@@ -777,7 +779,13 @@ sub _transform_work_item {
     delete $work_item->{fields};
     $work_item = { %$work_item, %fields_copy };
 
-    return $work_item
+    return $work_item;
+}
+
+sub _transform_delete_result {
+    my ($self, $delete_result) = @_;
+    my $work_item = $delete_result->{resource};
+    return $self->_transform_work_item($work_item);
 }
 
 sub _fix_propertysheet_forbidden_key{
