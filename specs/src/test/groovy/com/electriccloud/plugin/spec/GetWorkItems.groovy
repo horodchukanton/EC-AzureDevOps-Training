@@ -3,6 +3,7 @@ package com.electriccloud.plugin.spec
 import spock.lang.*
 import com.electriccloud.plugin.spec.tfs.TFSHelper
 
+@Stepwise
 class GetWorkItems extends PluginTestHelper {
 
     static String procedureName = "GetWorkItems"

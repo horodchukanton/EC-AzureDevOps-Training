@@ -4,6 +4,7 @@ import com.electriccloud.plugin.spec.tfs.TFSHelper
 import net.sf.json.JSON
 import spock.lang.*
 
+@Stepwise
 class UpdateWorkItems extends PluginTestHelper {
 
     static String procedureName = "UpdateWorkItems"
@@ -259,6 +260,7 @@ class UpdateWorkItems extends PluginTestHelper {
         def result = runProcedure(projectName, procedureName, procedureParams)
 
         then:
+        println getJobLink(result.jobId)
         assert result.outcome == 'warning'
 
         where:
