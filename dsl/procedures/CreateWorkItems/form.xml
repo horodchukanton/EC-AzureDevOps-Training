@@ -70,18 +70,8 @@
     <value/>
   </formElement>
   <formElement>
-    <documentation>Additional fields to be added, e.g. {&quot;Microsoft.VSTS.Common.Severity&quot;: 2}.
-      For field names see &lt;a href=&quot;https://docs.microsoft.com/uk-ua/rest/api/azure/devops/wit/?view=azure-devops-rest-4.1&quot;
-      target=&quot;_blank&quot;&gt;
-      https://docs.microsoft.com/uk-ua/rest/api/azure/devops/wit/?view=azure-devops-rest-4.1&lt;/a&gt;.
-    </documentation>
-    <htmlDocumentation>Additional fields to be added, e.g. {&quot;Microsoft.VSTS.Common.Severity&quot;: 2}.
-      For field names see
-      &lt;a href=&quot;https://docs.microsoft.com/uk-ua/rest/api/azure/devops/wit/?view=azure-devops-rest-4.1&quot;
-      target=&quot;_blank&quot; style=&quot;text-decoration: none !important; border-bottom-style: dashed;
-      border-bottom-width: thin; font-size: inherit; color: inherit; font-family: inherit; border-color: #d8d8d8;
-      border-spacing: 2px;&quot;&gt;Azure Devops Work Item Types&lt;/a&gt;.
-    </htmlDocumentation>
+    <documentation>Additional fields to be added as a JSON array. Please refer to Azure DevOps documentation for the examples.</documentation>
+    <htmlDocumentation>Additional fields to be added as a JSON array. Please refer to <a href="https://docs.microsoft.com/uk-ua/rest/api/azure/devops/wit/work%20items/update?view=azure-devops-rest-4.1#examples" target="_blank">Azure DevOps documentation</a> for the examples.</htmlDocumentation>
     <label>Additional fields:</label>
     <property>additionalFields</property>
     <required>0</required>
@@ -89,8 +79,8 @@
     <value/>
   </formElement>
   <formElement>
-    <documentation>JSON with the work items to create. All missing fields will be read from usual parameters.</documentation>
-    <htmlDocumentation>This property should contain JSON with the work items to create. All missing fields will be read from usual parameters.<br/> Example: &lt;pre&gt;[{"Title": "Title for the first work item", "Type": "Task"}, {"Title": "Title for the second work item", "Priority": 2}]&lt;pre&gt;</htmlDocumentation>
+    <documentation>JSON with the work items to create. All missing fields will be read from usual parameters. e.g. [{"Title": "Title for the first work item", "Type": "Task"}, {"Title": "Title for the second work item", "Priority": 2}]</documentation>
+    <htmlDocumentation>This property should contain JSON array with the work items to create. All missing fields will be read from usual parameters.<br/> Example: &lt;pre&gt;[{"Title": "Title for the first work item", "Type": "Task"}, {"Title": "Title for the second work item", "Priority": 2}]&lt;pre&gt;</htmlDocumentation>
     <label>Work Items JSON:</label>
     <property>workItemsJSON</property>
     <required>0</required>
@@ -121,7 +111,7 @@
     <documentation>Results will be saved into this property/property sheet. Property 'workItemIds' under the result property sheet will contain IDs for the created work items.</documentation>
     <label>Result Property Sheet:</label>
     <property>resultPropertySheet</property>
-    <required>1</required>
+    <required>0</required>
     <type>entry</type>
     <value>/myJob/newWorkItems</value>
     <dependsOn>resultFormat</dependsOn>

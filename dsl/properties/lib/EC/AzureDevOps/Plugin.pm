@@ -85,7 +85,7 @@ sub step_create_work_items {
         description         => { label => 'Description' },
         additionalFields    => { label => 'Additional Fields', check => 'json', json => 'array' },
         workItemsJSON       => { label => 'Work Items JSON', check => 'json', json => 'array' },
-        resultPropertySheet => { label => 'Result Property Sheet', required => 1 },
+        resultPropertySheet => { label => 'Result Property Sheet'},
         resultFormat        => { label => 'Result Format', required => 1 },
     );
 
@@ -121,31 +121,7 @@ sub step_create_work_items {
 
         # Adding Additional fields
         if ($params->{additionalFields}){
-            my @additional_fields_array = ();
-
-            # Check it is JSON
-            my $additional_fields_decoded = $self->decode_json_or_bail_out($params->{additionalFields}, "Failed to parse Additional Fields.");
-
-            if (ref $additional_fields_decoded eq 'HASH'){
-                push @additional_fields_array, $additional_fields_decoded;
-            }
-            elsif (ref $additional_fields_decoded eq 'ARRAY'){
-                push @additional_fields_array, @$additional_fields_decoded;
-            }
-
-            for my $field_def (@additional_fields_array){
-                # Default operation (for create or update)
-                $field_def->{op} = 'add' if (!$field_def->{op});
-
-                for my $key (qw/value path/){
-                    if (!$field_def->{$key}){
-                        $self->bail_out("ADOS additional field definition should contain key '$key'. Please refer to the format at the plugin's help.")
-                    }
-                }
-            }
-
-            # Pass through to the payload
-            push @payload, @additional_fields_array;
+            push @payload, @{$self->parse_additional_fields($params->{additionalFields})};
         }
 
         $self->logger->debug("PAYLOAD", \@payload);
@@ -165,7 +141,7 @@ sub step_create_work_items {
     my $count = scalar(@created_items);
     my $summary = "Successfully created $count work item" . (($count > 1) ? 's' : '') . '.';
 
-    $self->set_pipeline_summary($summary);
+    $self->set_pipeline_summary("Create work items", $summary);
     $self->set_summary($summary);
 }
 
@@ -181,7 +157,7 @@ sub step_update_work_items {
         description         => { label => 'Description' },
         commentBody         => { label => 'Comment Body' },
         additionalFields    => { label => 'Additional Fields' },
-        resultPropertySheet => { label => 'Result Property Sheet', required => 1 },
+        resultPropertySheet => { label => 'Result Property Sheet'},
         resultFormat        => { label => 'Result Format', required => 1 },
     );
 
@@ -207,21 +183,22 @@ sub step_update_work_items {
         $self->logger->debug("API Path: $api_path");
 
         my @payload = map {_generate_field_op_hash($_, $generic_fields{$_})} keys %generic_fields;
+        $self->logger->debug("Parameters-defined payload", \%generic_fields);
 
         # Adding Additional fields
         if ($params->{additionalFields}){
-            # Check it is JSON
-            my $additional_fields_decoded = $self->decode_json_or_bail_out($params->{additionalFields}, "Failed to parse Additional Fields.");
-
-            if (ref $additional_fields_decoded eq 'HASH'){
-                push @payload, $additional_fields_decoded;
-            }
-            elsif (ref $additional_fields_decoded eq 'ARRAY'){
-                push @payload, @$additional_fields_decoded;
-            }
+            push @payload, @{$self->parse_additional_fields($params->{additionalFields})};
         }
 
-        $self->logger->debug("Payload", \%generic_fields);
+        $self->logger->debug("Full payload", \@payload);
+
+        if (!@payload){
+            my $summary = "Nothing to update.";
+            $self->set_pipeline_summary("Update result", $summary);
+            $self->warning($summary);
+
+            exit 0;
+        }
 
         my $result = $client->patch($api_path, { 'api-version' => $api_version }, \@payload);
         push @updated_items, $result;
@@ -238,7 +215,7 @@ sub step_update_work_items {
     my $count = scalar(@updated_items);
     my $summary = "Successfully updated $count work item" . ( ( $count > 1 ) ? 's' : '' ) . '.';
 
-    $self->set_pipeline_summary($summary);
+    $self->set_pipeline_summary("Update work items", $summary);
     $self->set_summary($summary);
 }
 
@@ -248,7 +225,7 @@ sub step_delete_work_items {
     my %procedure_parameters = (
         config              => { label => 'Configuration name', required => 1 },
         workItemIds         => { label => 'Work Item Id(s)', required => 1, check => \&_number_array_check },
-        resultPropertySheet => { label => 'Result Property Sheet', required => 1 },
+        resultPropertySheet => { label => 'Result Property Sheet'},
         resultFormat        => { label => 'Result Format', required => 1 },
     );
 
@@ -307,7 +284,7 @@ sub step_delete_work_items {
         $self->warning("Some work items were not found. See the job logs");
     }
 
-    $self->set_pipeline_summary($summary);
+    $self->set_pipeline_summary("Delete work items", $summary);
     $self->set_summary($summary);
 }
 
@@ -514,6 +491,35 @@ sub parse_generic_create_update_parameters {
     return wantarray ? %generic_fields : \%generic_fields;
 }
 
+sub parse_additional_fields {
+    my ($self, $additional_fields) = @_;
+
+    my @additional_fields_array = ();
+
+    # Check it is JSON
+    my $additional_fields_decoded = $self->decode_json_or_bail_out($additional_fields, "Failed to parse Additional Fields.");
+
+    if (ref $additional_fields_decoded eq 'HASH'){
+        push @additional_fields_array, $additional_fields_decoded;
+    }
+    elsif (ref $additional_fields_decoded eq 'ARRAY'){
+        push @additional_fields_array, @$additional_fields_decoded;
+    }
+
+    for my $field_def (@additional_fields_array){
+        # Default operation (for create or update)
+        $field_def->{op} = 'add' if (!$field_def->{op});
+
+        for my $key (qw/value path/){
+            if (!$field_def->{$key}){
+                $self->bail_out("ADOS additional field definition should contain key '$key'. Please refer to the format at the plugin's help.")
+            }
+        }
+    }
+
+    return wantarray ? @additional_fields_array : \@additional_fields_array;
+}
+
 sub build_create_multi_entity_payload {
     my ($self, $parameters, %generic_fields) = @_;
     my @results = ();
@@ -564,7 +570,9 @@ sub save_result_entities {
     for my $entity (@$entities_list){
         next if !$entity;
 
+
         if ($transform_sub){
+            $self->logger->debug("Entity to save before transform", $entity);
             $entity = $transform_sub->($self, $entity);
         }
 
@@ -594,7 +602,7 @@ sub save_parsed_data {
         return;
     }
 
-    $self->logger->debug("Got data", JSON->new->pretty->encode($parsed_data));
+    $self->logger->debug("Data to save", JSON->new->pretty->encode($parsed_data));
 
     if ($result_format eq 'none'){
         $self->logger->info("Results will not be saved to a property");

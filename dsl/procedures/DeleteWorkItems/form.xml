@@ -19,28 +19,34 @@
   <value/>
 </formElement>
 <formElement>
-  <documentation>Results will be saved into this property/property sheet.</documentation>
-  <label>Property sheet name for results:</label>
-  <property>resultPropertySheet</property>
-  <required>1</required>
-  <type>entry</type>
-  <value>/myJob/deletedWorkItems</value>
-</formElement>
-<formElement>
   <documentation>Format to save request results.</documentation>
-  <label>Result format:</label>
+  <label>Result Format:</label>
+  <option>
+    <name>Property Sheet</name>
+    <value>propertySheet</value>
+  </option>
   <option>
     <name>JSON</name>
     <value>json</value>
   </option>
   <option>
-    <name>Property Sheet</name>
-    <value>propertySheet</value>
+    <name>Do not save the result</name>
+    <value>none</value>
   </option>
   <property>resultFormat</property>
   <value>propertySheet</value>
   <required>1</required>
   <type>select</type>
+</formElement>
+<formElement>
+  <documentation>Deleted items will be saved into this property/property sheet.</documentation>
+  <label>Result Property Sheet:</label>
+  <property>resultPropertySheet</property>
+  <required>0</required>
+  <type>entry</type>
+  <value>/myJob/deletedWorkItems</value>
+  <dependsOn>resultFormat</dependsOn>
+  <condition>${resultFormat} != 'none'</condition>
 </formElement>
 
 </editor>
