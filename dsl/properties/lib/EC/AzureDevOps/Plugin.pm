@@ -17,7 +17,6 @@ use constant {
 };
 use constant FORBIDDEN_FIELD_NAME_PROPERTY_SHEET => qw(acl createTime lastModifiedBy modifyTime owner propertySheetId description);
 
-
 my %MS_FIELDS_MAPPING = (
     title       => 'System.Title',
     description => 'System.Description',
@@ -28,7 +27,7 @@ my %MS_FIELDS_MAPPING = (
 
 
 sub after_init_hook {
-    my ($self, %params) = @_;
+    my ( $self, %params ) = @_;
 
     $self->{plugin_name} = '@PLUGIN_NAME@';
     $self->{plugin_key} = '@PLUGIN_KEY@';
@@ -56,7 +55,6 @@ sub after_init_hook {
         $self->logger->level($debug_level);
         $self->logger->debug("Debug enabled for $self->{plugin_key}");
     }
-
     else {
         $self->debug_level(0);
     }
@@ -73,9 +71,8 @@ sub after_init_hook {
     };
 }
 
-
 sub step_create_work_items {
-    my ($self) = @_;
+    my ( $self ) = @_;
 
     my %procedure_parameters = (
         config              => { label => 'Configuration name', required => 1 },
@@ -87,11 +84,11 @@ sub step_create_work_items {
         description         => { label => 'Description' },
         additionalFields    => { label => 'Additional Fields', check => 'json', json => 'array' },
         workItemsJSON       => { label => 'Work Items JSON', check => 'json', json => 'array' },
-        resultPropertySheet => { label => 'Result Property Sheet'},
+        resultPropertySheet => { label => 'Result Property Sheet' },
         resultFormat        => { label => 'Result Format', required => 1 },
     );
 
-    my $params = $self->get_params_as_hashref(sort keys %procedure_parameters );
+    my $params = $self->get_params_as_hashref(sort keys %procedure_parameters);
 
     $self->check_parameters($params, \%procedure_parameters);
 
@@ -104,7 +101,7 @@ sub step_create_work_items {
     # Reading values from the parameters
     my %generic_fields = $self->parse_generic_create_update_parameters($params);
 
-    my @work_item_hashes = @{ $self->build_create_multi_entity_payload($params, %generic_fields) };
+    my @work_item_hashes = @{$self->build_create_multi_entity_payload($params, %generic_fields)};
 
     # Sending requests one by one
     my @created_items = ();
@@ -119,10 +116,10 @@ sub step_create_work_items {
         $self->logger->debug("API Path: $api_path");
 
         # Forming request payload
-        my @payload = map { _generate_field_op_hash($_, $work_item->{$_}) } keys %$work_item;
+        my @payload = map {_generate_field_op_hash($_, $work_item->{$_})} keys %$work_item;
 
         # Adding Additional fields
-        if ($params->{additionalFields}){
+        if ($params->{additionalFields}) {
             push @payload, @{$self->parse_additional_fields($params->{additionalFields})};
         }
 
@@ -141,7 +138,7 @@ sub step_create_work_items {
     );
 
     my $count = scalar(@created_items);
-    my $summary = "Successfully created $count work item" . (($count > 1) ? 's' : '') . '.';
+    my $summary = "Successfully created $count work item" . ( ( $count > 1 ) ? 's' : '' ) . '.';
 
     $self->set_pipeline_summary("Create work items", $summary);
     $self->set_summary($summary);
@@ -153,13 +150,13 @@ sub step_update_work_items {
     my %procedure_parameters = (
         config              => { label => 'Configuration name', required => 1 },
         workItemIds         => { label => 'Work Item ID(s)', required => 1, check => \&_number_array_check },
-        title               => { label => 'Title'},
+        title               => { label => 'Title' },
         priority            => { label => 'Priority', check => 'number' },
         assignTo            => { label => 'Assign To' },
         description         => { label => 'Description' },
         commentBody         => { label => 'Comment Body' },
         additionalFields    => { label => 'Additional Fields' },
-        resultPropertySheet => { label => 'Result Property Sheet'},
+        resultPropertySheet => { label => 'Result Property Sheet' },
         resultFormat        => { label => 'Result Format', required => 1 },
     );
 
@@ -188,13 +185,13 @@ sub step_update_work_items {
         $self->logger->debug("Parameters-defined payload", \%generic_fields);
 
         # Adding Additional fields
-        if ($params->{additionalFields}){
+        if ($params->{additionalFields}) {
             push @payload, @{$self->parse_additional_fields($params->{additionalFields})};
         }
 
         $self->logger->debug("Full payload", \@payload);
 
-        if (!@payload){
+        if (! @payload) {
             my $summary = "Nothing to update.";
             $self->set_pipeline_summary("Update result", $summary);
             $self->warning($summary);
@@ -222,12 +219,12 @@ sub step_update_work_items {
 }
 
 sub step_delete_work_items {
-    my ($self) = @_;
+    my ( $self ) = @_;
 
     my %procedure_parameters = (
         config              => { label => 'Configuration name', required => 1 },
         workItemIds         => { label => 'Work Item Id(s)', required => 1, check => \&_number_array_check },
-        resultPropertySheet => { label => 'Result Property Sheet'},
+        resultPropertySheet => { label => 'Result Property Sheet' },
         resultFormat        => { label => 'Result Format', required => 1 },
     );
 
@@ -241,8 +238,8 @@ sub step_delete_work_items {
 
     my @deleted = ();
     my @unexisting = ();
-    for my $id (split(',\s?', $params->{workItemIds})){
-        if ($id !~ /^\d+$/){
+    for my $id (split(',\s?', $params->{workItemIds})) {
+        if ($id !~ /^\d+$/) {
             $self->bail_out("$procedure_parameters{workItemIds}->{label} parameter should contain numbers.");
         }
         my $api_path = "_apis/wit/workitems/${id}";
@@ -253,10 +250,10 @@ sub step_delete_work_items {
             push @deleted, $result;
             1;
         } or do {
-            my ($error) = $@;
+            my ( $error ) = $@;
 
             # 404 Not found.
-            if (!ref $error && $error =~ /Work item [0-9]+ does not exist/){
+            if (! ref $error && $error =~ /Work item [0-9]+ does not exist/) {
                 $self->logger->info("Work item $id does not exist.\n");
                 push @unexisting, $id;
             }
@@ -275,14 +272,14 @@ sub step_delete_work_items {
     my $count = scalar(@deleted);
     my $summary = '';
 
-    if (@deleted){
+    if (@deleted) {
         $summary = "Successfully deleted $count work item" . ( ( $count > 1 ) ? 's' : '' ) . '.';
     }
 
-    if (@unexisting){
+    if (@unexisting) {
         $summary .= "\n" if (@deleted);
 
-        $summary .= "Work item(s) " . (join(@unexisting)) . " was not found";
+        $summary .= "Work item(s) " . ( join(@unexisting) ) . " was not found";
         $self->warning("Some work items were not found. See the job logs");
     }
 
@@ -367,23 +364,23 @@ sub step_query_work_items {
     $self->check_parameters($params, \%procedure_parameters);
 
     # One of this should be present
-    if (! ($params->{queryId} || $params->{queryText})){
-        $self->bail_out("Either '$params->{queryId}{label}' or '$params->{queryText}{label}' should be present");
+    if (! ( $params->{queryId} || $params->{queryText} )) {
+        $self->bail_out("Either '$params->{queryId}->{label}' or '$params->{queryText}->{label}' should be present");
     }
 
     # If queryText contains @project, "Project" should be specified
-    if (!$params->{queryId} && $params->{queryText}
-        && !$params->{project} && $params->{queryText} =~ /\@project/
-    ){
+    if (! $params->{queryId} && $params->{queryText}
+        && ! $params->{project} && $params->{queryText} =~ /\@project/
+    ) {
         $self->bail_out("Your query contains reference to a project, but parameter 'Project' is not specified.")
     }
 
     my $config = $self->get_config_values($params->{config});
     my $client = $self->get_microrest_client($config, 'application/json');
-    my $api_version = '1.0'; #get_api_version('/_apis/wit/wiql/', $config);
+    my $api_version = get_api_version('/_apis/wit/wiql/', $config);
 
     my $result = undef;
-    if ($params->{queryId}){
+    if ($params->{queryId}) {
         $result = $client->get(
             '_apis/wit/wiql/' . $params->{queryId},
             { 'api-version' => $api_version }
@@ -392,8 +389,8 @@ sub step_query_work_items {
     else {
         $result = $client->post(
             '_apis/wit/wiql',
-            {'api-version' => $api_version },
-            { query => $params->{queryText}}
+            { 'api-version' => $api_version },
+            { query => $params->{queryText} }
         );
     }
 
@@ -406,23 +403,23 @@ sub step_query_work_items {
     elsif ($result->{queryType} eq 'tree') {
         $ids = EC::AzureDevOps::WorkItems::collect_tree_ids($result);
     }
-    elsif($result->{queryType} eq 'oneHop') {
+    elsif ($result->{queryType} eq 'oneHop') {
         $ids = EC::AzureDevOps::WorkItems::collect_one_hop_ids($result);
     }
     else {
         $self->bail_out("Unknown type of query: $result->{queryType}");
     }
 
-    if (!scalar(@$ids)){
+    if (! scalar(@$ids)) {
         $self->warning("No work items was found for the query.");
         exit 0;
     }
 
     # Save IDS
-    $self->logger->info("IDs of the found work items: " .  join(', ', @$ids) );
+    $self->logger->info("IDs of the found work items: " . join(', ', @$ids));
 
     # Get fields from the query
-    my @fields_names = map { $_->{referenceName} } @{$result->{columns}};
+    my @fields_names = map {$_->{referenceName}} @{$result->{columns}};
     my $fields_string = join(',', @fields_names);
 
     $self->logger->info("Fields mentioned in the query:" . $fields_string);
@@ -435,7 +432,7 @@ sub step_query_work_items {
     $self->logger->debug("Work items result", $work_items_result);
 
     my $work_items_list = $work_items_result->{value};
-    if (!$work_items_list){
+    if (! $work_items_list) {
         $self->bail_out("Failed to receive work items. Check for errors above");
     }
 
@@ -446,7 +443,7 @@ sub step_query_work_items {
     my $more = 0;
     for my $item (@{$work_items_result->{value}}) {
         my $title = $item->{fields}->{'System.Title'};
-        if ( scalar @titles > 5) {
+        if (scalar @titles > 5) {
             $more = 1;
             last;
         }
@@ -456,8 +453,46 @@ sub step_query_work_items {
     }
 
     my $summary = "Got work items: $count, titles: " . join(", ", @titles);
-    $summary .= ', ' . ($count - 5) . ' items more'  if $more;
+    $summary .= ', ' . ( $count - 5 ) . ' items more' if $more;
     $self->set_pipeline_summary("Work items retrieved", $summary);
+    $self->set_summary($summary);
+}
+
+sub step_get_default_values {
+    my ( $self ) = @_;
+
+    my %procedure_parameters = (
+        config              => { label => 'Configuration name', required => 1 },
+        project             => { label => 'Project', required => 1 },
+        workItemType        => { label => 'Work Item Type', required => 1 },
+        resultPropertySheet => { label => 'Result Property Sheet', required => 1 },
+        resultFormat        => { label => 'Result Format', required => 1 },
+    );
+
+    my $params = $self->get_params_as_hashref(keys %procedure_parameters);
+    $self->check_parameters($params, \%procedure_parameters);
+
+    my $config = $self->get_config_values($params->{config});
+    my $client = $self->get_microrest_client($config, 'application/json');
+    my $api_version = get_api_version('/_apis/wit/workitems/', $config);
+
+    my $type = ( $params->{workItemType} =~ /^\$/ ) ? $params->{workItemType} : '$' . $params->{workItemType};
+    my $api_path = $params->{project} . '/_apis/wit/workitems/' . $type;
+
+    my $responce = $client->get($api_path, {
+        'api-version' => $api_version
+    });
+
+    $self->logger->debug("Responce", $responce);
+
+    if (! $responce || ref $responce ne 'HASH' || ! $responce->{fields}) {
+        $self->bail_out("Received wrong result. Please check errors above.");
+    }
+
+    $self->save_parsed_data($responce->{fields}, $params->{resultPropertySheet}, $params->{resultFormat});
+
+    my $summary = "Default values were saved to a $params->{resultPropertySheet}";
+    $self->set_pipeline_summary("Get Default Values", $summary);
     $self->set_summary($summary);
 }
 
@@ -465,7 +500,7 @@ sub step_query_work_items {
 
 #@returns EC::Plugin::MicroRest
 sub get_microrest_client {
-    my ($self, $config, $content_type) = @_;
+    my ( $self, $config, $content_type ) = @_;
 
     return EC::Plugin::MicroRest->new(
         url        => $self->get_base_url($config),
@@ -481,39 +516,39 @@ sub get_microrest_client {
 }
 
 sub parse_generic_create_update_parameters {
-    my ($self, $parameters) = @_;
+    my ( $self, $parameters ) = @_;
 
     my %generic_fields = ();
 
     # Map parameters to Azure operations (Update does not contain "type" parameter)
-    for my $param (qw/priority assignTo description title type commentBody/){
-        $generic_fields{ lc ($param) } = $parameters->{$param} if $parameters->{$param};
+    for my $param (qw/priority assignTo description title type commentBody/) {
+        $generic_fields{ lc($param) } = $parameters->{$param} if $parameters->{$param};
     }
 
     return wantarray ? %generic_fields : \%generic_fields;
 }
 
 sub parse_additional_fields {
-    my ($self, $additional_fields) = @_;
+    my ( $self, $additional_fields ) = @_;
 
     my @additional_fields_array = ();
 
     # Check it is JSON
     my $additional_fields_decoded = $self->decode_json_or_bail_out($additional_fields, "Failed to parse Additional Fields.");
 
-    if (ref $additional_fields_decoded eq 'HASH'){
+    if (ref $additional_fields_decoded eq 'HASH') {
         push @additional_fields_array, $additional_fields_decoded;
     }
-    elsif (ref $additional_fields_decoded eq 'ARRAY'){
+    elsif (ref $additional_fields_decoded eq 'ARRAY') {
         push @additional_fields_array, @$additional_fields_decoded;
     }
 
-    for my $field_def (@additional_fields_array){
+    for my $field_def (@additional_fields_array) {
         # Default operation (for create or update)
-        $field_def->{op} = 'add' if (!$field_def->{op});
+        $field_def->{op} = 'add' if (! $field_def->{op});
 
-        for my $key (qw/value path/){
-            if (!$field_def->{$key}){
+        for my $key (qw/value path/) {
+            if (! $field_def->{$key}) {
                 $self->bail_out("ADOS additional field definition should contain key '$key'. Please refer to the format at the plugin's help.")
             }
         }
@@ -523,7 +558,7 @@ sub parse_additional_fields {
 }
 
 sub build_create_multi_entity_payload {
-    my ($self, $parameters, %generic_fields) = @_;
+    my ( $self, $parameters, %generic_fields ) = @_;
     my @results = ();
 
     # If we have Request Body, than this is the only payload
@@ -532,15 +567,15 @@ sub build_create_multi_entity_payload {
         my $work_items = $self->decode_json_or_bail_out($parameters->{workItemsJSON}, $err_msg);
         $self->bail_out($err_msg) unless ref($work_items) eq 'ARRAY' && scalar @$work_items;
 
-        my @field_params = (qw/Type Title Priority Description/, 'Assign To');
+        my @field_params = ( qw/Type Title Priority Description/, 'Assign To' );
 
         # JSON object keys are the same as Parameter label
         # Item hash keys are the same as Parameter property names (lower cased)
-        for my $predefined_work_item (@$work_items){
+        for my $predefined_work_item (@$work_items) {
             my %work_item = ();
 
             for my $key (@field_params) {
-                my $search_key = ( $key eq 'Assign To' ) ? 'assignto' :  lc($key);
+                my $search_key = ( $key eq 'Assign To' ) ? 'assignto' : lc($key);
                 my $value = $predefined_work_item->{$key} || $generic_fields{$search_key};
 
                 # Skipping undefined fields
@@ -554,7 +589,7 @@ sub build_create_multi_entity_payload {
     }
     else {
         my %work_item = ();
-        for my $wi_field_name (keys %generic_fields){
+        for my $wi_field_name (keys %generic_fields) {
             next unless $generic_fields{$wi_field_name};
             $work_item{$wi_field_name} = $generic_fields{$wi_field_name}
         }
@@ -566,14 +601,13 @@ sub build_create_multi_entity_payload {
 }
 
 sub save_result_entities {
-    my ($self, $entities_list, $result_property, $result_format, $transform_sub) = @_;
+    my ( $self, $entities_list, $result_property, $result_format, $transform_sub ) = @_;
 
     my @ids = ();
-    for my $entity (@$entities_list){
-        next if !$entity;
+    for my $entity (@$entities_list) {
+        next if ! $entity;
 
-
-        if ($transform_sub){
+        if ($transform_sub) {
             $self->logger->debug("Entity to save before transform", $entity);
             $entity = $transform_sub->($self, $entity);
         }
@@ -593,20 +627,20 @@ sub save_result_entities {
 }
 
 sub save_parsed_data {
-    my ($self, $parsed_data, $result_property, $result_format) = @_;
+    my ( $self, $parsed_data, $result_property, $result_format ) = @_;
 
-    unless($result_format) {
+    unless ($result_format) {
         return $self->bail_out('No format has been selected');
     }
 
-    unless($parsed_data) {
+    unless ($parsed_data) {
         $self->logger->info("Nothing to save");
         return;
     }
 
     $self->logger->debug("Data to save", JSON->new->pretty->encode($parsed_data));
 
-    if ($result_format eq 'none'){
+    if ($result_format eq 'none') {
         $self->logger->info("Results will not be saved to a property");
     }
     elsif ($result_format eq 'propertySheet') {
@@ -634,7 +668,7 @@ sub save_parsed_data {
 }
 
 sub get_work_items {
-    my ($self, $work_item_ids, $params) = @_;
+    my ( $self, $work_item_ids, $params ) = @_;
 
     $params ||= {};
 
@@ -672,13 +706,13 @@ sub get_work_items {
 }
 
 sub get_base_url {
-    my ($self, $config) = @_;
+    my ( $self, $config ) = @_;
 
     $config ||= $self->{_config};
-    $self->bail_out("No configuration was given to EC::AzureDevOps::Plugin\n") unless($config);
+    $self->bail_out("No configuration was given to EC::AzureDevOps::Plugin\n") unless ($config);
 
     # Check mandatory
-    for my $param (qw/endpoint collection/){
+    for my $param (qw/endpoint collection/) {
         $self->bail_out("No value for configuration parameter '$param' was provided\n") unless $config->{$param};
     }
 
@@ -690,42 +724,42 @@ sub get_base_url {
 }
 
 sub _parse_api_versions {
-    my ($string) = @_;
+    my ( $string ) = @_;
 
     my @lines = split(/\n+/, $string);
-    my %retval = map { my ($key, $value) = split(/\s*=\s*/, $_) } grep { $_ } @lines;
+    my %retval = map {my ( $key, $value ) = split(/\s*=\s*/, $_)} grep {$_} @lines;
     return \%retval;
 }
 
 sub get_api_version {
-    my ($uri, $config) = @_;
+    my ( $uri, $config ) = @_;
 
-    if ($config->{apiVersion} ne 'custom'){
+    if ($config->{apiVersion} ne 'custom') {
         return $config->{apiVersion};
     }
 
     my $api_versions = _parse_api_versions($config->{apiVersions});
-    my ($first_name, $second_name) = $uri =~ m{/_apis/(\w+)/(\w+)};
+    my ( $first_name, $second_name ) = $uri =~ m{/_apis/(\w+)/(\w+)};
     my $version = $api_versions->{"$first_name/$second_name"} || '1.0';
 
     return $version;
 }
 
 sub _generate_field_op_hash {
-    my ($field_name, $field_value, $operation) = @_;
+    my ( $field_name, $field_value, $operation ) = @_;
 
     $operation ||= 'add';
 
-    return { op => $operation, path => '/fields/' . $MS_FIELDS_MAPPING{lc ($field_name)}, value => $field_value }
+    return { op => $operation, path => '/fields/' . $MS_FIELDS_MAPPING{lc($field_name)}, value => $field_value }
 }
 
 sub _self_flatten_map {
-    my ($self, $map, $prefix, $check) = @_;
+    my ( $self, $map, $prefix, $check ) = @_;
 
-    if (defined $check and $check){
+    if (defined $check and $check) {
         $check = 1;
     }
-    else{
+    else {
         $check = 0;
     }
     $prefix ||= '';
@@ -736,7 +770,8 @@ sub _self_flatten_map {
         my $value = $map->{$key};
         if (ref $value eq 'ARRAY') {
             my $counter = 1;
-            my %copy = map { my $key = ref $_ ? $counter ++ : $_; $key => $_ } @$value;
+            my %copy = map {my $key = ref $_ ? $counter ++ : $_;
+                $key => $_} @$value;
             $value = \%copy;
         }
         if (ref $value ne 'HASH') {
@@ -744,20 +779,20 @@ sub _self_flatten_map {
             $value = "$value";
         }
         if (ref $value) {
-            if ($check){
-                foreach my $bad_key(FORBIDDEN_FIELD_NAME_PROPERTY_SHEET){
-                    if (exists $value->{$bad_key}){
+            if ($check) {
+                foreach my $bad_key (FORBIDDEN_FIELD_NAME_PROPERTY_SHEET) {
+                    if (exists $value->{$bad_key}) {
                         $self->_fix_propertysheet_forbidden_key($value, $bad_key);
                     }
                 }
             }
 
-            %retval = (%retval, %{$self->_self_flatten_map($value, "$prefix/$key", $check)});
+            %retval = ( %retval, %{$self->_self_flatten_map($value, "$prefix/$key", $check)} );
         }
         else {
-            if ($check){
-                foreach my $bad_key(FORBIDDEN_FIELD_NAME_PROPERTY_SHEET){
-                    if ($key eq $bad_key){
+            if ($check) {
+                foreach my $bad_key (FORBIDDEN_FIELD_NAME_PROPERTY_SHEET) {
+                    if ($key eq $bad_key) {
                         $self->_fix_propertysheet_forbidden_key(\$key, $bad_key);
                     }
                 }
@@ -770,7 +805,7 @@ sub _self_flatten_map {
 }
 
 sub _transform_work_item {
-    my ($self, $work_item) = @_;
+    my ( $self, $work_item ) = @_;
 
     delete $work_item->{_links} if $work_item->{_links};
 
@@ -788,22 +823,22 @@ sub _transform_delete_result {
     return $self->_transform_work_item($work_item);
 }
 
-sub _fix_propertysheet_forbidden_key{
-    my ($self, $ref_var, $key) = @_;
+sub _fix_propertysheet_forbidden_key {
+    my ( $self, $ref_var, $key ) = @_;
 
     $self->logger->info("\"$key\" is the system property name", "Prefix FORBIDDEN_FIELD_NAME_PREFIX was added to prevent failure.");
     my $new_key = FORBIDDEN_FIELD_NAME_PREFIX . $key;
-    if(ref($ref_var) eq 'HASH'){
+    if (ref($ref_var) eq 'HASH') {
         $ref_var->{$new_key} = $ref_var->{$key};
         delete $ref_var->{$key};
     }
-    elsif(ref($ref_var) eq 'SCALAR'){
+    elsif (ref($ref_var) eq 'SCALAR') {
         $$ref_var = $new_key;
     }
 }
 
 sub _date_time_check {
-    my ($label, $value) = @_;
+    my ( $label, $value ) = @_;
 
     return unless $value;
     # 2009-06-15T13:45:30
@@ -817,13 +852,13 @@ sub _date_time_check {
 }
 
 sub _number_array_check {
-    my ($label, $value) = @_;
+    my ( $label, $value ) = @_;
 
     return unless $value;
 
     my @list = split(',\s?', $value);
-    if ( grep { $_ !~ /^\d+$/ } @list ){
-        return (0, "Parameter '$label' should contain a comma-separated list of numbers. Got '$value'");
+    if (grep {$_ !~ /^\d+$/} @list) {
+        return( 0, "Parameter '$label' should contain a comma-separated list of numbers. Got '$value'" );
     }
 
     return 1;

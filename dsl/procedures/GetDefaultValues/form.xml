@@ -19,16 +19,18 @@
   <value/>
 </formElement>
 <formElement>
-  <documentation>Name of the work item type.</documentation>
-  <label>Work item type name:</label>
-  <property>workItemTypeName</property>
+  <documentation>Name of the work item type. e.g. Feature, Bug</documentation>
+  <htmlDocumentation>Name of the work item type. e.g. <b>Feature</b>, <b>Bug</b></htmlDocumentation>
+  <label>Work Item Type:</label>
+  <property>workItemType</property>
+  <propertyReference>/plugins/@PLUGIN_NAME@/project/ecp_azuredevops_workitemtypes</propertyReference>
   <required>1</required>
   <type>entry</type>
   <value/>
 </formElement>
 <formElement>
   <documentation>Results will be saved into this property/property sheet.</documentation>
-  <label>Property sheet name for results:</label>
+  <label>Result Property Sheet:</label>
   <property>resultPropertySheet</property>
   <required>1</required>
   <type>entry</type>
@@ -36,7 +38,7 @@
 </formElement>
 <formElement>
   <documentation>Format to save request results.</documentation>
-  <label>Result format:</label>
+  <label>Result Format:</label>
   <option>
     <name>JSON</name>
     <value>json</value>
