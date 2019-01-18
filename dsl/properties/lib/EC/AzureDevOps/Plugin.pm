@@ -8,7 +8,6 @@ use Data::Dumper;
 use JSON::XS qw/decode_json encode_json/;
 use Encode 'decode';
 
-
 use EC::Plugin::Microrest;
 use EC::AzureDevOps::WorkItems;
 
@@ -496,7 +495,46 @@ sub step_get_default_values {
     $self->set_summary($summary);
 }
 
+sub step_upload_work_item_attachment {
+    my ( $self ) = @_;
 
+    my %procedure_parameters = (
+        config              => { label => 'Configuration name', required => 1 },
+        workItemId          => { label => 'Work Item ID', required => 1, check => 'number' },
+        comment             => { label => 'Comment' },
+        filename            => { label => 'Attachment Filename', required => 1 },
+        uploadType          => { label => 'Upload Type', required => 1 },
+        filePath            => { label => 'File Path', check => 'file', file => 'r' },
+        fileContent         => { label => 'File Content' },
+        resultPropertySheet => { label => 'Result Property Sheet' },
+        resultFormat        => { label => 'Result Format', required => 1 },
+    );
+
+    my $params = $self->get_params_as_hashref(keys %procedure_parameters);
+    $self->check_parameters($params, \%procedure_parameters);
+
+    if (!$params->{filePath} && !$params->{fileContent}){
+        $self->bail_out("Either 'File Path' or a 'File Content' should be specified.");
+    }
+
+    if ($params->{uploadType} eq 'chunked' && $params->{fileContent}){
+        $self->logger->info("[WARNING] Chunked upload mode is incompatible with a 'File Content'. Switching to a 'Simple' mode.");
+        $params->{uploadType} = 'simple';
+    }
+
+    my $config = $self->get_config_values($params->{config});
+
+    # TODO: Check if encode/decode should be changed
+    my $client = $self->get_microrest_client($config, 'application/octet-stream');
+    my $api_version = get_api_version('/_apis/wit/workitems/', $config);
+
+    # Use EC::AzureDevOps::Upload to upload the file, depending on the type
+
+    # After successful request, update a work item with a link
+
+    # Set summary
+
+}
 
 #@returns EC::Plugin::MicroRest
 sub get_microrest_client {
@@ -818,7 +856,7 @@ sub _transform_work_item {
 }
 
 sub _transform_delete_result {
-    my ($self, $delete_result) = @_;
+    my ( $self, $delete_result ) = @_;
     my $work_item = $delete_result->{resource};
     return $self->_transform_work_item($work_item);
 }

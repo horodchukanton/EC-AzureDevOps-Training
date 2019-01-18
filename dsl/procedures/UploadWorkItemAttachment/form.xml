@@ -28,15 +28,15 @@
 </formElement>
 <formElement>
   <documentation>The name of the file in the attachment store (typically the same as the name of the source of the attachment).</documentation>
-  <label>Attachment filename:</label>
+  <label>Attachment Filename:</label>
   <property>filename</property>
   <required>1</required>
   <type>entry</type>
   <value/>
 </formElement>
 <formElement>
-  <documentation>Default is simple. Use chunked upload type for uploading large files (&gt;130 MB).</documentation>
-  <label>Upload type:</label>
+  <documentation>Use chunked upload type for uploading large files (&gt;20 MB).</documentation>
+  <label>Upload Type:</label>
   <option>
     <name>Simple</name>
     <value>simple</value>
@@ -46,48 +46,54 @@
     <value>chunked</value>
   </option>
   <property>uploadType</property>
-  <required>0</required>
+  <required>1</required>
   <type>select</type>
-  <value/>
+  <value>simple</value>
 </formElement>
 <formElement>
-  <documentation>Path to the file to be uploaded. Either this field or file content field must be specified.</documentation>
-  <label>File path:</label>
+  <documentation>Path to the file to be uploaded. Either this field or "File Content" field must be specified.</documentation>
+  <label>File Path:</label>
   <property>filePath</property>
   <required>0</required>
   <type>entry</type>
   <value/>
 </formElement>
 <formElement>
-  <documentation>File content to be uploaded. Either this field or file path field must be specified.</documentation>
-  <label>File content:</label>
+  <documentation>File content to be uploaded. Either this field or "File Path" field must be specified.</documentation>
+  <label>File Content:</label>
   <property>fileContent</property>
   <required>0</required>
   <type>textarea</type>
   <value/>
 </formElement>
-<formElement>
-  <documentation>Results will be saved into this property/property sheet.</documentation>
-  <label>Result Propert Sheet:</label>
-  <property>resultPropertySheet</property>
-  <required>1</required>
-  <type>entry</type>
-  <value>/myJob/workItemAttachment</value>
-</formElement>
-<formElement>
-  <documentation>Format to save request results.</documentation>
-  <label>Result Format:</label>
-  <option>
-    <name>JSON</name>
-    <value>json</value>
-  </option>
-  <option>
-    <name>Property Sheet</name>
+  <formElement>
+    <documentation>Format to save request results.</documentation>
+    <label>Result Format:</label>
+    <option>
+      <name>Property Sheet</name>
+      <value>propertySheet</value>
+    </option>
+    <option>
+      <name>JSON</name>
+      <value>json</value>
+    </option>
+    <option>
+      <name>Do not save the result</name>
+      <value>none</value>
+    </option>
+    <property>resultFormat</property>
     <value>propertySheet</value>
-  </option>
-  <property>resultFormat</property>
-  <value>propertySheet</value>
-  <required>1</required>
-  <type>select</type>
-</formElement>
+    <required>1</required>
+    <type>select</type>
+  </formElement>
+  <formElement>
+    <documentation>Result will be saved into this property/property sheet.</documentation>
+    <label>Result Property Sheet:</label>
+    <property>resultPropertySheet</property>
+    <required>0</required>
+    <type>entry</type>
+    <value>/myJob/workItemAttachment</value>
+    <dependsOn>resultFormat</dependsOn>
+    <condition>${resultFormat} != 'none'</condition>
+  </formElement>
 </editor>
