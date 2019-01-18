@@ -85,7 +85,7 @@ sub step_create_work_items {
         description         => { label => 'Description' },
         additionalFields    => { label => 'Additional Fields', check => 'json', json => 'array' },
         workItemsJSON       => { label => 'Work Items JSON', check => 'json', json => 'array' },
-        resultPropertySheet => { label => 'Result Property Sheet', required => 1 },
+        resultPropertySheet => { label => 'Result Property Sheet'},
         resultFormat        => { label => 'Result Format', required => 1 },
     );
 
@@ -181,7 +181,7 @@ sub step_update_work_items {
         description         => { label => 'Description' },
         commentBody         => { label => 'Comment Body' },
         additionalFields    => { label => 'Additional Fields' },
-        resultPropertySheet => { label => 'Result Property Sheet', required => 1 },
+        resultPropertySheet => { label => 'Result Property Sheet'},
         resultFormat        => { label => 'Result Format', required => 1 },
     );
 
@@ -248,7 +248,7 @@ sub step_delete_work_items {
     my %procedure_parameters = (
         config              => { label => 'Configuration name', required => 1 },
         workItemIds         => { label => 'Work Item Id(s)', required => 1, check => \&_number_array_check },
-        resultPropertySheet => { label => 'Result Property Sheet', required => 1 },
+        resultPropertySheet => { label => 'Result Property Sheet'},
         resultFormat        => { label => 'Result Format', required => 1 },
     );
 

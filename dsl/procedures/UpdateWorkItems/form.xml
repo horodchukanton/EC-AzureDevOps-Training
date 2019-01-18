@@ -50,17 +50,17 @@
   <type>textarea</type>
   <value/>
 </formElement>
-  <formElement>
-    <documentation>Comment with given text will be added to the work item.</documentation>
-    <label>Comment Body:</label>
-    <property>commentBody</property>
-    <required>0</required>
-    <type>textarea</type>
-    <value/>
-  </formElement>
-  <formElement>
-  <documentation>Additional fields to be added, e.g. [{&quot;Microsoft.VSTS.Common.Severity&quot;: 2}]. For field names refer to the link in a plugin's help.</documentation>
-  <htmlDocumentation>Additional fields to be added, e.g. [{&quot;Microsoft.VSTS.Common.Severity&quot;: 2}]. For field names see &lt;a href=&quot;https://www.visualstudio.com/en-us/docs/integrate/api/wit/work-item-types&quot; target=&quot;_blank&quot; style=&quot;text-decoration: none !important; border-bottom-style: dashed; border-bottom-width: thin; font-size: inherit; color: inherit; font-family: inherit; border-color: #d8d8d8; border-spacing: 2px;&quot;&gt; https://www.visualstudio.com/en-us/docs/integrate/api/wit/work-item-types&lt;/a&gt;.</htmlDocumentation>
+<formElement>
+  <documentation>Comment with given text will be added to the work item.</documentation>
+  <label>Comment Body:</label>
+  <property>commentBody</property>
+  <required>0</required>
+  <type>textarea</type>
+  <value/>
+</formElement>
+<formElement>
+  <documentation>Additional fields to be added as a JSON array. Please refer to Azure DevOps documentation for the examples.</documentation>
+  <htmlDocumentation>Additional fields to be added as a JSON array. Please refer to <a href="https://docs.microsoft.com/uk-ua/rest/api/azure/devops/wit/work%20items/update?view=azure-devops-rest-4.1#examples" target="_blank">Azure DevOps documentation</a> for the examples.</htmlDocumentation>
   <label>Additional Fields:</label>
   <property>additionalFields</property>
   <required>0</required>
@@ -91,7 +91,7 @@
   <documentation>Updated items will be saved into this property/property sheet.</documentation>
   <label>Result Property Sheet:</label>
   <property>resultPropertySheet</property>
-  <required>1</required>
+  <required>0</required>
   <type>entry</type>
   <value>/myJob/updatedWorkItems</value>
   <dependsOn>resultFormat</dependsOn>
