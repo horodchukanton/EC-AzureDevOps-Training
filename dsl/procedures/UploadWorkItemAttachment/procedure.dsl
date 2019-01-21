@@ -1,4 +1,4 @@
-procedure 'Upload a Work Item Attachment', description: 'To attach a file to a work item, upload the attachment to the attachment store, then attach it to the work item', { // [PROCEDURE]
+procedure 'UploadWorkItemAttachment', description: 'To attach a file to a work item, upload the attachment to the attachment store, then attach it to the work item', { // [PROCEDURE]
     // [REST Plugin Wizard step]
 
     step 'upload a work item attachment',

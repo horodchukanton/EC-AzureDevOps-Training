@@ -297,4 +297,8 @@ class PluginTestHelper extends PluginSpockTestSupport {
         return "https://" + serverHost + "/commander/link/jobDetails/jobs/" + jobId.toString()
     }
 
+    def getResourceName() {
+        return 'local'
+    }
+
 }
