@@ -839,7 +839,7 @@ sub upload_chunked {
     );
 
     # 10 Kb
-    while (my $bytes_read = read($fh, $buf, 1024 * 10 * 1024)) {
+    while (my $bytes_read = read($fh, $buf, 1024 * 1024)) {
         $cl_end = $bytes_read - 1 + $cl_start;
         my $content_length = "$cl_start-$cl_end";
 
@@ -852,6 +852,7 @@ sub upload_chunked {
             $request;
         };
 
+        # We need to use client post method to deal with authorization and HTTP method
         $client->post('URL AND PARAMS ARE SET INSIDE OF A HOOK');
 
         $cl_start += $bytes_read;
