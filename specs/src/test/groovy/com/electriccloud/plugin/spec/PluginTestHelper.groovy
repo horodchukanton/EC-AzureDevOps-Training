@@ -52,11 +52,11 @@ class PluginTestHelper extends PluginSpockTestSupport {
             'EC-AzureDevOps',
             configName,
             [
-                desc       : 'Spec Tests Config',
-                endpoint   : url,
-                collection : collectionName,
-                apiVersion : apiVersion,
-                auth       : 'basic',
+                desc      : 'Spec Tests Config',
+                endpoint  : url,
+                collection: collectionName,
+                apiVersion: apiVersion,
+                auth      : 'basic',
 //                    auth        : authType,
             ],
             username,
@@ -65,20 +65,25 @@ class PluginTestHelper extends PluginSpockTestSupport {
         )
     }
 
-    static String getAssertedEnvVariable(String varName){
+    static String getAssertedEnvVariable(String varName) {
         String varValue = System.getenv(varName)
         assert varValue
         return varValue
     }
 
     static String getADOSUsername() { getAssertedEnvVariable("ADOS_USERNAME") }
+
     static String getADOSToken() { getAssertedEnvVariable("ADOS_TOKEN") }
+
     static String getADOSURL() { getAssertedEnvVariable("ADOS_URL") }
-    static String getADOSCollectionName() { getAssertedEnvVariable( "ADOS_COLLECTION" )}
+
+    static String getADOSCollectionName() { getAssertedEnvVariable("ADOS_COLLECTION") }
+
     static String getADOSProjectName() { getAssertedEnvVariable("ADOS_PROJECT_NAME") }
+
     static String getADOSApiVersion() { getAssertedEnvVariable("ADOS_API_VERSION") }
 
-    static TFSHelper getClient(String apiVersion = getADOSApiVersion()){
+    static TFSHelper getClient(String apiVersion = getADOSApiVersion()) {
 
         TFSHelper helper = new TFSHelper(
             getADOSURL(),
@@ -94,7 +99,7 @@ class PluginTestHelper extends PluginSpockTestSupport {
         return helper
     }
 
-    def createWorkItems(TFSHelper tfsClient, int count){
+    def createWorkItems(TFSHelper tfsClient, int count) {
         def createdWorkItems = []
 
         for (def i = 0; i < count; i++) {
@@ -248,11 +253,11 @@ class PluginTestHelper extends PluginSpockTestSupport {
         dsl "deleteProject(projectName: '$projectName')"
     }
 
-    static boolean mapEquals(Map map1, Map map2){
+    static boolean mapEquals(Map map1, Map map2) {
         return map1 == map2
     }
 
-    static boolean arrEquals(def list1, def list2){
+    static boolean arrEquals(def list1, def list2) {
         if (list1.size() != list2.size()) {
             return false
         }
@@ -260,8 +265,8 @@ class PluginTestHelper extends PluginSpockTestSupport {
         def sorted1 = list1.sort()
         def sorted2 = list2.sort()
 
-        for (int i=0; i < list1.size(); i++){
-            if (sorted1.getAt(i).toString() != sorted2.getAt(i).toString()){
+        for (int i = 0; i < list1.size(); i++) {
+            if (sorted1.getAt(i).toString() != sorted2.getAt(i).toString()) {
                 return false
             }
         }
@@ -269,11 +274,11 @@ class PluginTestHelper extends PluginSpockTestSupport {
         return true
     }
 
-    def runProcedure(String projectName, String procedureName, Map parameters){
+    def runProcedure(String projectName, String procedureName, Map parameters) {
 
         // Skip undefined values
         def parametersString = parameters
-            .findAll{ k, v -> v != null }
+            .findAll { k, v -> v != null }
             .collect { k, v ->
             v = ((String) v).replace('\'', '\\\'')
             "$k: '''$v'''"
@@ -292,9 +297,13 @@ class PluginTestHelper extends PluginSpockTestSupport {
         return runProcedureDsl(code)
     }
 
-    def getJobLink (def jobId){
+    def getJobLink(def jobId) {
         String serverHost = System.getProperty("COMMANDER_SERVER")
         return "https://" + serverHost + "/commander/link/jobDetails/jobs/" + jobId.toString()
+    }
+
+    def getResourceName() {
+        return 'local'
     }
 
 }

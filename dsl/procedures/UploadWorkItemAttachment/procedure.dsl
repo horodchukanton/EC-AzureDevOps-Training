@@ -1,11 +1,11 @@
-procedure 'Upload a Work Item Attachment', description: 'To attach a file to a work item, upload the attachment to the attachment store, then attach it to the work item', { // [PROCEDURE]
+procedure 'UploadWorkItemAttachment', description: 'To attach a file to a work item, upload the attachment to the attachment store, then attach it to the work item', { // [PROCEDURE]
     // [REST Plugin Wizard step]
 
     step 'upload a work item attachment',
         command: """
 \$[/myProject/scripts/preamble]
-use EC::RESTPlugin;
-EC::RESTPlugin->new->run_step('upload a work item attachment');
+use EC::AzureDevOps::Plugin;
+EC::AzureDevOps::Plugin->new->step_upload_work_item_attachment();
 """,
         errorHandling: 'failProcedure',
         exclusiveMode: 'none',

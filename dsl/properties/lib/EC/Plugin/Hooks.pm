@@ -472,6 +472,7 @@ sub general_request {
     my $params = $self->plugin->parameters;
     my $config = $self->plugin->get_config_values($params->{config});
 
+    require EC::AzureDevOps::Plugin;
     my $api_version = EC::AzureDevOps::Plugin::get_api_version($request->uri, $config);
 
     my %query_form = $uri->query_form;
@@ -592,7 +593,7 @@ sub upload_attachment_response {
         $cl_end = $bytes_read - 1 + $cl_start;
         my $content_length = "$cl_start-$cl_end";
 
-        my $request = $self->get_new_http_request(PUT => $url);
+        my $request = $self->plugin->get_new_http_request(PUT => $url);
         $request->header('Authorization' => $auth);
         $request->header('Content-Range' => "bytes $content_length/$total");
         $request->header('Content-Type' => 'application/octet-stream');

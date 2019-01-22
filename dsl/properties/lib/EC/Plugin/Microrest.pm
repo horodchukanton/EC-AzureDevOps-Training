@@ -137,8 +137,14 @@ sub _call {
         croak "Method $meth is unknown";
     }
 
-    print "Request URL is:" .  $self->{_data}->{url} . $url_path . "\n";
+
+    print "Request URL is:" .  $self->{_data}->{url} . $url_path . "\n" if ($self->{debug});
     my $req = HTTP::Request->new($meth => $self->{_data}->{url} . $url_path);
+
+    if ($self->{request_hook}){
+        $req = &{$self->{request_hook}}($req);
+        delete $self->{request_hook};
+    }
 
     if ($self->{proxy}) {
         $req = $self->{proxy}->augment_request($req);
@@ -274,6 +280,9 @@ sub put {
         my $request_params = $self->augment_oauth_params('PUT', $url_path);
         $url_path = _augment_url($url_path, $request_params);
     }
+    elsif ($params && %$params) {
+        $url_path = _augment_url($url_path, $params);
+    }
 
     return $self->_call(
         'PUT' => $url_path,
@@ -285,7 +294,7 @@ sub patch {
     my ($self, $url_path, $params, $content) = @_;
 
     if ($self->is_oauth){
-        my $request_params = $self->augment_oauth_params('PUT', $url_path);
+        my $request_params = $self->augment_oauth_params('PATCH', $url_path);
         $url_path = _augment_url($url_path, $request_params);
     }
 

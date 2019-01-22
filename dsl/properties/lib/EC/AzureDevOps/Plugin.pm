@@ -8,7 +8,6 @@ use Data::Dumper;
 use JSON::XS qw/decode_json encode_json/;
 use Encode 'decode';
 
-
 use EC::Plugin::Microrest;
 use EC::AzureDevOps::WorkItems;
 
@@ -496,7 +495,93 @@ sub step_get_default_values {
     $self->set_summary($summary);
 }
 
+sub step_upload_work_item_attachment {
+    my ( $self ) = @_;
 
+    my %procedure_parameters = (
+        config              => { label => 'Configuration name', required => 1 },
+        workItemId          => { label => 'Work Item ID', required => 1, check => 'number' },
+        comment             => { label => 'Comment' },
+        filename            => { label => 'Attachment Filename', required => 1 },
+        uploadType          => { label => 'Upload Type', required => 1 },
+        filePath            => { label => 'File Path', check => 'file', file => 'r' },
+        fileContent         => { label => 'File Content' },
+        resultPropertySheet => { label => 'Result Property Sheet' },
+        resultFormat        => { label => 'Result Format', required => 1 },
+    );
+
+    my $params = $self->get_params_as_hashref(keys %procedure_parameters);
+    $self->check_parameters($params, \%procedure_parameters);
+
+    if (! $params->{filePath} && ! $params->{fileContent}) {
+        $self->bail_out("Either 'File Path' or a 'File Content' should be specified.");
+    }
+    if ($params->{filePath} && $params->{fileContent}) {
+        $self->bail_out("Only 'File Path' or a 'File Content' should be specified.");
+    }
+
+    if ($params->{uploadType} eq 'chunked' && $params->{fileContent}) {
+        $self->logger->info("[WARNING] Chunked upload mode is incompatible with a 'File Content'. Switching to a 'Simple' mode.");
+        $params->{uploadType} = 'simple';
+    }
+
+    my $config = $self->get_config_values($params->{config});
+
+    # Use upload the file depending on the upload type
+    my $attachment_url;
+    if ($params->{uploadType} eq 'chunked') {
+        $attachment_url = $self->upload_chunked($config,
+            filePath => $params->{filePath},
+            filename => $params->{filename}
+        );
+    }
+    elsif ($params->{uploadType} eq 'simple') {
+        my %upload_params = (
+            filename => $params->{filename}
+        );
+
+        $upload_params{filePath} = $params->{filePath} if ($params->{filePath});
+        $upload_params{fileContent} = $params->{fileContent} if ($params->{fileContent});
+
+        $attachment_url = $self->upload_simple($config, %upload_params);
+    }
+
+    if (! $attachment_url) {
+        $self->bail_out("Upload failed. Check log for errors.")
+    }
+
+    $self->logger->debug("Attachment URL: $attachment_url");
+
+    # After successful request, update a work item with a link
+    my $request_path = '_apis/wit/workitems/' . $params->{workItemId};
+    my $api_version = get_api_version($request_path, $config);
+    my EC::Plugin::MicroRest $client = $self->get_microrest_client($config);
+    $client->{debug} = 1;
+
+    my $link_attachment_resp = $client->patch($request_path, { 'api-version' => $api_version },
+        [ {
+            op    => "add",
+            path  => "/relations/-",
+            value => {
+                rel => "AttachedFile",
+                url => $attachment_url,
+                %{$params->{comment} ? { attributes => { comment => $params->{comment} } } : {}}
+            }
+        } ]
+    );
+
+    if (! $link_attachment_resp ) {
+        $self->bail_out("Attachment is uploaded, but linking it to the Work Item failed. Check for errors above.")
+    }
+
+    # Set summary
+    $self->success("Attachment: $attachment_url");
+    $self->set_pipeline_summary(
+        "Work item attachment URL",
+        qq{<html><a href="$attachment_url" target="_blank">$attachment_url</a></html>}
+    );
+
+}
 
 #@returns EC::Plugin::MicroRest
 sub get_microrest_client {
@@ -705,6 +790,133 @@ sub get_work_items {
     return $result;
 }
 
+sub upload_chunked {
+    my ( $self, $config, %upload_params ) = @_;
+
+    my $client = $self->get_microrest_client($config, 'application/octet-stream');
+
+    # Check the params
+    my $file_path = $upload_params{filePath};
+    unless (-f $file_path) {
+        $self->bail_out("No file found: $file_path");
+    }
+
+    my $request_path = '_apis/wit/attachments';
+    my $api_version = get_api_version($request_path, $config);
+
+    # Send a request to signal start of a chunked
+    $client->{request_hook} = sub {
+        my HTTP::Request $request = shift;
+        $request->header('Content-Length' => 0);
+        $request;
+    };
+
+    my HTTP::Response $start_response = $client->post($request_path, {
+        fileName      => $upload_params{filename},
+        uploadType    => 'chunked',
+        'api-version' => $api_version
+    });
+
+    $self->logger->trace($start_response);
+
+    my $attachment_url = $start_response->{url};
+    delete $client->{encode_sub};
+
+    open my $fh, $file_path or $self->bail_out("Cannot open $file_path: $!");
+    my $cl_start = 0;
+
+    my $buf;
+    my $total = -s $file_path;
+    $self->logger->debug("Total size: $total");
+
+    my $cl_end = 0;
+    my $total_mb = $total / ( 1024 * 1024 );
+
+    my $attachment_upload_uri = URI->new($attachment_url);
+    $attachment_upload_uri->query_form(
+        fileName      => $upload_params{filename},
+        'api-version' => $api_version
+    );
+
+    # 10 Kb
+    while (my $bytes_read = read($fh, $buf, 1024 * 1024)) {
+        $cl_end = $bytes_read - 1 + $cl_start;
+        my $content_length = "$cl_start-$cl_end";
+
+        $client->{request_hook} = sub {
+            my HTTP::Request $request = shift;
+            $request->header('Content-Range' => "bytes $content_length/$total");
+            $request->header('Content-Type' => "application/octet-stream");
+            $request->content($buf);
+            $request->uri($attachment_upload_uri);
+            $request;
+        };
+
+        # We need to use client post method to deal with authorization and HTTP method
+        $client->post('URL AND PARAMS ARE SET INSIDE OF A HOOK');
+
+        $cl_start += $bytes_read;
+        my $uploaded_mb = $cl_start / ( 1024 * 1024 );
+        $self->logger->debug(sprintf "Upload progress: %.2f/%.2f Mb", $uploaded_mb, $total_mb);
+    }
+
+    $self->logger->debug('Upload finished');
+
+    return $attachment_url;
+}
+
+sub upload_simple {
+    my ( $self, $config, %upload_params ) = @_;
+
+    my $client = $self->get_microrest_client($config, 'application/octet-stream');
+    delete $client->{encode_sub};
+    $client->{debug} = 1;
+
+    my $request_path = '_apis/wit/attachments';
+    my $api_version = get_api_version($request_path, $config);
+
+    my $content;
+    my $content_length;
+    if ($upload_params{filePath}) {
+        if (! -f $upload_params{filePath}) {
+            $self->bail_out("Can't find file: " . $upload_params{filePath});
+        }
+
+        open(my $fh, '<', $upload_params{filePath})
+            or $self->bail_out("Failed to read the file '$upload_params{filePath}': $@");
+
+        $content_length = -s $upload_params{filePath};
+
+        # Read the full file
+        read($fh, $content, $content_length);
+    }
+    elsif ($upload_params{fileContent}) {
+        $content = $upload_params{fileContent};
+        $content_length = length $content;
+    }
+    else {
+        $self->bail_out("Either 'File Path' or a 'File Content' should be specified.");
+    }
+
+    $client->{request_hook} = sub {
+        my HTTP::Request $request = shift;
+        $request->header('Content-Length' => $content_length);
+        $request;
+    };
+
+    my $response = $client->post($request_path,
+        {
+            fileName      => $upload_params{filename},
+            uploadType    => 'simple',
+            # 'api-version' => $api_version
+            'api-version' => '1.0' #$api_version
+        },
+        $content
+    );
+
+    return $response->{url};
+}
+
 sub get_base_url {
     my ( $self, $config ) = @_;
 
@@ -818,7 +1030,7 @@ sub _transform_work_item {
 }
 
 sub _transform_delete_result {
-    my ($self, $delete_result) = @_;
+    my ( $self, $delete_result ) = @_;
     my $work_item = $delete_result->{resource};
     return $self->_transform_work_item($work_item);
 }

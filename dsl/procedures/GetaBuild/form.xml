@@ -60,7 +60,7 @@
     </formElement>
     <formElement>
         <documentation>Results will be saved into this property/property sheet.</documentation>
-        <label>Result Propert Sheet:</label>
+        <label>Result Property Sheet:</label>
         <property>resultPropertySheet</property>
         <required>1</required>
         <type>entry</type>

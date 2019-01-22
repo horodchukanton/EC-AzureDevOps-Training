@@ -667,11 +667,11 @@ If not specified, the default variables for the definition will be used.
         <!-- Triggerbuild END -->
             </div>
                 <div id="UploadaWorkItemAttachment">
-                <!-- UploadaWorkItemAttachment METADATA BEGIN -->
+                <!-- UploadWorkItemAttachment METADATA BEGIN -->
             <h3>Upload a Work Item Attachment</h3>
             <p>To attach a file to a work item, upload the attachment to the attachment store, then attach it to the work item.</p>
-        <p>This procedure is a wrapper around REST API. See <a href="https://www.visualstudio.com/en-us/docs/integrate/api/wit/attachments#upload-an-attachment" target="_blank">Upload a Work Item Attachment</a> for reference.</p><!-- UploadaWorkItemAttachment METADATA END -->
-                <!-- UploadaWorkItemAttachment BEGIN -->
+        <p>This procedure is a wrapper around REST API. See <a href="https://www.visualstudio.com/en-us/docs/integrate/api/wit/attachments#upload-an-attachment" target="_blank">Upload a Work Item Attachment</a> for reference.</p><!-- UploadWorkItemAttachment METADATA END -->
+                <!-- UploadWorkItemAttachment BEGIN -->
             <table class="grid">
                 <thead>
                     <tr>
@@ -718,7 +718,7 @@ If not specified, the default variables for the definition will be used.
                 </tr>
                  </tbody>
             </table>
-        <!-- UploadaWorkItemAttachment END -->
+        <!-- UploadWorkItemAttachment END -->
             </div>
                 <div id="DownloadanArtifactfromaGitRepository">
                 <!-- DownloadanArtifactfromaGitRepository METADATA BEGIN -->
