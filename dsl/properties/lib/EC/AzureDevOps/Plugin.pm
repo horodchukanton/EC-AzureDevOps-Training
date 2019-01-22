@@ -582,6 +582,127 @@ sub step_upload_work_item_attachment {
 
 }
 
+sub step_get_build {
+    my ( $self ) = @_;
+
+    my %procedure_parameters = (
+        config              => { label => 'Configuration name', required => 1 },
+        project             => { label => 'Project', required => 1 },
+        buildId             => { label => 'Build Id or Number', required => 1 },
+        waitForBuild        => { label => 'Wait For Build' },
+        waitTimeout         => { label => 'Wait Timeout', check => 'number' },
+        resultPropertySheet => { label => 'Result Property Sheet', required => 1 },
+        resultFormat        => { label => 'Result Format', required => 1 },
+    );
+
+    my $params = $self->get_params_as_hashref(keys %procedure_parameters);
+    $self->check_parameters($params, \%procedure_parameters);
+    my $config = $self->get_config_values($params->{config});
+    my $client = $self->get_microrest_client($config);
+
+    # If buildId contains something not like a simple integer, assume this is a number
+    if ($params->{buildId} !~ /^\d+$/) {
+        # Get a build id by name
+        $self->logger->debug("Receiving ID of a build with name '$params->{buildId}'");
+        $params->{buildId} = $self->find_build_id_by_number($config, $params->{buildId});
+
+        if (! $params->{buildId}) {
+            $self->bail_out("Failed to get a build ID. Check for errors above.")
+        }
+    }
+
+    my $request_path = '_apis/build/builds/' . $params->{buildId};
+    my $api_version = get_api_version($request_path, $config);
+    my $build = $client->get($request_path, { 'api-version' => $api_version });
+
+    if (! $build) {
+        $self->bail_out("Failed to receive a build. Check for errors above.");
+    }
+
+    # If have to wait and should wait, then wait
+    if ($params->{waitForBuild} && $build->{status} ne 'completed') {
+        $self->wait_for_build($client, $config, $params->{buildId}, $params->{waitTimeout});
+    }
+
+    $self->save_parsed_data($build, $params->{resultPropertySheet}, $params->{resultFormat});
+
+    $self->success("Build values are saved to a specified property");
+    $self->set_pipeline_summary(
+        "Build URL",
+        qq{<html><a href="$build->{url}" target="_blank">$build->{url}</a></html>}
+    );
+
+}
+
+sub find_build_id_by_number {
+    my ( $self, $config, $build_number ) = @_;
+    return unless $build_number;
+
+    # Make a list request
+    my $request_path = '_apis/build/builds';
+    my $api_version = get_api_version($request_path, $config);
+    my $client = $self->get_microrest_client($config);
+
+    my $search_result = $client->get($request_path, {
+        'api-version' => $api_version,
+        buildNumber   => $build_number,
+        queryOrder    => 'finishTimeDescending'
+    });
+
+    if (! $search_result) {
+        $self->bail_out("Failed to find a build by number. API returned wrong value. Check errors above");
+    }
+    if (ref $search_result ne 'HASH' || ! $search_result->{count}) {
+        $self->bail_out("Failed to find a build by number. No builds found for specified Build Number.");
+    }
+
+    # Check build
+    if ($search_result->{count} > 1) {
+        $self->logger->info("Found more than one build for given number ($build_number). Taking latest one");
+    }
+
+    my $build = $search_result->{value}->[0];
+    return $build->{id};
+}
+
+# Client is received in parameters because NTLM authenticates a TCP connection
+# This allows to avoid few more requests
+sub wait_for_build {
+    my ( $self, $client, $config, $build_id, $timeout ) = @_;
+
+    $timeout ||= 300;
+
+    my $request_path = '/_apis/build/builds/' . $build_id;
+    my $api_version = get_api_version($request_path, $config);
+
+    my $waited = 0;
+    my $time_to_sleep = 30;
+
+    my $status;
+    while (! $status || $status =~ /inprogress|notStarted/i) {
+        my $build_info = $client->get($request_path, {
+            'api-version' => $api_version
+        });
+        $self->bail_out("Failed to receive build info. Check for errors above") if (! $build_info);
+
+        $status = $build_info->{status};
+        unless ($status =~ /inprogress|notStarted/) {
+            return;
+        }
+
+        $self->logger->info("Build $build_id ($build_info->{buildNumber} is still in progress ($status)."
+            . " Trying again in $time_to_sleep seconds.");
+
+        # Check for timeout
+        $waited += $time_to_sleep;
+        if ($timeout != 0 && $waited >= $timeout) {
+            $self->bail_out("Wait operation has timed out, last status: $status");
+        }
+
+        sleep($time_to_sleep);
+    }
+}
+
 #@returns EC::Plugin::MicroRest
 sub get_microrest_client {
     my ( $self, $config, $content_type ) = @_;
