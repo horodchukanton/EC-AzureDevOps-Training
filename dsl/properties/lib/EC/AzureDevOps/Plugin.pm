@@ -556,7 +556,6 @@ sub step_upload_work_item_attachment {
     my $request_path = '_apis/wit/workitems/' . $params->{workItemId};
     my $api_version = get_api_version($request_path, $config);
     my EC::Plugin::MicroRest $client = $self->get_microrest_client($config);
-    $client->{debug} = 1;
 
     my $link_attachment_resp = $client->patch($request_path, { 'api-version' => $api_version },
         [ {
@@ -870,7 +869,6 @@ sub upload_simple {
 
     my $client = $self->get_microrest_client($config, 'application/octet-stream');
     delete $client->{encode_sub};
-    $client->{debug} = 1;
 
     my $request_path = '_apis/wit/attachments';
     my $api_version = get_api_version($request_path, $config);
@@ -908,8 +906,7 @@ sub upload_simple {
         {
             fileName      => $upload_params{filename},
             uploadType    => 'simple',
-            # 'api-version' => $api_version
-            'api-version' => '1.0' #$api_version
+            'api-version' => $api_version
         },
         $content
     );
