@@ -5,6 +5,12 @@ import spock.lang.*
 
 class UploadWorkItemAttachment extends PluginTestHelper {
 
+    // !!! Note about filePath (uploading from a file)
+    // TFS limit for upload is about 4MB (at least for our TFS 2017 server)
+
+    // !!! Note about fileContent (uploading from a fileContent parameter)
+    // Value length is limited at 65535 characters ( 64KB )
+
     static String procedureName = "UploadWorkItemAttachment"
     static String projectName = "Spec Tests $procedureName"
     static String configName = "config_${procedureName}"
@@ -52,7 +58,7 @@ class UploadWorkItemAttachment extends PluginTestHelper {
         createConfiguration(configName)
 
         dslFile "dsl/$procedureName/procedure.dsl", [projectName: projectName]
-        dslFile 'dsl/writeToFile.dsl', [
+        dslFile 'dsl/writeRandomFile.dsl', [
             projectName : projectName,
             resourceName: getResourceName()
         ]
@@ -73,13 +79,13 @@ class UploadWorkItemAttachment extends PluginTestHelper {
 
         fileName = (String) procedureName + caseId + '.txt'
 
-        if (sourceType == 'file') {
-            fileContent = generateContentWithSize(fileSize)
+        if (sourceType == 'content') {
+            fileContent = generateContentWithSize(fileSizeKB)
             filePath = ''
         }
         else {
-            println("Writing new file with size ${fileSize} MB")
-            filePath = generateFile(fileName, fileSize)
+            println("Writing new file with size ${fileSizeKB} KB")
+            filePath = generateFile(fileName, fileSizeKB)
             fileContent = ''
             println("File created at $filePath")
         }
@@ -116,12 +122,13 @@ class UploadWorkItemAttachment extends PluginTestHelper {
         }
 
         where:
-        caseId     | uploadType | sourceType | fileSize
+        caseId     | uploadType | sourceType | fileSizeKB
         'CHNGME_1' | 'simple'   | 'content'  | 10
         'CHNGME_2' | 'simple'   | 'file'     | 10
-        // Should switch to simple
+
+        // This one (CHNGME_3) should switch to simple
         'CHNGME_3' | 'chunked'  | 'content'  | 10
-        'CHNGME_4' | 'chunked'  | 'file'     | 10
+        'CHNGME_4' | 'chunked'  | 'file'     | 4 * 1024
     }
 
     def generateFile(String fileName, int sizeInKB) {
@@ -133,7 +140,7 @@ class UploadWorkItemAttachment extends PluginTestHelper {
 
         def path = catPath(tempDir, fileName)
 
-        writeToFile(path, generateContentWithSize(sizeInKB))
+        writeRandomFile(path, sizeInKB)
 
         return path
     }
@@ -146,15 +153,15 @@ class UploadWorkItemAttachment extends PluginTestHelper {
         return content
     }
 
-    def writeToFile(String filePath, String content) {
+    def writeRandomFile(String filePath, int size) {
 
         def result = runProcedureDsl((String) """
            runProcedure(
                 projectName : '${projectName}',
-                procedureName: 'WriteToFile',
+                procedureName: 'WriteRandomFile',
                 actualParameter: [
                         'filepath': '''$filePath''',
-                        'text': '''$content'''
+                        'sizeKB': '''$size'''
                 ]
            )
            """)
