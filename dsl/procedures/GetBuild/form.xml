@@ -29,6 +29,14 @@
         <value/>
     </formElement>
     <formElement>
+        <documentation>Name for the Build Definition. This parameter is required if you've specified Build number in a "Build Id of Number" parameter.</documentation>
+        <label>Build Definition Name:</label>
+        <property>buildDefinitionName</property>
+        <required>0</required>
+        <type>entry</type>
+        <value/>
+    </formElement>
+    <formElement>
         <checkedValue>1</checkedValue>
         <documentation>If checked, the procedure will poll the build status until the build is finished.</documentation>
         <label>Wait for Build:</label>

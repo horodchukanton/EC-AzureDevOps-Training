@@ -589,6 +589,7 @@ sub step_get_build {
         config              => { label => 'Configuration name', required => 1 },
         project             => { label => 'Project', required => 1 },
         buildId             => { label => 'Build Id or Number', required => 1 },
+        buildDefinitionName => { label => 'Build Definition Name' },
         waitForBuild        => { label => 'Wait For Build' },
         waitTimeout         => { label => 'Wait Timeout', check => 'number' },
         resultPropertySheet => { label => 'Result Property Sheet', required => 1 },
@@ -600,11 +601,24 @@ sub step_get_build {
     my $config = $self->get_config_values($params->{config});
     my $client = $self->get_microrest_client($config);
 
-    # If buildId contains something not like a simple integer, assume this is a number
+    # If buildId contains something not like a simple integer, assume this is a build number
     if ($params->{buildId} !~ /^\d+$/) {
         # Get a build id by name
-        $self->logger->debug("Receiving ID of a build with name '$params->{buildId}'");
-        $params->{buildId} = $self->find_build_id_by_number($config, $params->{buildId});
+        if (! $params->{buildDefinitionName}) {
+            $self->bail_out("Parameter 'Build Definition Name' is required"
+                . " if you've specified Build number in a 'Build Id of Number' parameter.");
+        }
+
+        my $definition_id = $self->find_definition_id_by_name($params->{buildDefinitionName});
+
+        $self->logger->debug("Looking for Id of a build with name '$params->{buildId}'");
+        $params->{buildId} = $self->find_build_id_by_number(
+            $config,
+            $params->{project},
+            $definition_id,
+            $params->{buildId}
+        );
+        $self->logger->info("Id of a build is '$params->{buildId}'");
 
         if (! $params->{buildId}) {
             $self->bail_out("Failed to get a build ID. Check for errors above.")
@@ -620,53 +634,89 @@ sub step_get_build {
     }
 
     # If have to wait and should wait, then wait
-    if ($params->{waitForBuild} && $build->{status} ne 'completed') {
-        $self->wait_for_build($client, $config, $params->{buildId}, $params->{waitTimeout});
+    if ($params->{waitForBuild} && $build->{status} !~ 'completed|postponed|cancelling') {
+        $build = $self->wait_for_build($client, $config, $params->{buildId}, $params->{waitTimeout});
     }
+
+    # Removing obsolete fields
+    my @obsolete_fields = qw/logs definition _links project
+        requestedBy queue repository
+        lastChangedBy plans requestedFor
+        orchestrationPlan/;
+    delete $build->{$_} for (@obsolete_fields);
 
     $self->save_parsed_data($build, $params->{resultPropertySheet}, $params->{resultFormat});
 
     $self->success("Build values are saved to a specified property");
     $self->set_pipeline_summary(
         "Build URL",
-        qq{<html><a href="$build->{url}" target="_blank">$build->{url}</a></html>}
+        qq{<html><a href="$build->{url}" target="_blank">$build->{buildNumber}</a></html>}
     );
 
 }
 
 sub find_build_id_by_number {
-    my ( $self, $config, $build_number ) = @_;
+    my ( $self, $config, $project, $definitionId, $build_number ) = @_;
     return unless $build_number;
 
     # Make a list request
-    my $request_path = '_apis/build/builds';
+    my $request_path = $project . '/_apis/build/builds';
     my $api_version = get_api_version($request_path, $config);
     my $client = $self->get_microrest_client($config);
 
     my $search_result = $client->get($request_path, {
         'api-version' => $api_version,
         buildNumber   => $build_number,
+        definitions   => $definitionId,
         queryOrder    => 'finishTimeDescending'
     });
 
-    if (! $search_result) {
+    if (! $search_result || ref $search_result ne 'HASH') {
         $self->bail_out("Failed to find a build by number. API returned wrong value. Check errors above");
     }
-    if (ref $search_result ne 'HASH' || ! $search_result->{count}) {
+    if (! $search_result->{count}) {
         $self->bail_out("Failed to find a build by number. No builds found for specified Build Number.");
     }
 
     # Check build
     if ($search_result->{count} > 1) {
-        $self->logger->info("Found more than one build for given number ($build_number). Taking latest one");
+        my $build_numbers_str = join(', ', map {"$_->{buildNumber}($_->{id})"} @{$search_result->{value}});
+        $self->logger->info("Found more than one ($search_result->{count}) build for the given build number ($build_number). "
+            . "Names are: $build_numbers_str. "
+            . "Taking a build with the latest finishedAt time");
     }
 
     my $build = $search_result->{value}->[0];
     return $build->{id};
 }
 
+sub find_definition_id_by_name {
+    my ( $self, $config, $project, $definition_name ) = @_;
+    return unless $definition_name;
+
+    # Make a list request
+    my $request_path = $project . '/_apis/build/definitions';
+    my $api_version = get_api_version($request_path, $config);
+    my $client = $self->get_microrest_client($config);
+
+    my $search_result = $client->get($request_path, {
+        'api-version' => $api_version,
+        name          => $definition_name
+    });
+
+    if (! $search_result || ref $search_result ne 'HASH') {
+        $self->bail_out("Failed to find given definition. API returned wrong value. Check errors above");
+    }
+    if (! $search_result->{count}) {
+        $self->bail_out("Failed to find given definition. No definitions found for specified Build Definition Name ($definition_name).");
+    }
+
+    my $definition = $search_result->{value}->[0];
+    return $definition->{id};
+}
+
 # Client is received in parameters because NTLM authenticates a TCP connection
-# This allows to avoid few more requests
+# This allows to avoid few more auth requests
 sub wait_for_build {
     my ( $self, $client, $config, $build_id, $timeout ) = @_;
 
@@ -678,20 +728,22 @@ sub wait_for_build {
     my $waited = 0;
     my $time_to_sleep = 30;
 
-    my $status;
-    while (! $status || $status =~ /inprogress|notStarted/i) {
-        my $build_info = $client->get($request_path, {
+    my $build_info;
+    my $status = 'notStarted';
+    while ($status =~ /inProgress|notStarted/i) {
+        $build_info = $client->get($request_path, {
             'api-version' => $api_version
         });
-        $self->bail_out("Failed to receive build info. Check for errors above") if (! $build_info);
+        $self->bail_out("Failed receiving build info. Check for errors above") if (! $build_info);
 
         $status = $build_info->{status};
-        unless ($status =~ /inprogress|notStarted/) {
-            return;
+
+        if ($status !~ /inProgress|notStarted/i) {
+            return $build_info;
         }
 
-        $self->logger->info("Build $build_id ($build_info->{buildNumber} is still in progress ($status)."
-            . " Trying again in $time_to_sleep seconds.");
+        $self->logger->info("Build $build_id ($build_info->{buildNumber}) is still in progress ($status)."
+            . " At now waited $waited from $timeout seconds");
 
         # Check for timeout
         $waited += $time_to_sleep;
@@ -701,6 +753,8 @@ sub wait_for_build {
 
         sleep($time_to_sleep);
     }
+
+    return $build_info;
 }
 
 #@returns EC::Plugin::MicroRest
