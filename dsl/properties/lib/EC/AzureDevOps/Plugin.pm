@@ -130,7 +130,7 @@ sub step_create_work_items {
     }
 
     # Save to the properties
-    $self->save_result_entities(
+    $self->save_work_items(
         \@created_items,
         $params->{resultPropertySheet}, $params->{resultFormat},
         \&_transform_work_item
@@ -204,7 +204,7 @@ sub step_update_work_items {
 
     # Save the properties
     # Save to the properties
-    $self->save_result_entities(
+    $self->save_work_items(
         \@updated_items,
         $params->{resultPropertySheet}, $params->{resultFormat},
         \&_transform_work_item
@@ -262,7 +262,7 @@ sub step_delete_work_items {
 
     # Save the properties
     # Save to the properties
-    $self->save_result_entities(
+    $self->save_work_items(
         \@deleted,
         $params->{resultPropertySheet}, $params->{resultFormat},
         \&_transform_delete_result
@@ -313,7 +313,7 @@ sub step_get_work_items {
     my @clear_list = grep {defined $_} @{$result->{value}};
 
     # Save to the properties
-    $self->save_result_entities(
+    $self->save_work_items(
         \@clear_list,
         $params->{resultPropertySheet}, $params->{resultFormat},
         \&_transform_work_item
@@ -435,7 +435,7 @@ sub step_query_work_items {
         $self->bail_out("Failed to receive work items. Check for errors above");
     }
 
-    $self->save_result_entities($work_items_list, $params->{resultPropertySheet}, $params->{resultFormat});
+    $self->save_work_items($work_items_list, $params->{resultPropertySheet}, $params->{resultFormat});
 
     my $count = $work_items_result->{count};
     my @titles = ();
@@ -569,7 +569,7 @@ sub step_upload_work_item_attachment {
         } ]
     );
 
-    if (! $link_attachment_resp ) {
+    if (! $link_attachment_resp) {
         $self->bail_out("Attachment is uploaded, but linking it to the Work Item failed. Check for errors above.")
     }
 
@@ -684,7 +684,21 @@ sub build_create_multi_entity_payload {
     return wantarray ? @results : \@results;
 }
 
-sub save_result_entities {
+sub save_work_items {
+    my ( $self, $entities_list, $result_property, $result_format, $transform_sub ) = @_;
+
+    my @ids = $self->save_entities($entities_list, $result_property, $result_format, $transform_sub);
+    return unless scalar @ids;
+
+    my $ids_property = $result_property . '/workItemIds';
+    my $ids_str = join(', ', @ids);
+    $self->logger->info("Work item IDs ($ids_str) will be saved to a property '$ids_property'.");
+    $self->ec->setProperty($ids_property, $ids_str);
+
+    return 1;
+}
+
+sub save_entities {
     my ( $self, $entities_list, $result_property, $result_format, $transform_sub ) = @_;
 
     my @ids = ();
@@ -702,12 +716,7 @@ sub save_result_entities {
         $self->save_parsed_data($entity, $result_property . "/$id", $result_format)
     }
 
-    my $ids_property = $result_property . '/workItemIds';
-    my $ids = join(', ', @ids);
-    $self->logger->info("Work item IDs ($ids) will be saved to a property '$ids_property'.") if $ids;
-    $self->ec->setProperty($ids_property, $ids);
-
-    return 1;
+    return wantarray ? @ids : \@ids;
 }
 
 sub save_parsed_data {
