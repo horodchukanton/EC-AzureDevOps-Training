@@ -3,7 +3,7 @@
     <help>/commander/pages/@PLUGIN_NAME@/help?s=Administration&amp;ss=Plugins#GetBuild</help>
     <formElement>
         <documentation>Previously defined plugin configuration.</documentation>
-        <label>Configuration name:</label>
+        <label>Configuration:</label>
         <!-- Improvements for CEV-18687 -->
         <configuration>1</configuration>
         <!-- End of improvements for CEV-18687 -->

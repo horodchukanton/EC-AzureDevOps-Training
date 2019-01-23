@@ -3,7 +3,7 @@
     <help>/commander/pages/@PLUGIN_NAME@/help?s=Administration&amp;ss=Plugins#QueryWorkItems</help>
     <formElement>
         <documentation>Previously defined plugin configuration.</documentation>
-        <label>Configuration name:</label>
+        <label>Configuration:</label>
         <configuration>1</configuration>
         <property>config</property>
         <propertyReference>/plugins/@PLUGIN_NAME@/project/ec_plugin_cfgs</propertyReference>

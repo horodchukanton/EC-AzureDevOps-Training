@@ -104,7 +104,7 @@ class GetBuild extends PluginTestHelper {
         cleanup:
         if (build.id && build.id) {
             logger.debug("Waiting for build to finish")
-            tfsClient.waitForBuild(build.id, 120)
+            tfsClient.waitForBuild(build.id, 300)
         }
         where:
         caseId       | requestBy | buildDefinitionName
@@ -159,7 +159,7 @@ class GetBuild extends PluginTestHelper {
         cleanup:
         if (build.id && build.id) {
             logger.debug("Waiting for build to finish")
-            tfsClient.waitForBuild(build.id, 120)
+            tfsClient.waitForBuild(build.id, 300)
         }
 
         where:

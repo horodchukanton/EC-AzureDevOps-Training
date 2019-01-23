@@ -149,7 +149,7 @@ class TFSHelper {
         return result
     }
 
-    JSON waitForBuild(int buildId, int timeout = 120, int waited = 0){
+    JSON waitForBuild(int buildId, int timeout = 300, int waited = 0){
         assert buildId
 
         JSON result = getBuild(buildId)
