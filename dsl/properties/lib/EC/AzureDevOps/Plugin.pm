@@ -130,7 +130,7 @@ sub step_create_work_items {
     }
 
     # Save to the properties
-    $self->save_result_entities(
+    $self->save_work_items(
         \@created_items,
         $params->{resultPropertySheet}, $params->{resultFormat},
         \&_transform_work_item
@@ -204,7 +204,7 @@ sub step_update_work_items {
 
     # Save the properties
     # Save to the properties
-    $self->save_result_entities(
+    $self->save_work_items(
         \@updated_items,
         $params->{resultPropertySheet}, $params->{resultFormat},
         \&_transform_work_item
@@ -262,7 +262,7 @@ sub step_delete_work_items {
 
     # Save the properties
     # Save to the properties
-    $self->save_result_entities(
+    $self->save_work_items(
         \@deleted,
         $params->{resultPropertySheet}, $params->{resultFormat},
         \&_transform_delete_result
@@ -313,7 +313,7 @@ sub step_get_work_items {
     my @clear_list = grep {defined $_} @{$result->{value}};
 
     # Save to the properties
-    $self->save_result_entities(
+    $self->save_work_items(
         \@clear_list,
         $params->{resultPropertySheet}, $params->{resultFormat},
         \&_transform_work_item
@@ -435,7 +435,7 @@ sub step_query_work_items {
         $self->bail_out("Failed to receive work items. Check for errors above");
     }
 
-    $self->save_result_entities($work_items_list, $params->{resultPropertySheet}, $params->{resultFormat});
+    $self->save_work_items($work_items_list, $params->{resultPropertySheet}, $params->{resultFormat});
 
     my $count = $work_items_result->{count};
     my @titles = ();
@@ -556,7 +556,6 @@ sub step_upload_work_item_attachment {
     my $request_path = '_apis/wit/workitems/' . $params->{workItemId};
     my $api_version = get_api_version($request_path, $config);
     my EC::Plugin::MicroRest $client = $self->get_microrest_client($config);
-    $client->{debug} = 1;
 
     my $link_attachment_resp = $client->patch($request_path, { 'api-version' => $api_version },
         [ {
@@ -570,7 +569,7 @@ sub step_upload_work_item_attachment {
         } ]
     );
 
-    if (! $link_attachment_resp ) {
+    if (! $link_attachment_resp) {
         $self->bail_out("Attachment is uploaded, but linking it to the Work Item failed. Check for errors above.")
     }
 
@@ -581,6 +580,181 @@ sub step_upload_work_item_attachment {
         qq{<html><a href="$attachment_url" target="_blank">$attachment_url</a></html>}
     );
 
+}
+
+sub step_get_build {
+    my ( $self ) = @_;
+
+    my %procedure_parameters = (
+        config              => { label => 'Configuration name', required => 1 },
+        project             => { label => 'Project', required => 1 },
+        buildId             => { label => 'Build Id or Number', required => 1 },
+        buildDefinitionName => { label => 'Build Definition Name' },
+        waitForBuild        => { label => 'Wait For Build' },
+        waitTimeout         => { label => 'Wait Timeout', check => 'number' },
+        resultPropertySheet => { label => 'Result Property Sheet', required => 1 },
+        resultFormat        => { label => 'Result Format', required => 1 },
+    );
+
+    my $params = $self->get_params_as_hashref(keys %procedure_parameters);
+    $self->check_parameters($params, \%procedure_parameters);
+    my $config = $self->get_config_values($params->{config});
+    my $client = $self->get_microrest_client($config);
+
+    # If buildId contains something not like a simple integer, assume this is a build number
+    if ($params->{buildId} !~ /^\d+$/) {
+        # Get a build id by name
+        if (! $params->{buildDefinitionName}) {
+            $self->bail_out("Parameter 'Build Definition Name' is required"
+                . " if you've specified Build number in a 'Build Id of Number' parameter.");
+        }
+
+        my $definition_id = $self->find_definition_id_by_name($params->{buildDefinitionName});
+
+        $self->logger->debug("Looking for Id of a build with name '$params->{buildId}'");
+        $params->{buildId} = $self->find_build_id_by_number(
+            $config,
+            $params->{project},
+            $definition_id,
+            $params->{buildId}
+        );
+        $self->logger->info("Id of a build is '$params->{buildId}'");
+
+        if (! $params->{buildId}) {
+            $self->bail_out("Failed to get a build ID. Check for errors above.")
+        }
+    }
+
+    my $request_path = '_apis/build/builds/' . $params->{buildId};
+    my $api_version = get_api_version($request_path, $config);
+    my $build = $client->get($request_path, { 'api-version' => $api_version });
+
+    if (! $build) {
+        $self->bail_out("Failed to receive a build. Check for errors above.");
+    }
+
+    # If have to wait and should wait, then wait
+    if ($params->{waitForBuild} && $build->{status} !~ 'completed|postponed|cancelling') {
+        $build = $self->wait_for_build($client, $config, $params->{buildId}, $params->{waitTimeout});
+    }
+
+    # Removing obsolete fields
+    my @obsolete_fields = qw/logs definition _links project
+        requestedBy queue repository
+        lastChangedBy plans requestedFor
+        orchestrationPlan/;
+    delete $build->{$_} for (@obsolete_fields);
+
+    $self->save_parsed_data($build, $params->{resultPropertySheet}, $params->{resultFormat});
+
+    $self->success("Build values are saved to a specified property");
+    $self->set_pipeline_summary(
+        "Build URL",
+        qq{<html><a href="$build->{url}" target="_blank">$build->{buildNumber}</a></html>}
+    );
+
+}
+
+sub find_build_id_by_number {
+    my ( $self, $config, $project, $definitionId, $build_number ) = @_;
+    return unless $build_number;
+
+    # Make a list request
+    my $request_path = $project . '/_apis/build/builds';
+    my $api_version = get_api_version($request_path, $config);
+    my $client = $self->get_microrest_client($config);
+
+    my $search_result = $client->get($request_path, {
+        'api-version' => $api_version,
+        buildNumber   => $build_number,
+        definitions   => $definitionId,
+        queryOrder    => 'finishTimeDescending'
+    });
+
+    if (! $search_result || ref $search_result ne 'HASH') {
+        $self->bail_out("Failed to find a build by number. API returned wrong value. Check errors above");
+    }
+    if (! $search_result->{count}) {
+        $self->bail_out("Failed to find a build by number. No builds found for specified Build Number.");
+    }
+
+    # Check build
+    if ($search_result->{count} > 1) {
+        my $build_numbers_str = join(', ', map {"$_->{buildNumber}($_->{id})"} @{$search_result->{value}});
+        $self->logger->info("Found more than one ($search_result->{count}) build for the given build number ($build_number). "
+            . "Names are: $build_numbers_str. "
+            . "Taking a build with the latest finishedAt time");
+    }
+
+    my $build = $search_result->{value}->[0];
+    return $build->{id};
+}
+
+sub find_definition_id_by_name {
+    my ( $self, $config, $project, $definition_name ) = @_;
+    return unless $definition_name;
+
+    # Make a list request
+    my $request_path = $project . '/_apis/build/definitions';
+    my $api_version = get_api_version($request_path, $config);
+    my $client = $self->get_microrest_client($config);
+
+    my $search_result = $client->get($request_path, {
+        'api-version' => $api_version,
+        name          => $definition_name
+    });
+
+    if (! $search_result || ref $search_result ne 'HASH') {
+        $self->bail_out("Failed to find given definition. API returned wrong value. Check errors above");
+    }
+    if (! $search_result->{count}) {
+        $self->bail_out("Failed to find given definition. No definitions found for specified Build Definition Name ($definition_name).");
+    }
+
+    my $definition = $search_result->{value}->[0];
+    return $definition->{id};
+}
+
+# Client is received in parameters because NTLM authenticates a TCP connection
+# This allows to avoid few more auth requests
+sub wait_for_build {
+    my ( $self, $client, $config, $build_id, $timeout ) = @_;
+
+    $timeout ||= 300;
+
+    my $request_path = '/_apis/build/builds/' . $build_id;
+    my $api_version = get_api_version($request_path, $config);
+
+    my $waited = 0;
+    my $time_to_sleep = 30;
+
+    my $build_info;
+    my $status = 'notStarted';
+    while ($status =~ /inProgress|notStarted/i) {
+        $build_info = $client->get($request_path, {
+            'api-version' => $api_version
+        });
+        $self->bail_out("Failed receiving build info. Check for errors above") if (! $build_info);
+
+        $status = $build_info->{status};
+
+        if ($status !~ /inProgress|notStarted/i) {
+            return $build_info;
+        }
+
+        $self->logger->info("Build $build_id ($build_info->{buildNumber}) is still in progress ($status)."
+            . " At now waited $waited from $timeout seconds");
+
+        # Check for timeout
+        $waited += $time_to_sleep;
+        if ($timeout != 0 && $waited >= $timeout) {
+            $self->bail_out("Wait operation has timed out, last status: $status");
+        }
+
+        sleep($time_to_sleep);
+    }
+
+    return $build_info;
 }
 
 #@returns EC::Plugin::MicroRest
@@ -685,7 +859,21 @@ sub build_create_multi_entity_payload {
     return wantarray ? @results : \@results;
 }
 
-sub save_result_entities {
+sub save_work_items {
+    my ( $self, $entities_list, $result_property, $result_format, $transform_sub ) = @_;
+
+    my @ids = $self->save_entities($entities_list, $result_property, $result_format, $transform_sub);
+    return unless scalar @ids;
+
+    my $ids_property = $result_property . '/workItemIds';
+    my $ids_str = join(', ', @ids);
+    $self->logger->info("Work item IDs ($ids_str) will be saved to a property '$ids_property'.");
+    $self->ec->setProperty($ids_property, $ids_str);
+
+    return 1;
+}
+
+sub save_entities {
     my ( $self, $entities_list, $result_property, $result_format, $transform_sub ) = @_;
 
     my @ids = ();
@@ -703,12 +891,7 @@ sub save_result_entities {
         $self->save_parsed_data($entity, $result_property . "/$id", $result_format)
     }
 
-    my $ids_property = $result_property . '/workItemIds';
-    my $ids = join(', ', @ids);
-    $self->logger->info("Work item IDs ($ids) will be saved to a property '$ids_property'.") if $ids;
-    $self->ec->setProperty($ids_property, $ids);
-
-    return 1;
+    return wantarray ? @ids : \@ids;
 }
 
 sub save_parsed_data {
@@ -870,7 +1053,6 @@ sub upload_simple {
 
     my $client = $self->get_microrest_client($config, 'application/octet-stream');
     delete $client->{encode_sub};
-    $client->{debug} = 1;
 
     my $request_path = '_apis/wit/attachments';
     my $api_version = get_api_version($request_path, $config);
@@ -908,8 +1090,7 @@ sub upload_simple {
         {
             fileName      => $upload_params{filename},
             uploadType    => 'simple',
-            # 'api-version' => $api_version
-            'api-version' => '1.0' #$api_version
+            'api-version' => $api_version
         },
         $content
     );

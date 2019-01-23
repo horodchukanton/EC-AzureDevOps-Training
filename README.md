@@ -33,7 +33,7 @@ Get the default values that will be filled in automatically when you create a ne
 
 Queues a new build.
 
-## GetaBuild
+## GetBuild
 
 Get information about a build.
 
