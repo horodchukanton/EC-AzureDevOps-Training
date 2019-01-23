@@ -905,7 +905,7 @@ sub parse_build_parameters {
     eval {
         my @attributes = split('\n', $raw_attributes);
         foreach my $attribute_pair (@attributes) {
-            my ($name, $value) = split('=', $attribute_pair);
+            my ( $name, $value ) = split('=', $attribute_pair, 2);
             $pairs{$name} = $value;
         }
         1;

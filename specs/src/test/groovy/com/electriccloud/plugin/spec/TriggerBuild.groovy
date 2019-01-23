@@ -101,7 +101,7 @@ dryRun=true'''
 
         cleanup:
         if (buildId) {
-            tfsClient.waitForBuild(buildId, 120)
+            tfsClient.waitForBuild(buildId, 300)
         }
         where:
         caseId       | definition | queue  | buildDefinitionName
@@ -146,7 +146,7 @@ dryRun=true'''
 
         cleanup:
         if (buildId) {
-            tfsClient.waitForBuild(buildId, 120)
+            tfsClient.waitForBuild(buildId, 300)
         }
         where:
         caseId       | parameters

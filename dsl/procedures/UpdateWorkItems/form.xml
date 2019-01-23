@@ -3,7 +3,7 @@
 <help>/commander/pages/@PLUGIN_NAME@/help?s=Administration&amp;ss=Plugins#UpdateWorkItems</help>
 <formElement>
   <documentation>Previously defined plugin configuration.</documentation>
-  <label>Configuration Name:</label>
+  <label>Configuration:</label>
   <property>config</property>
   <configuration>1</configuration>
   <propertyReference>/plugins/@PLUGIN_NAME@/project/ec_plugin_cfgs</propertyReference>
