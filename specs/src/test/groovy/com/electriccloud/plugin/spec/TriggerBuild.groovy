@@ -110,7 +110,6 @@ dryRun=true'''
     }
 
     @Unroll
-    @IgnoreRest
     def "#caseId. Sanity. Check parameters"() {
         given:
         def resultJobPropertyName = 'build'
