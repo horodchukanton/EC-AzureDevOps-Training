@@ -132,14 +132,29 @@ class TFSHelper {
         return result
     }
 
-    def waitForBuild(int buildId, int timeout = 120, int waited = 0){
+    JSON getBuild(int buildId){
+        String path = [this.collectionName, this.projectName, '_apis/build/builds', buildId].join('/')
+        return request(METHOD_GET, path, ['api-version': this.apiVersion])
+    }
+
+    JSON getFinishedBuild(int buildId, boolean wait = false, int timeout = 120) {
+
+        JSON result = getBuild(buildId)
+
+        if (result.status =~ /inProgress|notStarted/ && wait){
+            result = waitForBuild(buildId, timeout)
+        }
+
+        assert result
+        return result
+    }
+
+    JSON waitForBuild(int buildId, int timeout = 120, int waited = 0){
         assert buildId
 
-        String path = [this.collectionName, this.projectName, '_apis/build/builds', buildId].join('/')
-        JSON result = request(METHOD_GET, path, ['api-version': this.apiVersion])
+        JSON result = getBuild(buildId)
 
         assert result.status
-
         if (waited >= timeout){
             throw new RuntimeException("Waiting for build time has exceeded timeout")
         }
@@ -150,21 +165,32 @@ class TFSHelper {
             Thread.sleep(30 * 1000)
             return waitForBuild(buildId, timeout, waited + 30)
         }
+
+        return result
+    }
+
+    int getEntityIdByName(String apiSearchPath, String entityName){
+        assert entityName
+        assert apiSearchPath
+
+        String path = [this.collectionName, this.projectName, apiSearchPath].join('/')
+        JSON searchResult = request(METHOD_GET, path, [name: entityName])
+
+        if (searchResult.count == 0) {
+            PluginTestHelper.logger.debug(searchResult.toString())
+            throw new RuntimeException("Cannot find queue with name ${entityName}")
+        }
+
+        Map entity = (Map) searchResult['value'][0]
+        return entity.id
     }
 
     int getDefinitionIdByName(String definitionName) {
-        String path = [this.collectionName, this.projectName, '_apis/build/definitions'].join('/')
+        return getEntityIdByName('_apis/build/definitions', definitionName)
+    }
 
-        JSON definitionsResult = request(METHOD_GET, path, [name: definitionName])
-
-        if (definitionsResult.count == 0) {
-            PluginTestHelper.logger.debug(definitionsResult.toString())
-            throw new RuntimeException("Cannot find definition with name ${definitionName}")
-        }
-
-        Map definition = (Map) definitionsResult['value'][0]
-
-        return definition.id
+    int getQueueIdByName(String queueName) {
+        return getEntityIdByName('_apis/build/queues', queueName)
     }
 
     JSON postWithContentType(String path, Map queryParameters = [:], JSON payload, String contentType) {

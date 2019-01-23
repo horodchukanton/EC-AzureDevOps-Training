@@ -119,7 +119,7 @@ sub step_create_work_items {
 
         # Adding Additional fields
         if ($params->{additionalFields}) {
-            push @payload, @{$self->parse_additional_fields($params->{additionalFields})};
+            push @payload, @{$self->parse_azure_additional_fields($params->{additionalFields})};
         }
 
         $self->logger->debug("PAYLOAD", \@payload);
@@ -185,7 +185,7 @@ sub step_update_work_items {
 
         # Adding Additional fields
         if ($params->{additionalFields}) {
-            push @payload, @{$self->parse_additional_fields($params->{additionalFields})};
+            push @payload, @{$self->parse_azure_additional_fields($params->{additionalFields})};
         }
 
         $self->logger->debug("Full payload", \@payload);
@@ -582,6 +582,66 @@ sub step_upload_work_item_attachment {
 
 }
 
+sub step_trigger_build {
+    my ( $self ) = @_;
+
+    my %procedure_parameters = (
+        'config'              => { label => 'Configuration', required => 1 },
+        'project'             => { label => 'Project', required => 1 },
+        'definitionId'        => { label => 'Definition ID or name', required => 1 },
+        'queueId'             => { label => 'Queue ID or Name' },
+        'sourceBranch'        => { label => 'Source branch' },
+        'parameters'          => { label => 'Parameters', check => 'key_value' },
+        'resultPropertySheet' => { label => 'Result Property Sheet', required => 1 },
+        'resultFormat'        => { label => 'Result Format', required => 1 },
+    );
+
+    my $params = $self->get_params_as_hashref(keys %procedure_parameters);
+    $self->check_parameters($params, \%procedure_parameters);
+    my $config = $self->get_config_values($params->{config});
+    my $client = $self->get_microrest_client($config, 'application/json');
+
+    # Check ad find IDs for given names
+    if ($params->{definitionId} !~ /^\d+$/) {
+        $self->logger->info("Looking for ID of the Build Definition with name '$params->{definitionId}'.");
+        $params->{definitionId} = $self->find_definition_id_by_name($config, $params->{project}, $params->{definitionId});
+    }
+    if ($params->{queueId} && $params->{queueId} !~ /^\d+$/) {
+        $self->logger->info("Looking for ID of the Queue with name '$params->{definitionId}'.");
+        $params->{queueId} = $self->find_queue_id_by_name($config, $params->{project}, $params->{queueId});
+    }
+
+    my $request_path = $params->{project} . '/_apis/build/builds';
+    my $api_version = get_api_version($request_path, $config);
+
+    my %payload = ();
+    $payload{Definition} = { Id => $params->{definitionId} };
+    $payload{Queue} = { Id => $params->{queueId} } if ($params->{queueId});
+    $payload{sourceBranch} = $params->{sourceBranch} if ($params->{sourceBranch});
+
+    # Parse and add the parameters if necessary
+    if ($params->{parameters}) {
+        # Parse raw text to a key-pairs
+        my $parameters = $self->parse_build_parameters($params->{parameters});
+        $payload{parameters} = JSON::encode_json($parameters);
+    }
+
+    $self->logger->debug("Payload", \%payload);
+
+    my $build = $client->post($request_path, { 'api-version' => $api_version }, \%payload);
+    $self->logger->debug("Result", $build);
+
+    $build = $self->_transform_build_result($build);
+
+    $self->save_parsed_data($build, $params->{resultPropertySheet}, $params->{resultFormat});
+
+    $self->success("Build values are saved to a specified property");
+    $self->set_pipeline_summary(
+        "Build URL",
+        qq{<html><a href="$build->{url}" target="_blank">$build->{buildNumber}</a></html>}
+    );
+}
+
 sub step_get_build {
     my ( $self ) = @_;
 
@@ -638,12 +698,7 @@ sub step_get_build {
         $build = $self->wait_for_build($client, $config, $params->{buildId}, $params->{waitTimeout});
     }
 
-    # Removing obsolete fields
-    my @obsolete_fields = qw/logs definition _links project
-        requestedBy queue repository
-        lastChangedBy plans requestedFor
-        orchestrationPlan/;
-    delete $build->{$_} for (@obsolete_fields);
+    $build = $self->_transform_build_result($build);
 
     $self->save_parsed_data($build, $params->{resultPropertySheet}, $params->{resultFormat});
 
@@ -713,6 +768,31 @@ sub find_definition_id_by_name {
 
     my $definition = $search_result->{value}->[0];
     return $definition->{id};
+}
+
+sub find_queue_id_by_name {
+    my ( $self, $config, $project, $queue_name ) = @_;
+    return unless $queue_name;
+
+    # Make a list request
+    my $request_path = $project . '/_apis/build/queues';
+    my $api_version = get_api_version($request_path, $config);
+    my $client = $self->get_microrest_client($config);
+
+    my $search_result = $client->get($request_path, {
+        'api-version' => $api_version,
+        name          => $queue_name
+    });
+
+    if (! $search_result || ref $search_result ne 'HASH') {
+        $self->bail_out("Failed to find given query. API returned wrong value. Check errors above");
+    }
+    if (! $search_result->{count}) {
+        $self->bail_out("Failed to find given query. No query was found for specified Query Name ($queue_name).");
+    }
+
+    my $queue = $search_result->{value}->[0];
+    return $queue->{id};
 }
 
 # Client is received in parameters because NTLM authenticates a TCP connection
@@ -787,7 +867,7 @@ sub parse_generic_create_update_parameters {
     return wantarray ? %generic_fields : \%generic_fields;
 }
 
-sub parse_additional_fields {
+sub parse_azure_additional_fields {
     my ( $self, $additional_fields ) = @_;
 
     my @additional_fields_array = ();
@@ -814,6 +894,28 @@ sub parse_additional_fields {
     }
 
     return wantarray ? @additional_fields_array : \@additional_fields_array;
+}
+
+sub parse_build_parameters {
+    my ( $self, $raw_attributes ) = @_;
+
+    my %pairs = ();
+
+    # Parse given attributes
+    eval {
+        my @attributes = split('\n', $raw_attributes);
+        foreach my $attribute_pair (@attributes) {
+            my ($name, $value) = split('=', $attribute_pair);
+            $pairs{$name} = $value;
+        }
+        1;
+    }
+        or do {
+        $self->info("Failed to parse custom attributes : $@");
+        return 0;
+    };
+
+    return \%pairs;
 }
 
 sub build_create_multi_entity_payload {
@@ -1212,8 +1314,32 @@ sub _transform_work_item {
 
 sub _transform_delete_result {
     my ( $self, $delete_result ) = @_;
-    my $work_item = $delete_result->{resource};
-    return $self->_transform_work_item($work_item);
+
+    # Delete result contains a deleted work item in a 'resource' property
+    my $entity = $delete_result->{resource};
+
+    return $self->_transform_work_item($entity);
+}
+
+sub _transform_build_result {
+    my ( $self, $build ) = @_;
+
+    # Removing obsolete fields
+    my @deep_fields = qw/logs definition _links project
+        requestedBy queue repository
+        lastChangedBy plans requestedFor
+        orchestrationPlan/;
+
+    for my $key (@deep_fields) {
+        if ($build->{$key} && ref $build->{$key} eq 'HASH' && $build->{$key}->{name}) {
+            $build->{$key} = $build->{$key}->{name};
+        }
+        else {
+            delete $build->{$key};
+        }
+    }
+
+    return $build;
 }
 
 sub _fix_propertysheet_forbidden_key {

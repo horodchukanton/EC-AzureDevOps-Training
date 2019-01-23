@@ -24,8 +24,6 @@ def stepsWithAttachedCredentials = [
     [procedureName: 'GetDefaultValues', stepName: 'get default values'],
     [procedureName: 'UploadWorkItemAttachment', stepName: 'upload a work item attachment'],
     [procedureName: 'GetBuild', stepName: 'get a build'],
-
-    // Still REST
     [procedureName: 'TriggerBuild', stepName: 'trigger a build'],
 ]
 // ** end steps with attached credentials
