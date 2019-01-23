@@ -138,4 +138,24 @@ build/builds=2.0
         <dependsOn>apiVersion</dependsOn>
         <condition>${apiVersion} == 'custom'</condition>
     </formElement>
+    <formElement>
+        <type>select</type>
+        <label>Log Level:</label>
+        <property>debugLevel</property>
+        <required>0</required>
+        <value>0</value>
+        <option>
+            <value>0</value>
+            <name>Info</name>
+        </option>
+        <option>
+            <value>1</value>
+            <name>Debug</name>
+        </option>
+        <option>
+            <value>2</value>
+            <name>Trace</name>
+        </option>
+        <documentation>This option sets debug level for logs. If info is selected, only summary infornation will be show, for debug, there will be some debug information and for trace the whole requests and responses will be shown.</documentation>
+    </formElement>
 </editor>
