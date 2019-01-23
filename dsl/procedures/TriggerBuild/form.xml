@@ -3,7 +3,7 @@
 <help>/commander/pages/@PLUGIN_NAME@/help?s=Administration&amp;ss=Plugins#Triggerbuild</help>
 <formElement>
   <documentation>Previously defined plugin configuration.</documentation>
-  <label>Configuration name:</label>
+  <label>Configuration:</label>
   <property>config</property>
   <configuration>1</configuration>
   <propertyReference>/plugins/@PLUGIN_NAME@/project/ec_plugin_cfgs</propertyReference>
@@ -19,23 +19,23 @@
   <value/>
 </formElement>
 <formElement>
-  <documentation>The ID or the name of the definition. This is required.</documentation>
+  <documentation>The ID or the name of the Build Definition.</documentation>
   <label>Definition ID or name:</label>
-  <property>definition.id</property>
+  <property>definitionId</property>
   <required>1</required>
   <type>entry</type>
   <value/>
 </formElement>
 <formElement>
-  <documentation>The ID or the name of the queue. This is optional. If not specified, the default queue for the definition will be used.</documentation>
-  <label>Queue ID or name:</label>
-  <property>queue.id</property>
+  <documentation>The ID or the name of the queue. If not specified, the default queue for the definition will be used.</documentation>
+  <label>Queue ID or Name:</label>
+  <property>queueId</property>
   <required>0</required>
   <type>entry</type>
   <value/>
 </formElement>
 <formElement>
-  <documentation>The branch to build. This is optional. If not specified, the default branch for the definition will be used.</documentation>
+  <documentation>The branch to build. If not specified, the default branch for the definition will be used.</documentation>
   <label>Source branch:</label>
   <property>sourceBranch</property>
   <required>0</required>
@@ -43,40 +43,8 @@
   <value/>
 </formElement>
 <formElement>
-  <checkedValue>1</checkedValue>
-  <documentation>If checked, the procedure will wait for build to finish.</documentation>
-  <label>Wait for build:</label>
-  <property>waitForBuild</property>
-  <required>0</required>
-  <type>checkbox</type>
-  <uncheckedValue>0</uncheckedValue>
-  <value/>
-</formElement>
-<formElement>
-  <documentation>Timeout in second to wait for build to finish. Will be used if &quot;Wait for build&quot; is checked.</documentation>
-  <label>Wait timeout:</label>
-  <property>waitTimeout</property>
-  <required>0</required>
-  <type>entry</type>
-  <value>300</value>
-</formElement>
-<formElement>
-  <checkedValue>1</checkedValue>
-  <documentation>If checked, the procedure status will mimic build status. If build has failed, the procedure status will be &quot;Failed&quot;, if build has succeeded, the status will be &quot;Success&quot; and &quot;Warning&quot; otherwize.</documentation>
-  <label>Mimic build status:</label>
-  <property>mimicProcedureStatus</property>
-  <required>0</required>
-  <type>checkbox</type>
-  <uncheckedValue>0</uncheckedValue>
-  <value/>
-</formElement>
-<formElement>
-  <documentation></documentation>
-  <htmlDocumentation>Parameters to pass to the build. This is optional. &lt;br/&gt;
-E.g., &lt;pre&gt;{&quot;system.debug&quot;:&quot;true&quot;,&quot;BuildConfiguration&quot;:&quot;debug&quot;,&quot;BuildPlatform&quot;:&quot;x64&quot;}&lt;/pre&gt;
-
-If not specified, the default variables for the definition will be used.
-</htmlDocumentation>
+  <documentation>Parameters to pass to the build in key-value form, one pair per line. e.g. 'system.debug="true" BuildConfiguration="debug" BuildPlatform="x64"'. If not specified, the default variables for the definition will be used.</documentation>
+  <htmlDocumentation>Parameters to pass to the build in key-value form, one pair per line. e.g. &#x3C;pre&#x3E;system.debug=&#x22;true&#x22; BuildConfiguration=&#x22;debug&#x22; BuildPlatform=&#x22;x64&#x22;&#x3C;/pre&#x3E;. If not specified, the default variables for the definition will be used.</htmlDocumentation>
   <label>Parameters:</label>
   <property>parameters</property>
   <required>0</required>

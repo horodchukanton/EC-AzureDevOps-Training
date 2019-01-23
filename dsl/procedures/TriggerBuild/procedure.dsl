@@ -7,8 +7,8 @@ procedure procName, description: 'Queues a new build', {
     step stepName,
         command: """
 \$[/myProject/scripts/preamble]
-use EC::RESTPlugin;
-EC::RESTPlugin->new->run_step('trigger a build');
+use EC::AzureDevOps::Plugin;
+EC::AzureDevOps::Plugin->new->step_trigger_build;
 """,
         errorHandling: 'failProcedure',
         exclusiveMode: 'none',
