@@ -17,15 +17,11 @@ Creates a new work item.
 
 Update a work item fields.
 
-## Get a Work Item
-
-Returns the content of the work item
-
 ## DeleteWorkItems
 
 Deletes the specified work item.
 
-## Get Default Values
+## GetDefaultValues
 
 Get the default values that will be filled in automatically when you create a new work item of a specific type.
 
@@ -41,8 +37,6 @@ Get information about a build.
 
 To attach a file to a work item, upload the attachment to the attachment store, then attach it to the work item.
 
-
-
 # Building the plugin
 1. Download or clone the EC-AzureDevOps repository.
 
@@ -50,11 +44,11 @@ To attach a file to a work item, upload the attachment to the attachment store, 
     git clone https://github.com/electric-cloud/EC-AzureDevOps.git
     ```
 
-5. Zip up the files to create the plugin zip file.
+5. Use the [ecpluginbuilder](https://github.com/electric-cloud/ecpluginbuilder) to format and build the plugin.
 
     ```
      cd EC-AzureDevOps
-     zip -r EC-AzureDevOps.zip ./*
+     ecpluginbuilder --plugin-version 1.0.0 --plugin-name EC-AzureDevOps --folder dsl,htdocs,pages,META-INF
     ```
 
 6. Import the plugin zip file into your ElectricFlow server and promote it.
