@@ -1382,4 +1382,43 @@ sub _number_array_check {
 
     return 1;
 }
+
+sub debug_level {
+    my ( $self, $debug_level ) = @_;
+
+    # Set new debug level
+    if (defined $debug_level) {
+        $self->{_init}->{debug_level} = $debug_level;
+
+    }
+    # Return existing debug level
+    elsif (defined $self->{_init}->{debug_level}) {
+        return $self->{_init}->{debug_level};
+    }
+    # Get debug level from config and save the value
+    else {
+        my $config_value = 0;
+
+        if (! $self->{config}) {
+            # Trying to get config name from current running procedure parameters
+            eval {
+                my $config_name = $self->get_param('config');
+                $self->{config} = $self->get_config_values($config_name);
+                $config_value = $self->{config}->{debugLevel} || 0;
+                1;
+            } or do {
+                print "Failed to read Log Level from a configuration. Value 0 (Info) will be used.\n";
+                $config_value = 0;
+            }
+        }
+        else {
+            $config_value = $self->{config}->{debugLevel} || 0;
+        }
+
+        $self->{_init}->{debug_level} = $config_value;
+    }
+
+    return $self->{_init}->{debug_level};
+}
+
 1;
