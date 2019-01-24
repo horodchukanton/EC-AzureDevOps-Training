@@ -178,7 +178,7 @@ class TFSHelper {
 
         if (searchResult.count == 0) {
             PluginTestHelper.logger.debug(searchResult.toString())
-            throw new RuntimeException("Cannot find queue with name ${entityName}")
+            throw new RuntimeException("Cannot find entity with name ${entityName}")
         }
 
         Map entity = (Map) searchResult['value'][0]

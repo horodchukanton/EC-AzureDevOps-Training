@@ -102,7 +102,7 @@ class GetBuild extends PluginTestHelper {
         assert Integer.valueOf((String) buildInfo['id']) == Integer.valueOf((String) build.id)
 
         cleanup:
-        if (build.id && build.id) {
+        if (buildId && buildId) {
             logger.debug("Waiting for build to finish")
             tfsClient.waitForBuild(build.id, 300)
         }

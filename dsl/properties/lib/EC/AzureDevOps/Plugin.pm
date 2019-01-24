@@ -842,10 +842,15 @@ sub get_microrest_client {
     my ( $self, $config, $content_type ) = @_;
 
     return EC::Plugin::MicroRest->new(
-        url        => $self->get_base_url($config),
-        auth       => $config->{auth} || 'basic',
-        user       => $config->{userName},
-        password   => $config->{password},
+        url            => $self->get_base_url($config),
+        auth           => $config->{auth} || 'basic',
+        user           => $config->{userName},
+        password       => $config->{password},
+
+        http_proxy     => $config->{http_proxy},
+        proxy_username => $config->{proxy_username},
+        proxy_password => $config->{proxy_password},
+
         ctype      => $content_type || 'application/json-patch+json',
         encode_sub => \&encode_json,
         decode_sub => sub {
@@ -1208,6 +1213,7 @@ sub get_base_url {
 
     # Check mandatory
     for my $param (qw/endpoint collection/) {
+        print
         $self->bail_out("No value for configuration parameter '$param' was provided\n") unless $config->{$param};
     }
 
@@ -1233,7 +1239,7 @@ sub get_api_version {
         return $config->{apiVersion};
     }
 
-    my $api_versions = _parse_api_versions($config->{apiVersions});
+    my $api_versions = _parse_api_versions($config->{customApiVersions});
     my ( $first_name, $second_name ) = $uri =~ m{/_apis/(\w+)/(\w+)};
     my $version = $api_versions->{"$first_name/$second_name"} || '1.0';
 
@@ -1389,7 +1395,7 @@ sub debug_level {
     # Set new debug level
     if (defined $debug_level) {
         $self->{_init}->{debug_level} = $debug_level;
-
+        return $debug_level;
     }
     # Return existing debug level
     elsif (defined $self->{_init}->{debug_level}) {
@@ -1399,12 +1405,14 @@ sub debug_level {
     else {
         my $config_value = 0;
 
-        if (! $self->{config}) {
+        if (! $self->{_config}) {
             # Trying to get config name from current running procedure parameters
             eval {
+                # This methods will use logger, so have to specify temprorary value
+                $self->{_init}->{debug_level} = 0;
                 my $config_name = $self->get_param('config');
-                $self->{config} = $self->get_config_values($config_name);
-                $config_value = $self->{config}->{debugLevel} || 0;
+                $self->{_config} = $self->get_config_values($config_name);
+                $config_value = $self->{_config}->{debugLevel} || 0;
                 1;
             } or do {
                 print "Failed to read Log Level from a configuration. Value 0 (Info) will be used.\n";
@@ -1412,13 +1420,34 @@ sub debug_level {
             }
         }
         else {
-            $config_value = $self->{config}->{debugLevel} || 0;
+            $config_value = $self->{_config}->{debugLevel} || 0;
         }
 
         $self->{_init}->{debug_level} = $config_value;
     }
 
     return $self->{_init}->{debug_level};
+}
+
+sub check_connection {
+    my ($self, $config) = @_;
+
+    my $client = $self->get_microrest_client($config);
+    my $request_path = '_apis/projects';
+    my $api_version = get_api_version($request_path, $config);
+
+
+    my $ok = 0;
+    eval {
+        my $response = $client->get($request_path, {
+            '&$top'       => 1,
+            'api-version' => $api_version
+        });
+
+        $ok = exists $response->{count};
+    };
+
+    return $ok;
 }
 
 1;

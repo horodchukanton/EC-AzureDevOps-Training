@@ -1,5 +1,5 @@
 #
-#  Copyright 2016 Electric Cloud, Inc.
+#  Copyright 2019 Electric Cloud, Inc.
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -19,66 +19,100 @@
 ##########################
 use ElectricCommander;
 use JSON;
+use Data::Dumper;
+use strict;
+use warnings;
 
 use constant {
-	SUCCESS => 0,
-	ERROR   => 1,
+    SUCCESS => 0,
+    ERROR   => 1,
 };
 
 ## get an EC object
-my $ec = new ElectricCommander();
+my ElectricCommander $ec = ElectricCommander->new();
 $ec->abortOnError(0);
 
-my $credName = "$[/myJob/config]";
+my $config = '$[/myJob/config]';
+my $credential = $config;
+my $proxyCredential = $credential . '_proxy_credential';
 
-my $xpath = $ec->getFullCredential("credential");
-my $errors = $ec->checkAllErrors($xpath);
-my $clientID = $xpath->findvalue("//userName");
-my $clientSecret = $xpath->findvalue("//password");
+my %credentials = (
+    $credential      => 'credential',
+    $proxyCredential => 'proxy_credential'
+);
 
-my $projName = "$[/myProject/projectName]";
+sub try_to_attach_the_credential {
+    my ( $credName, $credValue ) = @_;
 
-# Create credential
-$ec->deleteCredential($projName, $credName);
-$xpath = $ec->createCredential($projName, $credName, $clientID, $clientSecret);
-$errors .= $ec->checkAllErrors($xpath);
+    my $xpath;
+    eval {
+        $xpath = $ec->getFullCredential($credValue);
+        1;
+    } or do {
+        print "Failed to get credential $credName, next.\n";
+        return;
+    };
+    $ec->abortOnError(0);
 
-# Give config the credential's real name
-my $configPath = "/projects/$projName/ec_plugin_cfgs/$credName";
-$xpath = $ec->setProperty($configPath . "/credential", $credName);
-$errors .= $ec->checkAllErrors($xpath);
+    my $userName = $xpath->findvalue("//userName");
+    my $password = $xpath->findvalue("//password");
+    my $errors = $ec->checkAllErrors($xpath);
 
-# Give job launcher full permissions on the credential
-my $user = "$[/myJob/launchedByUser]";
-$xpath = $ec->createAclEntry("user", $user,
-    {projectName => $projName,
-     credentialName => $credName,
-     readPrivilege => allow,
-     modifyPrivilege => allow,
-     executePrivilege => allow,
-     changePermissionsPrivilege => allow});
-$errors .= $ec->checkAllErrors($xpath);
-
-# Attach credential to steps that will need it
-my $stepsJSON = $ec->getPropertyValue("/projects/$projName/procedures/CreateConfiguration/ec_stepsWithAttachedCredentials");
-if (defined $stepsJSON && "$stepsJSON" ne "") {
-	#parse as json
-	my $steps = from_json($stepsJSON);
-    foreach my $step( @$steps ) { 
-		print "Attaching credential to procedure " . $step->{procedureName} . " at step " . $step->{stepName} . "\n";
-		my $apath = $ec->attachCredential($projName, $credName,
-										{procedureName => $step->{procedureName},
-										 stepName => $step->{stepName}});
-		$errors .= $ec->checkAllErrors($apath);
-	}
-}
-
-if ("$errors" ne "") {
-    # Cleanup the partially created configuration we just created
-    $ec->deleteProperty($configPath);
+    # Create credential
+    my $projName = '$[/myProject/projectName]';
     $ec->deleteCredential($projName, $credName);
-    my $errMsg = "Error creating configuration credential: " . $errors;
-    $ec->setProperty("/myJob/configError", $errMsg);
-    print $errMsg;
-    exit 1;
+    $xpath = $ec->createCredential($projName, $credName, $userName, $password);
+    $errors .= $ec->checkAllErrors($xpath);
+
+    # Give config the credential's real name
+    my $configPath = "/projects/$projName/ec_plugin_cfgs/$config";
+    print "Creating credential $credName in project $projName with user $userName\n";
+    $errors .= $ec->checkAllErrors($xpath);
+    $xpath = $ec->setProperty($configPath . '/' . $credValue, $credName);
+    $errors .= $ec->checkAllErrors($xpath);
+
+    # Give job launcher full permissions on the credential
+    my $user = '$[/myJob/launchedByUser]';
+    $xpath = $ec->createAclEntry("user", $user, {
+        projectName                => $projName,
+        credentialName             => $credName,
+        readPrivilege              => "allow",
+        modifyPrivilege            => "allow",
+        executePrivilege           => "allow",
+        changePermissionsPrivilege => "allow"
+    });
+    $errors .= $ec->checkAllErrors($xpath);
+
+    # Attach credential to steps that will need it
+    my $stepsJSON = $ec->getPropertyValue("/projects/$projName/procedures/CreateConfiguration/ec_stepsWithAttachedCredentials");
+    if (defined $stepsJSON && $stepsJSON ne "") {
+        #parse as json
+        my $steps = from_json($stepsJSON);
+        foreach my $step (@$steps) {
+            print "Attaching credential to procedure " . $step->{procedureName} . " at step " . $step->{stepName} . "\n";
+            my $apath = $ec->attachCredential($projName, $credName, {
+                procedureName => $step->{procedureName},
+                stepName      => $step->{stepName}
+            });
+            $errors .= $ec->checkAllErrors($apath);
+        }
+    }
+
+    if ($errors ne "") {
+        # Cleanup the partially created configuration we just created
+        $ec->deleteProperty($configPath);
+        $ec->deleteCredential($projName, $credName);
+        my $errMsg = "Error creating configuration credential: " . $errors;
+        $ec->setProperty("/myJob/configError", $errMsg);
+        print $errMsg;
+        exit 1;
+    }
 }
+
+for my $credName (keys %credentials) {
+    $ec->abortOnError(1);
+    print "CredName: $credName\n";
+    try_to_attach_the_credential($credName, $credentials{$credName});
+}
+
+1;

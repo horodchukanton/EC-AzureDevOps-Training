@@ -1,12 +1,26 @@
+#
+# Copyright 2019 Electric Cloud, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#  http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 use Cwd;
 use File::Spec;
 use POSIX;
 my $dir = getcwd;
-my $logfile ="";
+my $logfile = "";
 my $pluginDir;
 
-
-if ( defined $ENV{QUERY_STRING} ) {    # Promotion through UI
+if (defined $ENV{QUERY_STRING}) { # Promotion through UI
     $pluginDir = $ENV{COMMANDER_PLUGINS} . "/$pluginName";
 }
 else {
@@ -17,7 +31,7 @@ else {
 
 $logfile .= "Plugin directory is $pluginDir";
 
-$commander->setProperty("/plugins/$pluginName/project/pluginDir", {value=>$pluginDir});
+$commander->setProperty("/plugins/$pluginName/project/pluginDir", { value => $pluginDir });
 $logfile .= "Plugin Name: $pluginName\n";
 $logfile .= "Current directory: $dir\n";
 
@@ -25,9 +39,10 @@ $logfile .= "Current directory: $dir\n";
 local $/ = undef;
 # If env variable QUERY_STRING exists:
 my $dslFilePath;
-if(defined $ENV{QUERY_STRING}) { # Promotion through UI
+if (defined $ENV{QUERY_STRING}) { # Promotion through UI
     $dslFilePath = File::Spec->catfile($ENV{COMMANDER_PLUGINS}, $pluginName, "dsl", "$promoteAction.groovy");
-} else {  # Promotion from the command line
+}
+else { # Promotion from the command line
     $dslFilePath = File::Spec->catfile($pluginDir, "dsl", "$promoteAction.groovy");
 }
 
@@ -40,7 +55,6 @@ my $promoteDsl = q{
 # promote.groovy placeholder
 };
 
-
 my $dsl;
 if ($promoteAction eq 'promote') {
     $dsl = $promoteDsl;
@@ -51,7 +65,7 @@ else {
 
 my $dslReponse = $commander->evalDsl(
     $dsl, {
-    parameters => qq(
+    parameters        => qq(
                      {
                        "pluginName":"$pluginName",
                        "upgradeAction":"$upgradeAction",
@@ -59,7 +73,7 @@ my $dslReponse = $commander->evalDsl(
                      }
               ),
     debug             => 'false',
-    serverLibraryPath => File::Spec->catdir( $pluginDir, 'dsl' ),
+    serverLibraryPath => File::Spec->catdir($pluginDir, 'dsl'),
 },
 );
 
@@ -69,6 +83,6 @@ my $errorMessage = $commander->getError();
 
 # Create output property for plugin setup debug logs
 my $nowString = localtime;
-$commander->setProperty( "/plugins/$pluginName/project/logs/$nowString", { value => $logfile } );
+$commander->setProperty("/plugins/$pluginName/project/logs/$nowString", { value => $logfile });
 
-die $errorMessage if ($errorMessage);
+die $errorMessage unless ! $errorMessage;
