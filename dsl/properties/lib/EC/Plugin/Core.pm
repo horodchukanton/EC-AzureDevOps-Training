@@ -575,54 +575,61 @@ sub get_credentials {
 
 
 sub get_config_values {
-    my ($self, $config_name) = @_;
+    my ($self, $config_name, $renew) = @_;
 
     die 'No config name' unless $config_name;
-    my $plugin_project_name = '@PLUGIN_KEY@-@PLUGIN_VERSION@';
-    my $config_property_sheet = "/projects/$plugin_project_name/ec_plugin_cfgs/$config_name";
-    my $property_sheet_id = eval { $self->ec->getProperty($config_property_sheet)->findvalue('//propertySheetId')->string_value };
-    if ($@) {
-        $self->bail_out(qq{Configuration "$config_name" does not exist});
-    }
-    my $properties = $self->ec->getProperties({propertySheetId => $property_sheet_id});
 
-    my $retval = {};
-    for my $node ( $properties->findnodes('//property')) {
-        my $value = $node->findvalue('value')->string_value;
-        my $name = $node->findvalue('propertyName')->string_value;
-        $retval->{$name} = $value;
+    print "get_config_values called at:" . join(', ', caller);
+
+    if (!$self->{_config} || $renew) {
+
+        my $plugin_project_name = '@PLUGIN_KEY@-@PLUGIN_VERSION@';
+        my $config_property_sheet = "/projects/$plugin_project_name/ec_plugin_cfgs/$config_name";
+        my $property_sheet_id = eval {$self->ec->getProperty($config_property_sheet)->findvalue('//propertySheetId')->string_value};
+        if ($@) {
+            $self->bail_out(qq{Configuration "$config_name" does not exist});
+        }
+        my $properties = $self->ec->getProperties({ propertySheetId => $property_sheet_id });
+
+        my $retval = {};
+        for my $node ($properties->findnodes('//property')) {
+            my $value = $node->findvalue('value')->string_value;
+            my $name = $node->findvalue('propertyName')->string_value;
+            $retval->{$name} = $value;
 
 
-        if ($name =~ /proxy_credential/) {
-            # Proxy credential can exist not, and EC will fail. Avoiding
-            my $saved_abort_on_error_value = $self->ec->abortOnError();
-            eval {
-                $self->ec->abortOnError(0);
-                my $credentials = $self->ec->getFullCredential($config_name . '_proxy_credential');
+            if ($name =~ /proxy_credential/) {
+                # Proxy credential can exist not, and EC will fail. Avoiding
+                my $saved_abort_on_error_value = $self->ec->abortOnError();
+                eval {
+                    $self->ec->abortOnError(0);
+                    my $credentials = $self->ec->getFullCredential($config_name . '_proxy_credential');
+                    my $user_name = $credentials->findvalue('//userName')->string_value;
+                    my $password = $credentials->findvalue('//password')->string_value;
+
+                    $retval->{proxy_username} = $user_name;
+                    $retval->{proxy_password} = $password;
+                } or do {
+                    print "Can't get proxy credential: $@ \n";
+                };
+
+                # Restore value
+                $self->ec->abortOnError($saved_abort_on_error_value);
+            }
+            elsif ($name =~ /credential/) {
+                my $credentials = $self->ec->getFullCredential($config_name);
                 my $user_name = $credentials->findvalue('//userName')->string_value;
                 my $password = $credentials->findvalue('//password')->string_value;
 
-                $retval->{proxy_username} = $user_name;
-                $retval->{proxy_password} = $password;
-            } or do {
-                print "Can't get proxy credential: $@ \n";
-            };
-
-            # Restore value
-            $self->ec->abortOnError($saved_abort_on_error_value);
-        }
-        elsif ($name =~ /credential/) {
-            my $credentials = $self->ec->getFullCredential($config_name);
-            my $user_name = $credentials->findvalue('//userName')->string_value;
-            my $password = $credentials->findvalue('//password')->string_value;
-
-            $retval->{userName} = $user_name;
-            $retval->{password} = $password;
+                $retval->{userName} = $user_name;
+                $retval->{password} = $password;
+            }
         }
 
+        $self->{_config} = $retval;
     }
 
-    return $retval;
+    return $self->{_config};
 }
 
 

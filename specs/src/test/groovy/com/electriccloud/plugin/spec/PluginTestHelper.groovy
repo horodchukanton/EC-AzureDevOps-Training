@@ -4,7 +4,7 @@ import com.electriccloud.plugin.spec.tfs.TFSHelper
 
 /*
 
-Copyright 2018 Electric Cloud, Inc.
+Copyright 2019 Electric Cloud, Inc.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -33,36 +33,67 @@ class PluginTestHelper extends PluginSpockTestSupport {
     def createConfiguration(String configName = CONFIG_NAME, Map props = [:]) {
 
         String username = getADOSUsername()
-        String password = getADOSToken() // TOKEN SHOULD BE USED INSTEAD OF A PASSWORD
+
+        // TOKEN SHOULD BE USED INSTEAD OF A PASSWORD FOR BASIC AUTH
+        String password = getADOSToken()
         String url = getADOSURL()
         String collectionName = getADOSCollectionName()
         String apiVersion = getADOSApiVersion()
+        String logLevel = 10
 
         // Proxy support will be added later
-        // def isProxyAvailable = System.getenv('IS_PROXY_AVAILABLE') ?: '0'
-        // def efProxyUrl = System.getenv('EF_PROXY_URL') ?: ''
-        // def efProxyUsername = System.getenv('EF_PROXY_USERNAME') ?: ''
-        // def efProxyPassword = System.getenv('EF_PROXY_PASSWORD') ?: ''
+         def isProxyAvailable = System.getenv('IS_PROXY_AVAILABLE') ?: '0'
 
         if (System.getenv('RECREATE_CONFIG')) {
             props.recreate = true
         }
 
-        createPluginConfiguration(
-            'EC-AzureDevOps',
-            configName,
-            [
-                desc      : 'Spec Tests Config',
-                endpoint  : url,
-                collection: collectionName,
-                apiVersion: apiVersion,
-                auth      : 'basic',
-//                    auth        : authType,
-            ],
-            username,
-            password,
-            props
-        )
+        if (!isProxyAvailable){
+            createPluginConfiguration(
+                'EC-AzureDevOps',
+                configName,
+                [
+                    desc      : 'Spec Tests Config',
+                    endpoint  : url,
+                    collection: collectionName,
+                    apiVersion: apiVersion,
+                    auth      : 'basic',
+                    debugLevel: logLevel,
+                    http_proxy: '',
+                    checkConnection : 1
+                ],
+                username,
+                password,
+                props
+            )
+        }
+        else {
+            def efProxyUrl = System.getenv('EF_PROXY_URL') ?: ''
+            def efProxyUsername = System.getenv('EF_PROXY_USERNAME') ?: ''
+            def efProxyPassword = System.getenv('EF_PROXY_PASSWORD') ?: ''
+
+            createPluginConfigurationWithProxy(
+                configName,
+                [
+                    desc      : 'Spec Tests Config',
+                    endpoint  : url,
+                    collection: collectionName,
+                    apiVersion: apiVersion,
+                    auth      : 'basic',
+                    debugLevel: logLevel,
+                    http_proxy: efProxyUrl,
+                    checkConnection : 1
+                ],
+                [
+                    username : username,
+                    password : password,
+                ],
+                [
+                    username : efProxyUsername,
+                    password : efProxyPassword,
+                ]
+            )
+        }
     }
 
     static String getAssertedEnvVariable(String varName) {
@@ -171,7 +202,7 @@ class PluginTestHelper extends PluginSpockTestSupport {
 
     def getCurrentProcedureName(def jobId) {
         assert jobId
-        def currentProcedureName
+        def currentProcedureName = null
         def property = "/myJob/procedureName"
         try {
             currentProcedureName = getJobProperty(property, jobId)
@@ -306,4 +337,46 @@ class PluginTestHelper extends PluginSpockTestSupport {
         return 'local'
     }
 
+
+    Object createPluginConfigurationWithProxy(String configName, Map params, Map credential, Map proxyCredential) {
+        assert configName
+
+        def result = dsl """
+            runProcedure(
+                projectName: '/plugins/EC-AzureDevOps/project',
+                procedureName: 'CreateConfiguration',
+                credential: [
+                    [
+                        credentialName: 'proxy_credential',
+                        userName: '${proxyCredential.username}',
+                        password: '${proxyCredential.password}'
+                    ],
+                    [
+                        credentialName: 'credential',
+                        userName: '${credential.username}',
+                        password: '${credential.password}'
+                    ],
+                ],
+                actualParameter: [
+                    config          : '${configName}', 
+                    desc            : '${params.desc}',
+                    endpoint        : '${params.endpoint}',
+                    collection      : '${params.collection}',
+                    apiVersion      : '${params.apiVersion}',
+                    auth            : '${params.auth}',
+                    debugLevel      : '${params.debugLevel}',
+                    http_proxy      : '${params.http_proxy}',
+                    checkConnection : '${params.checkConnection}',
+                    credential      : 'credential',
+                    proxy_credential: 'proxy_credential'
+                ]
+            )
+            """
+
+        assert result?.jobId
+        waitUntil {
+            jobCompleted(result)
+        }
+        assert jobStatus(result.jobId).outcome == 'success'
+    }
 }

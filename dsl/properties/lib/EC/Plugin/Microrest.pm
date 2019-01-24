@@ -93,14 +93,14 @@ sub new {
 
 sub _init {
     my ($self) = @_;
-    #
-    # $self->{ec} = ElectricCommander->new();
-    # $self->{ec}->abortOnError(0);
 
     $self->{ua} = $self->get_lwp_instance();
 
     # Init proxy if defined
     if ($self->{_data}{proxy_params}){
+        require EC::ProxyDispatcher;
+        EC::ProxyDispatcher->import();
+
         $self->{_proxy_dispatcher} = EC::ProxyDispatcher->new( $self->{_data}{proxy_params} );
         $self->{proxy} = $self->{_proxy_dispatcher}->get_proxy_dispatcher();
 
