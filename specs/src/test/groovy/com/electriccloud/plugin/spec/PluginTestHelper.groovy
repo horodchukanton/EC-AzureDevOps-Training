@@ -35,17 +35,29 @@ class PluginTestHelper extends PluginSpockTestSupport {
         String username = getADOSUsername()
 
         // TOKEN SHOULD BE USED INSTEAD OF A PASSWORD FOR BASIC AUTH
-        String password = getADOSToken()
         String url = getADOSURL()
         String collectionName = getADOSCollectionName()
         String apiVersion = getADOSApiVersion()
         String logLevel = 10
 
-        // Proxy support will be added later
-         def isProxyAvailable = System.getenv('IS_PROXY_AVAILABLE') ?: '0'
+        String authType = System.getenv('ADOS_AUTH_NTLM') == 'true' ? 'ntlm' : 'basic'
+        String password = authType == 'basic' ? getADOSToken() : getADOSPassword()
+
+
+        def isProxyAvailable = System.getenv('IS_PROXY_AVAILABLE') ?: '0'
 
         if (System.getenv('RECREATE_CONFIG')) {
             props.recreate = true
+        }
+
+        def confPath = props.confPath ?: 'ec_plugin_cfgs'
+        if (doesConfExist("/plugins/${PLUGIN_NAME}/project/$confPath", configName)) {
+            if (props.recreate) {
+                deleteConfiguration(PLUGIN_NAME, configName)
+            } else {
+                println "Configuration $configName exists"
+                return
+            }
         }
 
         if (!isProxyAvailable){
@@ -57,7 +69,7 @@ class PluginTestHelper extends PluginSpockTestSupport {
                     endpoint  : url,
                     collection: collectionName,
                     apiVersion: apiVersion,
-                    auth      : 'basic',
+                    auth      : authType,
                     debugLevel: logLevel,
                     http_proxy: '',
                     checkConnection : 1
@@ -79,7 +91,7 @@ class PluginTestHelper extends PluginSpockTestSupport {
                     endpoint  : url,
                     collection: collectionName,
                     apiVersion: apiVersion,
-                    auth      : 'basic',
+                    auth      : authType,
                     debugLevel: logLevel,
                     http_proxy: efProxyUrl,
                     checkConnection : 1
@@ -105,6 +117,8 @@ class PluginTestHelper extends PluginSpockTestSupport {
     static String getADOSUsername() { getAssertedEnvVariable("ADOS_USERNAME") }
 
     static String getADOSToken() { getAssertedEnvVariable("ADOS_TOKEN") }
+
+    static String getADOSPassword() { getAssertedEnvVariable("ADOS_PASSWORD") }
 
     static String getADOSURL() { getAssertedEnvVariable("ADOS_URL") }
 

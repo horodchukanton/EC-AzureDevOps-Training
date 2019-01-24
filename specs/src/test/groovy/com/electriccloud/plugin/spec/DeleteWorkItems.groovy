@@ -87,7 +87,7 @@ class DeleteWorkItems extends PluginTestHelper {
             workItemIds.split(/,\s?/).each { id ->
                 // Item can be already deleted
                 try {
-                    println "Ignore 404 error. This means item is already deleted"
+                    println "\n -- Ignore 404 error. This means item is already deleted"
                     tfsClient.deleteWorkItem(id)
                 }
                 catch (AssertionError e) {
@@ -148,7 +148,7 @@ class DeleteWorkItems extends PluginTestHelper {
             workItemIdsArr.each { id ->
                 // Item can be already deleted
                 try {
-                    println "Ignore 404 error. This means item is already deleted"
+                    println "\n -- Ignore 404 error. This means item is already deleted"
                     tfsClient.deleteWorkItem(id)
                 }
                 catch (AssertionError e) {

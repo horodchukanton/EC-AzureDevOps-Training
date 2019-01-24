@@ -579,8 +579,6 @@ sub get_config_values {
 
     die 'No config name' unless $config_name;
 
-    print "get_config_values called at:" . join(', ', caller);
-
     if (!$self->{_config} || $renew) {
 
         my $plugin_project_name = '@PLUGIN_KEY@-@PLUGIN_VERSION@';
