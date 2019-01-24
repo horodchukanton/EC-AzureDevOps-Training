@@ -40,7 +40,7 @@ class GetDefaultValues extends PluginTestHelper {
     }
 
     def doCleanupSpec() {
-//        deleteConfiguration('EC-AzureDevOps', configName)
+        deleteConfiguration('EC-AzureDevOps', configName)
         conditionallyDeleteProject(projectName)
     }
 

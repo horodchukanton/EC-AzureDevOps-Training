@@ -1,0 +1,28 @@
+version: '3'
+services:
+  electric-flow:
+    image: "electricflow/efserver:8.5"
+    ports:
+      - "8000:8000"
+      - "8443:8443"
+      - "443:443"
+      - "80:80"
+    networks:
+      - frontend
+    container_name: electricflow
+    tty: true
+  squid:
+    image: electricflow/squid
+    ports:
+      - "3128:3128"
+    networks:
+      - frontend
+      - backend
+    container_name: squid
+    hostname: squid
+    tty: true
+networks:
+  frontend:
+    driver: bridge
+  backend:
+    driver: bridge
