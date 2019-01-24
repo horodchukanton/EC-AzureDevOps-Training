@@ -1213,7 +1213,6 @@ sub get_base_url {
 
     # Check mandatory
     for my $param (qw/endpoint collection/) {
-        print
         $self->bail_out("No value for configuration parameter '$param' was provided\n") unless $config->{$param};
     }
 
