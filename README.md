@@ -21,6 +21,10 @@ Update a work item fields.
 
 Deletes the specified work item.
 
+## QueryWorkItems
+
+Performs a search inside a TFS using given WIQL query (or existing query), then saves found work items into the properties.
+
 ## GetDefaultValues
 
 Get the default values that will be filled in automatically when you create a new work item of a specific type.
