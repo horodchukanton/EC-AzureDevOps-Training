@@ -1159,7 +1159,7 @@ sub upload_chunked {
               'api-version' => $api_version
           });
         } or do {
-            $upload_crashed = 1;
+            $upload_crashed = $@;
         };
         last if $upload_crashed;
 
@@ -1169,7 +1169,7 @@ sub upload_chunked {
     }
 
     if ($upload_crashed){
-        $self->logger->error("Upload process has been interrupted.");
+        $self->logger->error("Upload process has been interrupted with error: " . $upload_crashed);
         return;
     }
 
