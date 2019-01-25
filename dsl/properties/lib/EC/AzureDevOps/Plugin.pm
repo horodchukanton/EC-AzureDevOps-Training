@@ -530,10 +530,12 @@ sub step_upload_work_item_attachment {
     # Use upload the file depending on the upload type
     my $attachment_url;
     if ($params->{uploadType} eq 'chunked') {
-        $attachment_url = $self->upload_chunked($config,
-            filePath => $params->{filePath},
+        my %upload_params = (
             filename => $params->{filename}
         );
+
+        $upload_params{filePath} = $params->{filePath} if ($params->{filePath});
+        $attachment_url = $self->upload_chunked($config, %upload_params);
     }
     elsif ($params->{uploadType} eq 'simple') {
         my %upload_params = (
@@ -1101,7 +1103,7 @@ sub upload_chunked {
         $request;
     };
 
-    my HTTP::Response $start_response = $client->post($request_path, {
+    my $start_response = $client->post($request_path, {
         fileName      => $upload_params{filename},
         uploadType    => 'chunked',
         'api-version' => $api_version
@@ -1117,19 +1119,28 @@ sub upload_chunked {
 
     my $buf;
     my $total = -s $file_path;
-    $self->logger->debug("Total size: $total");
+    $self->logger->debug("Total size: $total bytes");
 
     my $cl_end = 0;
     my $total_mb = $total / ( 1024 * 1024 );
 
-    my $attachment_upload_uri = URI->new($attachment_url);
-    $attachment_upload_uri->query_form(
-        fileName      => $upload_params{filename},
-        'api-version' => $api_version
-    );
+    my URI $attachment_upload_uri = URI->new($attachment_url);
 
-    # 10 Kb
-    while (my $bytes_read = read($fh, $buf, 1024 * 1024)) {
+    my $attachment_path = $attachment_upload_uri->path();
+    $attachment_path =~ s|.*?_apis/wit/|_apis/wit/|;
+
+    # NTLM via proxy requires to add a special header
+    my $ntlm_and_proxy = ($client->{proxy} && $client->get_auth eq 'ntlm');
+    if ($ntlm_and_proxy){
+        $self->logger->info("[WARNING] Using both NTLM auth and a proxy,"
+         . " can cause upload to be crashed with 'Unauthorized' error if"
+         . " your Proxy does not keeps persistent connections for"
+         . " the POST requests (as Squid 3.5.27 does).")
+    }
+
+    my $upload_crashed = 0;
+    my $chunk_size = 1024 * 1024; # 1 MB
+    while (my $bytes_read = read($fh, $buf, $chunk_size)) {
         $cl_end = $bytes_read - 1 + $cl_start;
         my $content_length = "$cl_start-$cl_end";
 
@@ -1137,17 +1148,29 @@ sub upload_chunked {
             my HTTP::Request $request = shift;
             $request->header('Content-Range' => "bytes $content_length/$total");
             $request->header('Content-Type' => "application/octet-stream");
+            $request->header('Proxy-Connection' => "Keepalive") if ($ntlm_and_proxy);
             $request->content($buf);
-            $request->uri($attachment_upload_uri);
             $request;
         };
 
-        # We need to use client post method to deal with authorization and HTTP method
-        $client->post('URL AND PARAMS ARE SET INSIDE OF A HOOK');
+        eval {
+          $client->post($attachment_path, {
+              fileName      => $upload_params{filename},
+              'api-version' => $api_version
+          });
+        } or do {
+            $upload_crashed = 1;
+        };
+        last if $upload_crashed;
 
         $cl_start += $bytes_read;
         my $uploaded_mb = $cl_start / ( 1024 * 1024 );
         $self->logger->debug(sprintf "Upload progress: %.2f/%.2f Mb", $uploaded_mb, $total_mb);
+    }
+
+    if ($upload_crashed){
+        $self->logger->error("Upload process has been interrupted.");
+        return;
     }
 
     $self->logger->debug('Upload finished');

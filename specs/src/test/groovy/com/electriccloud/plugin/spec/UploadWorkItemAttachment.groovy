@@ -74,7 +74,7 @@ class UploadWorkItemAttachment extends PluginTestHelper {
     }
 
     @Unroll
-    def '#caseId. Sanity. Update Single. Upload Type: "#uploadType", ContentSource: "#sourceType"'() {
+    def '#caseId. Sanity. Upload Type: "#uploadType", ContentSource: "#sourceType"'() {
         given:
 
         fileName = (String) procedureName + caseId + '.txt'
@@ -128,6 +128,53 @@ class UploadWorkItemAttachment extends PluginTestHelper {
 
         // This one (CHNGME_3) should switch to simple
         'CHNGME_3' | 'chunked'  | 'content'  | 10
+    }
+
+    @Unroll
+    @IgnoreIf({ System.getenv("IS_PROXY_AVAILABLE") == '1' && System.getenv("ADOS_AUTH_NTLM") == 'true'})
+    def '#caseId. Sanity. Upload Type: "chunked", ContentSource: "#sourceType"'() {
+        given:
+
+        fileName = (String) procedureName + caseId + '.txt'
+        println("Writing new file with size ${fileSizeKB} KB")
+
+        filePath = generateFile(fileName, fileSizeKB)
+        fileContent = ''
+        println("File created at $filePath")
+
+        def workItem = tfsClient.createWorkItem('Feature', [
+            title      : randomize(procedureName),
+            description: "Delete me"
+        ])
+
+        workItemId = workItem.id
+
+        Map procedureParams = [
+            config             : config,
+            workItemId         : workItemId,
+            comment            : comment,
+            filename           : fileName,
+            uploadType         : uploadType,
+            filePath           : filePath,
+            fileContent        : fileContent,
+            resultFormat       : resultFormat,
+            resultPropertySheet: resultPropertySheet
+        ]
+
+        when:
+        def result = runProcedure(projectName, procedureName, procedureParams)
+
+        then:
+        println getJobLink(result.jobId)
+        assert result.outcome == 'success'
+
+        cleanup:
+        if (workItemId){
+            tfsClient.deleteWorkItem(workItemId)
+        }
+
+        where:
+        caseId     | uploadType | sourceType | fileSizeKB
         'CHNGME_4' | 'chunked'  | 'file'     | 4 * 1024
     }
 

@@ -428,5 +428,10 @@ sub get_lwp_instance {
     return $ua;
 }
 
+sub get_auth() {
+    my ($self) = @_;
+    return $self->{_data}{auth};
+}
+
 1;
 
