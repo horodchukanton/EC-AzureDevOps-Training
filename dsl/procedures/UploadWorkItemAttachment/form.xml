@@ -19,14 +19,6 @@
   <value/>
 </formElement>
 <formElement>
-  <documentation>Comment for the attachment</documentation>
-  <label>Comment:</label>
-  <property>comment</property>
-  <required>0</required>
-  <type>entry</type>
-  <value/>
-</formElement>
-<formElement>
   <documentation>The name of the file in the attachment store (typically the same as the name of the source of the attachment).</documentation>
   <label>Attachment Filename:</label>
   <property>filename</property>
@@ -66,34 +58,42 @@
   <type>textarea</type>
   <value/>
 </formElement>
-  <formElement>
-    <documentation>Format to save request results.</documentation>
-    <label>Result Format:</label>
-    <option>
-      <name>Property Sheet</name>
-      <value>propertySheet</value>
-    </option>
-    <option>
-      <name>JSON</name>
-      <value>json</value>
-    </option>
-    <option>
-      <name>Do not save the result</name>
-      <value>none</value>
-    </option>
-    <property>resultFormat</property>
+<formElement>
+  <documentation>Comment for the attachment</documentation>
+  <label>Comment:</label>
+  <property>comment</property>
+  <required>0</required>
+  <type>entry</type>
+  <value/>
+</formElement>
+<formElement>
+  <documentation>Format to save request results.</documentation>
+  <label>Result Format:</label>
+  <option>
+    <name>Property Sheet</name>
     <value>propertySheet</value>
-    <required>1</required>
-    <type>select</type>
-  </formElement>
-  <formElement>
-    <documentation>Result will be saved into this property/property sheet.</documentation>
-    <label>Result Property Sheet:</label>
-    <property>resultPropertySheet</property>
-    <required>0</required>
-    <type>entry</type>
-    <value>/myJob/workItemAttachment</value>
-    <dependsOn>resultFormat</dependsOn>
-    <condition>${resultFormat} != 'none'</condition>
-  </formElement>
+  </option>
+  <option>
+    <name>JSON</name>
+    <value>json</value>
+  </option>
+  <option>
+    <name>Do not save the result</name>
+    <value>none</value>
+  </option>
+  <property>resultFormat</property>
+  <value>propertySheet</value>
+  <required>1</required>
+  <type>select</type>
+</formElement>
+<formElement>
+  <documentation>Result will be saved into this property/property sheet.</documentation>
+  <label>Result Property Sheet:</label>
+  <property>resultPropertySheet</property>
+  <required>0</required>
+  <type>entry</type>
+  <value>/myJob/workItemAttachment</value>
+  <dependsOn>resultFormat</dependsOn>
+  <condition>${resultFormat} != 'none'</condition>
+</formElement>
 </editor>

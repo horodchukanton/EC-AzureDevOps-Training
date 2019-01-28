@@ -44,7 +44,7 @@
 </formElement>
 <formElement>
   <documentation>Parameters to pass to the build in key-value form, one pair per line. e.g. 'system.debug="true" BuildConfiguration="debug" BuildPlatform="x64"'. If not specified, the default variables for the definition will be used.</documentation>
-  <htmlDocumentation>Parameters to pass to the build in key-value form, one pair per line. e.g. &#x3C;pre&#x3E;system.debug=&#x22;true&#x22; BuildConfiguration=&#x22;debug&#x22; BuildPlatform=&#x22;x64&#x22;&#x3C;/pre&#x3E;. If not specified, the default variables for the definition will be used.</htmlDocumentation>
+  <htmlDocumentation>Parameters to pass to the build in key-value form, one pair per line. e.g. <b>system.debug="true" BuildConfiguration="debug" BuildPlatform="x64"</b>. If not specified, the default variables for the definition will be used.</htmlDocumentation>
   <label>Parameters:</label>
   <property>parameters</property>
   <required>0</required>

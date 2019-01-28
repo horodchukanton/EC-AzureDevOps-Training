@@ -20,10 +20,7 @@
   </formElement>
   <formElement>
     <documentation>Name or ID of a team project where the work item should be created.</documentation>
-    <htmlDocumentation>Name or ID of a &lt;a href=&quot;https://docs.microsoft.com/uk-ua/rest/api/azure/devops/core/?view=azure-devops-rest-4.1&quot;
-      target=&quot;_blank&quot; style=&quot;text-decoration: none !important; border-bottom-style: dashed;
-      border-bottom-width: thin; font-size: inherit; color: inherit; font-family: inherit; border-color: #d8d8d8;
-      border-spacing: 2px;&quot;&gt;team project&lt;/a&gt; where the work item should be created.
+    <htmlDocumentation>Name or ID of a <a href="https://docs.microsoft.com/uk-ua/rest/api/azure/devops/wit/?view=azure-devops-rest-4.1" target="_blank">team project</a> where the work item should be created.
     </htmlDocumentation>
     <label>Project name:</label>
     <property>project</property>
@@ -33,11 +30,7 @@
   </formElement>
   <formElement>
     <documentation>Name of the work item type.</documentation>
-    <htmlDocumentation>Name of the &lt;a href=&quot;https://docs.microsoft.com/uk-ua/rest/api/azure/devops/wit/?view=azure-devops-rest-4.1&quot;
-      target=&quot;_blank&quot; style=&quot;text-decoration: none !important; border-bottom-style: dashed;
-      border-bottom-width: thin; font-size: inherit; color: inherit; font-family: inherit; border-color: #d8d8d8;
-      border-spacing: 2px;&quot;&gt;work item type&lt;/a&gt;.
-    </htmlDocumentation>
+    <htmlDocumentation>Name of the <a href="https://docs.microsoft.com/uk-ua/rest/api/azure/devops/wit/?view=azure-devops-rest-4.1" target="_blank">work item type</a>.</htmlDocumentation>
     <label>Type:</label>
     <property>type</property>
     <propertyReference>/plugins/@PLUGIN_NAME@/project/ecp_azuredevops_workitemtypes</propertyReference>
@@ -54,8 +47,8 @@
     <value/>
   </formElement>
   <formElement>
-    <documentation>The person currently assigned to the work item.</documentation>
-    <label>Assign to:</label>
+    <documentation>The person currently assigned to the work item. The value can contain an email or a fully specified name of an assignee</documentation>
+    <label>Assign To:</label>
     <property>assignTo</property>
     <required>0</required>
     <type>entry</type>
@@ -70,9 +63,9 @@
     <value/>
   </formElement>
   <formElement>
-    <documentation>Additional fields to be added as a JSON array. Please refer to Azure DevOps documentation for the examples.</documentation>
-    <htmlDocumentation>Additional fields to be added as a JSON array. Please refer to <a href="https://docs.microsoft.com/uk-ua/rest/api/azure/devops/wit/work%20items/update?view=azure-devops-rest-4.1#examples" target="_blank">Azure DevOps documentation</a> for the examples.</htmlDocumentation>
-    <label>Additional fields:</label>
+    <documentation>Additional fields to be added as a JSON array. Please refer to the "Usage Example" at the procedure's help or Azure DevOps documentation for the examples.</documentation>
+    <htmlDocumentation>Additional fields to be added as a JSON array. Please refer to the "Usage Example" at the procedure's help or <a href="https://docs.microsoft.com/uk-ua/rest/api/azure/devops/wit/work%20items/update?view=azure-devops-rest-4.1#examples" target="_blank">Azure DevOps documentation</a> for the examples.</htmlDocumentation>
+    <label>Additional Fields:</label>
     <property>additionalFields</property>
     <required>0</required>
     <type>textarea</type>
@@ -80,7 +73,7 @@
   </formElement>
   <formElement>
     <documentation>JSON with the work items to create. All missing fields will be read from usual parameters. e.g. [{"Title": "Title for the first work item", "Type": "Task"}, {"Title": "Title for the second work item", "Priority": 2}]</documentation>
-    <htmlDocumentation>This property should contain JSON array with the work items to create. All missing fields will be read from usual parameters.<br/> Example: &lt;pre&gt;[{"Title": "Title for the first work item", "Type": "Task"}, {"Title": "Title for the second work item", "Priority": 2}]&lt;pre&gt;</htmlDocumentation>
+    <htmlDocumentation>This property should contain JSON array with the work items to create. All missing fields will be read from usual parameters.<br/> Example: <b>[{"Title": "Title for the first work item", "Type": "Task"}, {"Title": "Title for the second work item", "Priority": 2}]</b></htmlDocumentation>
     <label>Work Items JSON:</label>
     <property>workItemsJSON</property>
     <required>0</required>

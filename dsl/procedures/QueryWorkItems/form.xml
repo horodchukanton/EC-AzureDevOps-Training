@@ -11,10 +11,11 @@
         <type>entry</type>
     </formElement>
     <formElement>
-        <documentation>Filter the results to this team project. If your query string uses the @project macro ([System.TeamProject] = @project, for example), you must specify the project.</documentation>
+        <htmlDocumentation>Filter the results to this team project. If your query string uses the @project macro (e.g. '[System.TeamProject] = @project'), you must specify the project.</htmlDocumentation>
+        <documentation>Filter the results to this team project. If your query string uses the @project macro (e.g. <b>'[System.TeamProject] = @project'</b>), you must specify the project.</documentation>
         <label>Project:</label>
         <property>project</property>
-        <required>1</required>
+        <required>0</required>
         <type>entry</type>
         <value/>
     </formElement>
@@ -29,7 +30,7 @@
     </formElement>
     <formElement>
         <documentation>The WIQL query string to run. Either this or "Query ID" should be specified.</documentation>
-        <htmlDocumentation>&lt;a href=&quot;https://docs.microsoft.com/en-us/azure/devops/boards/queries/wiql-syntax?view=vsts&quot; target=&quot;_blank&quot;&gt;Query string in WIQL&lt;/a&gt;. Either this or <b>Query ID</b> should be specified.</htmlDocumentation>
+        <htmlDocumentation><a href="https://docs.microsoft.com/en-us/azure/devops/boards/queries/wiql-syntax?view=vsts">Query string in WIQL</a>. Either this or <b>Query ID</b> should be specified.</htmlDocumentation>
         <label>Query Text:</label>
         <property>queryText</property>
         <required>0</required>
@@ -71,5 +72,4 @@
         <required>1</required>
         <type>select</type>
     </formElement>
-
 </editor>

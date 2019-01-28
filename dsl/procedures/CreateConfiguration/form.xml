@@ -68,7 +68,7 @@
         <property>credential</property>
         <required>1</required>
         <attachedAsParameterToStep>createAndAttachCredential</attachedAsParameterToStep>
-        <documentation>Username and password to connect to AzureDevOps Server/Services.</documentation>
+        <documentation>Username and password/PAT to connect to AzureDevOps Server/Services.</documentation>
     </formElement>
     <formElement>
         <type>checkbox</type>
@@ -78,52 +78,52 @@
         <uncheckedValue>0</uncheckedValue>
         <property>checkConnection</property>
         <documentation>If checked, the credentials will be checked before the configuration is saved.</documentation>
-        <value>1</value>
+        <value>0</value>
     </formElement>
     <formElement>
         <type>select</type>
-        <documentation>TFS and AzureDevOps Server/Services requires version to be specified. For AzureDevOps Services select the latest version.</documentation>
-        <label>API version:</label>
+        <documentation>TFS and AzureDevOps Server/Services requires version to be specified.</documentation>
+        <label>API Version:</label>
         <property>apiVersion</property>
         <required>1</required>
         <option>
-            <name>TFS vNext</name>
+            <name>TFS vNext - 5.0</name>
             <value>5.0</value>
         </option>
         <option>
-            <name>TFS 2018 Update 2/3</name>
+            <name>AzureDevOps Services, TFS 2018 Update 2/3 - 4.1</name>
             <value>4.1</value>
         </option>
         <option>
-            <name>TFS 2018 Update RTW/1</name>
+            <name>TFS 2018 Update RTW/1 - 4.0</name>
             <value>4.0</value>
         </option>
         <option>
-            <name>TFS 2017 Update 2</name>
+            <name>TFS 2017 Update 2 - 3.2</name>
             <value>3.2</value>
         </option>
         <option>
-            <name>TFS 2017 Update 1</name>
+            <name>TFS 2017 Update 1 - 3.1</name>
             <value>3.1</value>
         </option>
         <option>
-            <name>TFS 2017 RTW</name>
+            <name>TFS 2017 RTW - 3.0</name>
             <value>3.0</value>
         </option>
         <option>
-            <name>TFS 2015 Update 3/4</name>
+            <name>TFS 2015 Update 3/4 - 2.3</name>
             <value>2.3</value>
         </option>
         <option>
-            <name>TFS 2015 Update 2</name>
+            <name>TFS 2015 Update 2 - 2.2</name>
             <value>2.2</value>
         </option>
         <option>
-            <name>TFS 2015 Update 1</name>
+            <name>TFS 2015 Update 1 - 2.1</name>
             <value>2.1</value>
         </option>
         <option>
-            <name>TFS 2015 RTW</name>
+            <name>TFS 2015 RTW - 2.0</name>
             <value>2.0</value>
         </option>
         <option>
@@ -134,7 +134,7 @@
     </formElement>
     <formElement>
         <type>textarea</type>
-        <label>Custom API versions:</label>
+        <label>Custom API Versions:</label>
         <property>customApiVersions</property>
         <required>0</required>
         <value>wit/workitems=1.0

@@ -1,0 +1,29 @@
+overview: Should be replaced with 'overview.md'
+knownIssues: |
+  AzureDevOps Services and some of the TFS Servers (default depends of the version), does not accept clear password for the **Basic** authentication method. You should [create a Personal Access Token (PAT)](https://docs.microsoft.com/en-us/azure/devops/integrate/get-started/authentication/pats?view=azdevops) and use it instead of a password. <br/>
+  Uploading Attachments in the "Chunked" mode when using NTLM authentication via proxied connection may fail if proxy server closes connection after a POST request without a response content.
+
+proceduresGrouping:
+  groups:
+    - name: Get Work Items
+      description: Get, create, delete, search and update bugs, tasks, and other work items for your team.
+      procedures:
+        - GetWorkItems
+        - CreateWorkItems
+        - UpdateWorkItems
+        - DeleteWorkItems
+        - QueryWorkItems
+        - UploadWorkItemAttachment
+        - GetDefaultValues
+    - name: Builds Management
+      description: Provides methods for the build management.
+      procedures:
+        - TriggerBuild
+        - GetBuild
+
+proceduresPreface: |
+  <b>IMPORTANT</b> For all parameter descriptions in this section, required parameters are shown in <span class="required">bold italics</span>.<br/>
+
+supportedVersions:
+  - AzureDevOps Server/Services ( API version - 4.1 )
+  - TFS Server 2017 RTW ( Update 2 )

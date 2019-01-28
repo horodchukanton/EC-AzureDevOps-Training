@@ -20,8 +20,8 @@
 </formElement>
 <formElement>
   <documentation>Request only the fields specified in a list (comma-separated, up to 100) for a work item. If not specified, all fields with values are returned. e.g. 'System.State, System.IterationPath, Microsoft.VSTS.Common.StateChangeDate, Microsoft.VSTS.Common.Priority'</documentation>
-  <documentation>Request only the fields specified in a list (comma-separated, up to 100) for a work item. If not specified, all fields with values are returned. e.g. <b>'System.State, System.IterationPath, Microsoft.VSTS.Common.StateChangeDate, Microsoft.VSTS.Common.Priority'</b></documentation>
-  <label>Fields:</label>
+  <htmlDocumentation>Request only the fields specified in a list (comma-separated, up to 100) for a work item. If not specified, all fields with values are returned. e.g. <b>'System.State, System.IterationPath, Microsoft.VSTS.Common.StateChangeDate, Microsoft.VSTS.Common.Priority'</b>. Refer to the https://dev.azure.com/{yourOrganizationName}/_apis/wit/fields to see all of the available fields.</htmlDocumentation>
+  <label>Only Fields:</label>
   <property>fields</property>
   <required>0</required>
   <type>textarea</type>
@@ -37,8 +37,9 @@
   <value/>
 </formElement>
 <formElement>
-  <documentation>Gets work item relationships (work item links, hyperlinks, file attachements, etc.). Some of the types are not supported by the TFS API.</documentation>
-  <label>Expand relationships:</label>
+  <documentation>Gets work item relationships (work item links, hyperlinks, file attachements, etc.). Some of the types are not supported by the older TFS API.</documentation>
+  <htmlDocumentation>Gets work item relationships (work item links, hyperlinks, file attachements, etc.). <b>Some of the types are not supported by the older TFS API</b></htmlDocumentation>
+  <label>Expand Relationships:</label>
   <option>
     <name>All</name>
     <value>all</value>
