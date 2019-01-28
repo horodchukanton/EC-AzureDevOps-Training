@@ -29,6 +29,11 @@ else {
     $pluginDir = File::Spec->catfile($commanderPluginDir, $pluginName);
 }
 
+# Detecting running ec_setup on Windows for the Flow installed on Linux
+my $win_to_lin = ($^O =~ /MSWin32/ && $pluginDir =~ /^\\/);
+
+$pluginDir =~ s|\\|/|g if $win_to_lin;
+
 $logfile .= "Plugin directory is $pluginDir";
 
 $commander->setProperty("/plugins/$pluginName/project/pluginDir", { value => $pluginDir });
@@ -45,6 +50,7 @@ if (defined $ENV{QUERY_STRING}) { # Promotion through UI
 else { # Promotion from the command line
     $dslFilePath = File::Spec->catfile($pluginDir, "dsl", "$promoteAction.groovy");
 }
+$dslFilePath =~ s|\\|/|g if $win_to_lin;
 
 my $demoteDsl = q{
 # demote.groovy placeholder
@@ -63,6 +69,10 @@ else {
     $dsl = $demoteDsl;
 }
 
+# Running ec_setup on Windows for the Flow installed on Linux
+my $serverLibraryPath = File::Spec->catdir($pluginDir, 'dsl');
+$serverLibraryPath =~ s|\\|/|g if $win_to_lin;
+
 my $dslReponse = $commander->evalDsl(
     $dsl, {
     parameters        => qq(
@@ -73,7 +83,7 @@ my $dslReponse = $commander->evalDsl(
                      }
               ),
     debug             => 'false',
-    serverLibraryPath => File::Spec->catdir($pluginDir, 'dsl'),
+    serverLibraryPath => $serverLibraryPath,
 },
 );
 
