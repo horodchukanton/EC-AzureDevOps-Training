@@ -20,6 +20,10 @@ class QueryWorkItems extends PluginTestHelper {
     @Shared
     def resultFormat = 'propertySheet'
 
+    // Optional
+    @Shared
+    def project
+
     @Shared
     def asOf = ''
 
