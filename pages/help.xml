@@ -211,9 +211,9 @@ Custom API Version should be specified only if you are using TFS and your versio
         <p>Retrieves a list of the work items by the specified IDs.</p>
         
         
-            <p>The poricedure allows you to receive all the fields (or the specified ones only) for the work items with specified ids.
+            <p>The procedure allows you to receive all the fields (or the specified ones only) for the work items with the specified ids.
 <br/>
-You can also specify <b>As of (date)</b> parameter as a UTC date time string (2019-01-15T13:45:30) to get all work items as the existed at that time.</p>
+You can also specify <b>As of (date)</b> parameter as a UTC date time string (<i>2019-01-15T13:45:30</i>) to get all work items as they existed at that time.</p>
 
         
         <h3>GetWorkItems Parameters</h3>
@@ -238,17 +238,17 @@ You can also specify <b>As of (date)</b> parameter as a UTC date time string (20
             
             <tr>
                 <td >Only Fields</td>
-                <td>Request only the fields specified in a list (comma-separated, up to 100) for a work item. If not specified, all fields with values are returned. e.g. <b>'System.State, System.IterationPath, Microsoft.VSTS.Common.StateChangeDate, Microsoft.VSTS.Common.Priority'</b>. Refer to the https://dev.azure.com/{yourOrganizationName}/_apis/wit/fields to see all of the available fields.</td>
+                <td>Request only the fields specified in a list (comma-separated, up to 100) for a work item. If not specified, all fields with values are returned.<br/>Example: <b>'System.State, System.IterationPath, Microsoft.VSTS.Common.StateChangeDate, Microsoft.VSTS.Common.Priority'</b>.<br/> Refer to the https://dev.azure.com/{yourOrganizationName}/_apis/wit/fields to see all of the available fields.  This parameter cannot be specified with the <b>&quot;Expand Relationships&quot;</b>.</td>
             </tr>
             
             <tr>
                 <td >As of (date)</td>
-                <td>Gets the work items as they existed at this time.</td>
+                <td>UTC date time string (<i>2019-01-15T13:45:30</i>). Gets the work items as they existed at this time.</td>
             </tr>
             
             <tr>
                 <td >Expand Relationships</td>
-                <td>Gets work item relationships (work item links, hyperlinks, file attachements, etc.). <b>Some of the types are not supported by the older TFS API</b></td>
+                <td>Gets work item relationships (work item links, hyperlinks, file attachements, etc.). This parameter cannot be specified with the <b>&quot;Only Fields&quot;</b>.<br/><b>Some of the types are not supported by the older TFS API.</b></td>
             </tr>
             
             <tr>
@@ -258,7 +258,7 @@ You can also specify <b>As of (date)</b> parameter as a UTC date time string (20
             
             <tr>
                 <td class="required">Result Format</td>
-                <td>Format to save request results.</td>
+                <td>Format to save the request results.</td>
             </tr>
             
             </tbody>
@@ -266,7 +266,7 @@ You can also specify <b>As of (date)</b> parameter as a UTC date time string (20
         
         <p>
             <h4>Usage example:</h4>
-<p>Work Item IDs refers to the work items created in the <b>CreateWorkItems</b> step of the same pipeline stage.</p>
+<p><b>Work Item ID(s)</b> field here refers the result of the CreateWorkItems procedure, you can use the comma-separated numeric values instead.</p>
 <p>
 <image src="../../plugins/@PLUGIN_KEY@/images/GetWorkItems.png" title="" />
 </p>
@@ -280,8 +280,11 @@ You can also specify <b>As of (date)</b> parameter as a UTC date time string (20
         <h2>CreateWorkItems</h2>
         
         
-        <p>Creates new work items</p>
+        <p>Creates one or multiple new work items.</p>
         
+        
+            <p>List of the predefined work item types can be changed in the plugin properties (Commander &gt; Administration &gt; Plugins &gt; @PLUGIN_NAME@ &gt; Properties tab &gt; ecp_azuredevops_workitemtypes ).</p>
+
         
         <h3>CreateWorkItems Parameters</h3>
         <table class="grid">
@@ -330,18 +333,18 @@ You can also specify <b>As of (date)</b> parameter as a UTC date time string (20
             </tr>
             
             <tr>
-                <td >Additional Fields</td>
-                <td>Additional fields to be added as a JSON array. Please refer to the &quot;Usage Example&quot; at the procedure's help or <a href="https://docs.microsoft.com/uk-ua/rest/api/azure/devops/wit/work%20items/update?view=azure-devops-rest-4.1#examples" target="_blank">Azure DevOps documentation</a> for the examples.</td>
-            </tr>
-            
-            <tr>
                 <td >Work Items JSON</td>
                 <td>This property should contain JSON array with the work items to create. All missing fields will be read from usual parameters.<br/> Example: <b>[{&quot;Title&quot;: &quot;Title for the first work item&quot;, &quot;Type&quot;: &quot;Task&quot;}, {&quot;Title&quot;: &quot;Title for the second work item&quot;, &quot;Priority&quot;: 2}]</b></td>
             </tr>
             
             <tr>
+                <td >Additional Fields</td>
+                <td>Additional fields to be added as a JSON array. This an advanced usage field, please refer to the &quot;Usage Example&quot; at the procedure's help or the <a href="https://docs.microsoft.com/uk-ua/rest/api/azure/devops/wit/work%20items/update?view=azure-devops-rest-4.1#examples" target="_blank">Azure DevOps documentation</a> for the examples.</td>
+            </tr>
+            
+            <tr>
                 <td class="required">Result Format</td>
-                <td>Format to save request results.</td>
+                <td>Format to save the request results.</td>
             </tr>
             
             <tr>
@@ -367,8 +370,11 @@ You can also specify <b>As of (date)</b> parameter as a UTC date time string (20
         <h2>UpdateWorkItems</h2>
         
         
-        <p>Update work items fields</p>
+        <p>Updates field values for the work items with the specified ids.</p>
         
+        
+            <p>You can add the comment for the work item by specifying the &quot;Comment Body&quot; parameter.</p>
+
         
         <h3>UpdateWorkItems Parameters</h3>
         <table class="grid">
@@ -392,22 +398,22 @@ You can also specify <b>As of (date)</b> parameter as a UTC date time string (20
             
             <tr>
                 <td >Title</td>
-                <td>Short description of the work item.</td>
+                <td>New title for the work item.</td>
             </tr>
             
             <tr>
                 <td >Priority</td>
-                <td>Priority for completing the work item, based on business goals.</td>
+                <td>New priority for completing the work item, based on business goals. This field should contain a number.</td>
             </tr>
             
             <tr>
                 <td >Assign to</td>
-                <td>The person currently assigned to the work item.</td>
+                <td>Change the person currently assigned to the work item. The value can contain an email or a fully specified name of an assignee.</td>
             </tr>
             
             <tr>
                 <td >Description</td>
-                <td>Description for the work item.</td>
+                <td>New description for the work item.</td>
             </tr>
             
             <tr>
@@ -417,12 +423,12 @@ You can also specify <b>As of (date)</b> parameter as a UTC date time string (20
             
             <tr>
                 <td >Additional Fields</td>
-                <td>Additional fields to be added as a JSON array. Please refer to <a href="https://docs.microsoft.com/uk-ua/rest/api/azure/devops/wit/work%20items/update?view=azure-devops-rest-4.1#examples" target="_blank">Azure DevOps documentation</a> for the examples.</td>
+                <td>Additional fields to be added as a JSON array. This an advanced usage field, please refer to the &quot;Usage Example&quot; at the procedure's help or the <a href="https://docs.microsoft.com/uk-ua/rest/api/azure/devops/wit/work%20items/update?view=azure-devops-rest-4.1#examples" target="_blank">Azure DevOps documentation</a> for the examples.</td>
             </tr>
             
             <tr>
                 <td class="required">Result Format</td>
-                <td>Format to save request results.</td>
+                <td>Format to save the request results.</td>
             </tr>
             
             <tr>
@@ -435,6 +441,7 @@ You can also specify <b>As of (date)</b> parameter as a UTC date time string (20
         
         <p>
             <h4>Usage Example:</h4>
+<p><b>Work Item ID(s)</b> field here refers the result of the CreateWorkItems procedure, you can use the comma-separated numeric values instead.</p>
 <p>
 <image src="../../plugins/@PLUGIN_KEY@/images/UpdateWorkItems.png" title="" />
 </p>
@@ -448,7 +455,7 @@ You can also specify <b>As of (date)</b> parameter as a UTC date time string (20
         <h2>DeleteWorkItems</h2>
         
         
-        <p>Deletes the specified work items</p>
+        <p>Deletes the specified work items.</p>
         
         
         <h3>DeleteWorkItems Parameters</h3>
@@ -473,7 +480,7 @@ You can also specify <b>As of (date)</b> parameter as a UTC date time string (20
             
             <tr>
                 <td class="required">Result Format</td>
-                <td>Format to save request results.</td>
+                <td>Format to save the request results.</td>
             </tr>
             
             <tr>
@@ -486,6 +493,7 @@ You can also specify <b>As of (date)</b> parameter as a UTC date time string (20
         
         <p>
             <h4>Usage Example:</h4>
+<p><b>Work Item ID(s)</b> field here refers the result of the CreateWorkItems procedure, you can use the comma-separated numeric values instead.</p>
 <p>
 <image src="../../plugins/@PLUGIN_KEY@/images/DeleteWorkItems.png" title="" />
 </p>
@@ -499,7 +507,7 @@ You can also specify <b>As of (date)</b> parameter as a UTC date time string (20
         <h2>QueryWorkItems</h2>
         
         
-        <p>Queries work items and saves them under the specified property. Only the fields specified in a query will be retrieved</p>
+        <p>Queries work items and saves them under the specified property. Only the fields specified in a query will be retrieved.</p>
         
         
         <h3>QueryWorkItems Parameters</h3>
@@ -538,13 +546,13 @@ You can also specify <b>As of (date)</b> parameter as a UTC date time string (20
             </tr>
             
             <tr>
-                <td class="required">Result Property Sheet</td>
-                <td>Results will be saved into this property/property sheet.</td>
+                <td class="required">Result Format</td>
+                <td>Format to save the request results.</td>
             </tr>
             
             <tr>
-                <td class="required">Result Format</td>
-                <td>Format to save request results.</td>
+                <td class="required">Result Property Sheet</td>
+                <td>Results will be saved into this property/property sheet.</td>
             </tr>
             
             </tbody>
@@ -565,7 +573,7 @@ You can also specify <b>As of (date)</b> parameter as a UTC date time string (20
         <h2>UploadWorkItemAttachment</h2>
         
         
-        <p>To attach a file to a work item, upload the attachment to the attachment store, then attach it to the work item</p>
+        <p>To attach a file to a work item, upload the attachment to the attachment store, then attach it to the work item.</p>
         
         
         <h3>UploadWorkItemAttachment Parameters</h3>
@@ -594,28 +602,28 @@ You can also specify <b>As of (date)</b> parameter as a UTC date time string (20
             </tr>
             
             <tr>
-                <td class="required">Upload Type</td>
-                <td>Use chunked upload type for uploading large files (>20 MB).</td>
-            </tr>
-            
-            <tr>
                 <td >File Path</td>
                 <td>Path to the file to be uploaded. Either this field or "File Content" field must be specified.</td>
             </tr>
             
             <tr>
                 <td >File Content</td>
-                <td>File content to be uploaded. Either this field or "File Path" field must be specified.</td>
+                <td>File content to be uploaded. The value has a limit of 64KB. Either this field or "File Path" field must be specified.</td>
             </tr>
             
             <tr>
                 <td >Comment</td>
-                <td>Comment for the attachment</td>
+                <td>Comment for the attachment.</td>
+            </tr>
+            
+            <tr>
+                <td class="required">Upload Type</td>
+                <td>Use chunked upload type for uploading large files (>130 MB).</td>
             </tr>
             
             <tr>
                 <td class="required">Result Format</td>
-                <td>Format to save request results.</td>
+                <td>Format to save the request results.</td>
             </tr>
             
             <tr>
@@ -641,8 +649,11 @@ You can also specify <b>As of (date)</b> parameter as a UTC date time string (20
         <h2>GetDefaultValues</h2>
         
         
-        <p>Get the default values that will be filled in automatically when you create a new work item of a specific type</p>
+        <p>Get the default values that will be filled in automatically when you create a new work item of a specific type.</p>
         
+        
+            <p>List of the predefined work item types can be changed in the plugin properties (Commander &gt; Administration &gt; Plugins &gt; @PLUGIN_NAME@ &gt; Properties tab &gt; ecp_azuredevops_workitemtypes ).</p>
+
         
         <h3>GetDefaultValues Parameters</h3>
         <table class="grid">
@@ -666,7 +677,7 @@ You can also specify <b>As of (date)</b> parameter as a UTC date time string (20
             
             <tr>
                 <td class="required">Work Item Type</td>
-                <td>Name of the work item type. e.g. <b>Feature</b>, <b>Bug</b></td>
+                <td>Name of the work item type.<br/> Example: <b>Feature</b>, <b>Bug</b></td>
             </tr>
             
             <tr>
@@ -676,7 +687,7 @@ You can also specify <b>As of (date)</b> parameter as a UTC date time string (20
             
             <tr>
                 <td class="required">Result Format</td>
-                <td>Format to save request results.</td>
+                <td>Format to save the request results.</td>
             </tr>
             
             </tbody>
@@ -697,7 +708,7 @@ You can also specify <b>As of (date)</b> parameter as a UTC date time string (20
         <h2>TriggerBuild</h2>
         
         
-        <p>Queues a new build</p>
+        <p>Queues a new build.</p>
         
         
         <h3>TriggerBuild Parameters</h3>
@@ -747,7 +758,7 @@ You can also specify <b>As of (date)</b> parameter as a UTC date time string (20
             
             <tr>
                 <td class="required">Result Format</td>
-                <td>Format to save request results.</td>
+                <td>Format to save the request results.</td>
             </tr>
             
             </tbody>
@@ -768,7 +779,7 @@ You can also specify <b>As of (date)</b> parameter as a UTC date time string (20
         <h2>GetBuild</h2>
         
         
-        <p>Gets a specified build info</p>
+        <p>Gets a specified build info.</p>
         
         
         <h3>GetBuild Parameters</h3>
@@ -793,12 +804,12 @@ You can also specify <b>As of (date)</b> parameter as a UTC date time string (20
             
             <tr>
                 <td class="required">Build ID or Number</td>
-                <td>ID or number of the build. Append * to do a number prefix search, but only latest build will be saved. e.g. '20190110.1' or '26'</td>
+                <td>ID or number of the build. Append * to do a number prefix search, but only latest build will be saved. Example: '20190110.1' or '26'</td>
             </tr>
             
             <tr>
                 <td >Build Definition Name</td>
-                <td>Name for the Build Definition. This parameter is required if you've specified Build number in a "Build Id of Number" parameter.</td>
+                <td>Name for the Build Definition. This parameter is required if you've specified Build number in a "Build Id or Number" parameter.</td>
             </tr>
             
             <tr>
@@ -812,13 +823,13 @@ You can also specify <b>As of (date)</b> parameter as a UTC date time string (20
             </tr>
             
             <tr>
-                <td class="required">Result Property Sheet</td>
-                <td>Results will be saved into this property/property sheet.</td>
+                <td class="required">Result Format</td>
+                <td>Format to save the request results.</td>
             </tr>
             
             <tr>
-                <td class="required">Result Format</td>
-                <td>Format to save request results.</td>
+                <td class="required">Result Property Sheet</td>
+                <td>Results will be saved into this property/property sheet.</td>
             </tr>
             
             </tbody>
@@ -841,7 +852,7 @@ You can also specify <b>As of (date)</b> parameter as a UTC date time string (20
     
     <h1 id="knownIssues">Known Issues</h1>
     <div>
-        <p>AzureDevOps Services and some of the TFS Servers (by default, depends of the versions), does not accept clear password for the <strong>Basic</strong> authentication method. You should 
+        <p>AzureDevOps Services and some of the TFS Servers (default depends of the version), does not accept clear password for the <strong>Basic</strong> authentication method. You should 
 <a href="https://docs.microsoft.com/en-us/azure/devops/integrate/get-started/authentication/pats?view=azdevops" target="_blank">create a Personal Access Token (PAT)</a>
  and use it instead of a password. <br/>
 Uploading Attachments in the &quot;Chunked&quot; mode when using NTLM authentication via proxied connection may fail if proxy server closes connection after a POST request without a response content.</p>

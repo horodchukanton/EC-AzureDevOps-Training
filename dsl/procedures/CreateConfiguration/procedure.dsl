@@ -1,7 +1,7 @@
 import java.io.File
 
 def procName = 'CreateConfiguration'
-procedure procName, description: 'Creates a plugin configuration', {
+procedure procName, description: 'Creates a plugin configuration.', {
     formalParameter(formalParameterName: 'credential', type: 'credential', required: '1')
     formalParameter(formalParameterName: 'proxy_credential', type: 'credential', required: '0')
     timeLimit = '5'
