@@ -1,7 +1,7 @@
-export ADOS_URL=http://10.200.1.239:8080/tfs
+export ADOS_URL=http://10.200.1.152:8080/tfs
 export ADOS_USERNAME=Administrator
 export ADOS_COLLECTION=DefaultCollection
 export ADOS_PROJECT_NAME=ahorodchuk_test
-export ADOS_TOKEN=byvw46n7i2hrp37hscvmbefbvchs4pc6dhgqdn5vyj7fm3c6gohq
+export ADOS_TOKEN=gkargq4a66koswvqwszz2dzlm6amvx5vfayqs5jzbpcbfflvjuaq
 export ADOS_API_VERSION=3.0
 export BUILD_DEFINITION_NAME="Sample Gradle Build-dryRun"
