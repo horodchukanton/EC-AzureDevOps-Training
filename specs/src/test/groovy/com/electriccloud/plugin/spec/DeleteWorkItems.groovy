@@ -91,7 +91,10 @@ class DeleteWorkItems extends PluginTestHelper {
                     tfsClient.deleteWorkItem(id)
                 }
                 catch (AssertionError e) {
-                    // Do nothing
+                    tfsClient.client.httpClient.connectionManager.closeExpiredConnections()
+                }
+                catch (RuntimeException e){
+                    tfsClient.client.httpClient.connectionManager.closeExpiredConnections()
                 }
             }
         }
@@ -103,6 +106,7 @@ class DeleteWorkItems extends PluginTestHelper {
     }
 
     @Unroll
+    @IgnoreRest
     def '#caseId. Sanity. Delete Multiple'() {
         given:
         def workItemIdsArr = []
@@ -152,7 +156,10 @@ class DeleteWorkItems extends PluginTestHelper {
                     tfsClient.deleteWorkItem(id)
                 }
                 catch (AssertionError e) {
-                    // Do nothing
+                    tfsClient.client.httpClient.connectionManager.closeExpiredConnections()
+                }
+                catch (RuntimeException e){
+                    tfsClient.client.httpClient.connectionManager.closeExpiredConnections()
                 }
             }
         }

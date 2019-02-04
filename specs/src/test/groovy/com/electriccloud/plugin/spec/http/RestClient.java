@@ -108,12 +108,13 @@ public class RestClient {
 
         StatusLine statusLine = resp.getStatusLine();
 
-        if (statusLine.getStatusCode() < 200 || statusLine.getStatusCode() >= 401){
-            throw new RuntimeException("Request failed with an error: " + statusLine.toString());
-        }
-
         HttpEntity ent = resp.getEntity();
         StringBuilder result = new StringBuilder();
+
+        // Allowing 404
+        if (statusLine.getStatusCode() >= 400 && statusLine.getStatusCode() <= 403){
+            throw new RuntimeException("Request failed with an error: " + statusLine.toString());
+        }
 
         if (ent != null) {
             String encoding = null;
