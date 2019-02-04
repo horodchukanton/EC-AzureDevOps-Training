@@ -340,6 +340,8 @@ sub step_get_work_items {
         $self->success($summary);
     }
 
+    $self->logger->info($summary);
+
     $self->set_pipeline_summary($summary);
     $self->set_summary($summary);
 
