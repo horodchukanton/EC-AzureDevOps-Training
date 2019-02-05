@@ -1,6 +1,6 @@
 def procName = 'DeleteWorkItems'
 def stepName = 'delete work items'
-procedure procName, description: 'Deletes the specified work items', {
+procedure procName, description: 'Deletes the specified work items.', {
 
     step stepName,
         command: """

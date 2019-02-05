@@ -1,0 +1,1 @@
+List of the predefined work item types can be changed in the plugin properties (Commander > Administration > Plugins > @PLUGIN_NAME@ > Properties tab > ecp_azuredevops_workitemtypes ). 

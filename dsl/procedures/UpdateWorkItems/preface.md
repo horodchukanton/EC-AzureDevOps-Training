@@ -1,0 +1,1 @@
+You can add the comment for the work item by specifying the "Comment Body" parameter.

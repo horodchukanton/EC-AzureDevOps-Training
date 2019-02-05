@@ -93,6 +93,9 @@ class DeleteWorkItems extends PluginTestHelper {
                 catch (AssertionError e) {
                     // Do nothing
                 }
+                finally {
+                    tfsClient.client.httpClient.connectionManager.closeExpiredConnections()
+                }
             }
         }
         where:

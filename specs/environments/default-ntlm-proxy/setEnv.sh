@@ -1,9 +1,9 @@
-export ADOS_URL=http://10.200.1.239:8080/tfs
+export ADOS_URL=http://10.200.1.152:8080/tfs
 export ADOS_USERNAME=Administrator
 export ADOS_COLLECTION=DefaultCollection
 export ADOS_PROJECT_NAME=ahorodchuk_test
 export ADOS_PASSWORD=Mbimp,vm
-export ADOS_TOKEN=tt3co6763fhqqr2a44ejnxtij6sijqocmcvc7xxdbp4x2yj2igrq
+export ADOS_TOKEN=gkargq4a66koswvqwszz2dzlm6amvx5vfayqs5jzbpcbfflvjuaq
 export ADOS_API_VERSION=3.0
 export ADOS_AUTH_NTLM=true
 export BUILD_DEFINITION_NAME=Sample Gradle Build-dryRun

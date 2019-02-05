@@ -238,9 +238,6 @@ sub step_delete_work_items {
     my @deleted = ();
     my @unexisting = ();
     for my $id (split(',\s?', $params->{workItemIds})) {
-        if ($id !~ /^\d+$/) {
-            $self->bail_out("$procedure_parameters{workItemIds}->{label} parameter should contain numbers.");
-        }
         my $api_path = "_apis/wit/workitems/${id}";
 
         my $result;
@@ -255,6 +252,9 @@ sub step_delete_work_items {
             if (! ref $error && $error =~ /Work item [0-9]+ does not exist/) {
                 $self->logger->info("Work item $id does not exist.\n");
                 push @unexisting, $id;
+            }
+            else {
+                $self->bail_out("Can't remove Work Item $id, \n$@");
             }
         };
 
@@ -339,6 +339,8 @@ sub step_get_work_items {
         $summary = "Work items are saved to a property sheet.";
         $self->success($summary);
     }
+
+    $self->logger->info($summary);
 
     $self->set_pipeline_summary($summary);
     $self->set_summary($summary);
@@ -1007,7 +1009,11 @@ sub save_parsed_data {
     my ( $self, $parsed_data, $result_property, $result_format ) = @_;
 
     unless ($result_format) {
-        return $self->bail_out('No format has been selected');
+        $self->bail_out('No format has been selected');
+    }
+
+    if (!$result_property && $result_format ne 'none'){
+        $self->bail_out("Parameter 'Result Property' is mandatory, when 'Result Format' is not a 'Do not save result'");
     }
 
     unless ($parsed_data) {
@@ -1159,7 +1165,7 @@ sub upload_chunked {
               'api-version' => $api_version
           });
         } or do {
-            $upload_crashed = 1;
+            $upload_crashed = $@;
         };
         last if $upload_crashed;
 
@@ -1169,7 +1175,7 @@ sub upload_chunked {
     }
 
     if ($upload_crashed){
-        $self->logger->error("Upload process has been interrupted.");
+        $self->logger->error("Upload process has been interrupted with error: " . $upload_crashed);
         return;
     }
 
