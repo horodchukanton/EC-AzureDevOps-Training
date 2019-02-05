@@ -29,7 +29,7 @@
     
 
     <li><a href="#procedures">Plugin Procedures</a></li>
-    <li>Get Work Items<br/><i>Get, create, delete, search and update bugs, tasks, and other work items for your team.</i></li><ul><li><a href="#GetWorkItems">GetWorkItems</a></li><li><a href="#CreateWorkItems">CreateWorkItems</a></li><li><a href="#UpdateWorkItems">UpdateWorkItems</a></li><li><a href="#DeleteWorkItems">DeleteWorkItems</a></li><li><a href="#QueryWorkItems">QueryWorkItems</a></li><li><a href="#UploadWorkItemAttachment">UploadWorkItemAttachment</a></li><li><a href="#GetDefaultValues">GetDefaultValues</a></li></ul><li>Builds Management<br/><i>Provides methods for the build management.</i></li><ul><li><a href="#TriggerBuild">TriggerBuild</a></li><li><a href="#GetBuild">GetBuild</a></li></ul>
+    <li>Get Work Items<br/><i>Get, create, delete, search and update bugs, tasks, and other work items for your team.</i></li><ul><li><a href="#CreateWorkItems">CreateWorkItems</a></li><li><a href="#QueryWorkItems">QueryWorkItems</a></li><li><a href="#GetWorkItems">GetWorkItems</a></li><li><a href="#UpdateWorkItems">UpdateWorkItems</a></li><li><a href="#DeleteWorkItems">DeleteWorkItems</a></li><li><a href="#UploadWorkItemAttachment">UploadWorkItemAttachment</a></li><li><a href="#GetDefaultValues">GetDefaultValues</a></li></ul><li>Builds Management<br/><i>Provides methods for the build management.</i></li><ul><li><a href="#TriggerBuild">TriggerBuild</a></li><li><a href="#GetBuild">GetBuild</a></li></ul>
     
     
     <li><a href="#knownIssues">Known Issues</a></li>
@@ -70,7 +70,7 @@ There's also a separate
         
             <li>AzureDevOps Server/Services ( API version - 4.1 )</li>
         
-            <li>TFS Server 2017 RTW ( Update 2 )</li>
+            <li>TFS Server 2017 Update 2</li>
         
         </ul>
     </p>
@@ -204,78 +204,6 @@ Custom API Version should be specified only if you are using TFS and your versio
     
 
     
-    <div id="GetWorkItems">
-        <h2>GetWorkItems</h2>
-        
-        
-        <p>Retrieves a list of the work items by the specified IDs.</p>
-        
-        
-            <p>The procedure allows you to receive all the fields (or the specified ones only) for the work items with the specified ids.
-<br/>
-You can also specify <b>As of (date)</b> parameter as a UTC date time string (<i>2019-01-15T13:45:30</i>) to get all work items as they existed at that time.</p>
-
-        
-        <h3>GetWorkItems Parameters</h3>
-        <table class="grid">
-            <thead>
-            <tr>
-                <th>Parameter</th>
-                <th>Description</th>
-            </tr>
-            </thead>
-            <tbody>
-            
-            <tr>
-                <td class="required">Configuration</td>
-                <td>Previously defined plugin configuration.</td>
-            </tr>
-            
-            <tr>
-                <td class="required">Work Item IDs</td>
-                <td>A comma-separated list of up to 200 IDs of the work items to get.</td>
-            </tr>
-            
-            <tr>
-                <td >Only Fields</td>
-                <td>Request only the fields specified in a list (comma-separated, up to 100) for a work item. If not specified, all fields with values are returned.<br/>Example: <b>'System.State, System.IterationPath, Microsoft.VSTS.Common.StateChangeDate, Microsoft.VSTS.Common.Priority'</b>.<br/> Refer to the https://dev.azure.com/{yourOrganizationName}/_apis/wit/fields to see all of the available fields.  This parameter cannot be specified with the <b>&quot;Expand Relationships&quot;</b>.</td>
-            </tr>
-            
-            <tr>
-                <td >As of (date)</td>
-                <td>UTC date time string (<i>2019-01-15T13:45:30</i>). Gets the work items as they existed at this time.</td>
-            </tr>
-            
-            <tr>
-                <td >Expand Relationships</td>
-                <td>Gets work item relationships (work item links, hyperlinks, file attachements, etc.). This parameter cannot be specified with the <b>&quot;Only Fields&quot;</b>.<br/><b>Some of the types are not supported by the older TFS API.</b></td>
-            </tr>
-            
-            <tr>
-                <td class="required">Result Property Sheet</td>
-                <td>Results will be saved into this property/property sheet.</td>
-            </tr>
-            
-            <tr>
-                <td class="required">Result Format</td>
-                <td>Format to save the request results.</td>
-            </tr>
-            
-            </tbody>
-        </table>
-        
-        <p>
-            <h4>Usage example:</h4>
-<p><b>Work Item ID(s)</b> field here refers the result of the CreateWorkItems procedure, you can use the comma-separated numeric values instead.</p>
-<p>
-<image src="../../plugins/@PLUGIN_KEY@/images/GetWorkItems.png" title="" />
-</p>
-
-        </p>
-        
-    </div>
-
-    
     <div id="CreateWorkItems">
         <h2>CreateWorkItems</h2>
         
@@ -359,6 +287,144 @@ You can also specify <b>As of (date)</b> parameter as a UTC date time string (<i
             <h4>Usage Example:</h4>
 <p>
 <image src="../../plugins/@PLUGIN_KEY@/images/CreateWorkItems.png" title="" />
+</p>
+
+        </p>
+        
+    </div>
+
+    
+    <div id="QueryWorkItems">
+        <h2>QueryWorkItems</h2>
+        
+        
+        <p>Queries work items and saves them under the specified property. Only the fields specified in a query will be retrieved.</p>
+        
+        
+        <h3>QueryWorkItems Parameters</h3>
+        <table class="grid">
+            <thead>
+            <tr>
+                <th>Parameter</th>
+                <th>Description</th>
+            </tr>
+            </thead>
+            <tbody>
+            
+            <tr>
+                <td class="required">Configuration</td>
+                <td>Previously defined plugin configuration.</td>
+            </tr>
+            
+            <tr>
+                <td >Project</td>
+                <td>Filter the results to this team project. If your query string uses the @project macro (e.g. '[System.TeamProject] = @project'), you must specify the project.</td>
+            </tr>
+            
+            <tr>
+                <td >Query ID</td>
+                <td>ID of the existing query. Either this or <b>Query Text</b> should be specified.</td>
+            </tr>
+            
+            <tr>
+                <td >Query Text</td>
+                <td><a href="https://docs.microsoft.com/en-us/azure/devops/boards/queries/wiql-syntax?view=vsts" target="_blank">Query string in WIQL</a>. Either this or <b>Query ID</b> should be specified.</td>
+            </tr>
+            
+            <tr>
+                <td >Time precision</td>
+                <td>If checked, time precision (HH:MM:SS) is allowed in the date time comparisons.</td>
+            </tr>
+            
+            <tr>
+                <td class="required">Result Format</td>
+                <td>Format to save the request results.</td>
+            </tr>
+            
+            <tr>
+                <td class="required">Result Property Sheet</td>
+                <td>Results will be saved into this property/property sheet.</td>
+            </tr>
+            
+            </tbody>
+        </table>
+        
+        <p>
+            <h4>Usage Example:</h4>
+<p>
+<image src="../../plugins/@PLUGIN_KEY@/images/QueryWorkItems.png" title="" />
+</p>
+
+        </p>
+        
+    </div>
+
+    
+    <div id="GetWorkItems">
+        <h2>GetWorkItems</h2>
+        
+        
+        <p>Retrieves a list of the work items by the specified IDs.</p>
+        
+        
+            <p>The procedure allows you to receive all the fields (or the specified ones only) for the work items with the specified ids.
+<br/>
+You can also specify <b>As of (date)</b> parameter as a UTC date time string (<i>2019-01-15T13:45:30</i>) to get all work items as they existed at that time.</p>
+
+        
+        <h3>GetWorkItems Parameters</h3>
+        <table class="grid">
+            <thead>
+            <tr>
+                <th>Parameter</th>
+                <th>Description</th>
+            </tr>
+            </thead>
+            <tbody>
+            
+            <tr>
+                <td class="required">Configuration</td>
+                <td>Previously defined plugin configuration.</td>
+            </tr>
+            
+            <tr>
+                <td class="required">Work Item IDs</td>
+                <td>A comma-separated list of up to 200 IDs of the work items to get.</td>
+            </tr>
+            
+            <tr>
+                <td >Only Fields</td>
+                <td>Request only the fields specified in a list (comma-separated, up to 100) for a work item. If not specified, all fields with values are returned.<br/>Example: <b>'System.State, System.IterationPath, Microsoft.VSTS.Common.StateChangeDate, Microsoft.VSTS.Common.Priority'</b>.<br/> Refer to the https://dev.azure.com/{yourOrganizationName}/_apis/wit/fields to see all of the available fields.  This parameter cannot be specified with the <b>&quot;Expand Relationships&quot;</b>.</td>
+            </tr>
+            
+            <tr>
+                <td >As of (date)</td>
+                <td>UTC date time string (<i>2019-01-15T13:45:30</i>). Gets the work items as they existed at this time.</td>
+            </tr>
+            
+            <tr>
+                <td >Expand Relationships</td>
+                <td>Gets work item relationships (work item links, hyperlinks, file attachements, etc.). This parameter cannot be specified with the <b>&quot;Only Fields&quot;</b>.<br/><b>Some of the types are not supported by the older TFS API.</b></td>
+            </tr>
+            
+            <tr>
+                <td class="required">Result Property Sheet</td>
+                <td>Results will be saved into this property/property sheet.</td>
+            </tr>
+            
+            <tr>
+                <td class="required">Result Format</td>
+                <td>Format to save the request results.</td>
+            </tr>
+            
+            </tbody>
+        </table>
+        
+        <p>
+            <h4>Usage example:</h4>
+<p><b>Work Item ID(s)</b> field here refers the result of the CreateWorkItems procedure, you can use the comma-separated numeric values instead.</p>
+<p>
+<image src="../../plugins/@PLUGIN_KEY@/images/GetWorkItems.png" title="" />
 </p>
 
         </p>
@@ -496,72 +562,6 @@ You can also specify <b>As of (date)</b> parameter as a UTC date time string (<i
 <p><b>Work Item ID(s)</b> field here refers the result of the CreateWorkItems procedure, you can use the comma-separated numeric values instead.</p>
 <p>
 <image src="../../plugins/@PLUGIN_KEY@/images/DeleteWorkItems.png" title="" />
-</p>
-
-        </p>
-        
-    </div>
-
-    
-    <div id="QueryWorkItems">
-        <h2>QueryWorkItems</h2>
-        
-        
-        <p>Queries work items and saves them under the specified property. Only the fields specified in a query will be retrieved.</p>
-        
-        
-        <h3>QueryWorkItems Parameters</h3>
-        <table class="grid">
-            <thead>
-            <tr>
-                <th>Parameter</th>
-                <th>Description</th>
-            </tr>
-            </thead>
-            <tbody>
-            
-            <tr>
-                <td class="required">Configuration</td>
-                <td>Previously defined plugin configuration.</td>
-            </tr>
-            
-            <tr>
-                <td >Project</td>
-                <td>Filter the results to this team project. If your query string uses the @project macro (e.g. '[System.TeamProject] = @project'), you must specify the project.</td>
-            </tr>
-            
-            <tr>
-                <td >Query ID</td>
-                <td>ID of the existing query. Either this or <b>Query Text</b> should be specified.</td>
-            </tr>
-            
-            <tr>
-                <td >Query Text</td>
-                <td><a href="https://docs.microsoft.com/en-us/azure/devops/boards/queries/wiql-syntax?view=vsts" target="_blank">Query string in WIQL</a>. Either this or <b>Query ID</b> should be specified.</td>
-            </tr>
-            
-            <tr>
-                <td >Time precision</td>
-                <td>If checked, time precision (HH:MM:SS) is allowed in the date time comparisons.</td>
-            </tr>
-            
-            <tr>
-                <td class="required">Result Format</td>
-                <td>Format to save the request results.</td>
-            </tr>
-            
-            <tr>
-                <td class="required">Result Property Sheet</td>
-                <td>Results will be saved into this property/property sheet.</td>
-            </tr>
-            
-            </tbody>
-        </table>
-        
-        <p>
-            <h4>Usage Example:</h4>
-<p>
-<image src="../../plugins/@PLUGIN_KEY@/images/QueryWorkItems.png" title="" />
 </p>
 
         </p>
@@ -854,7 +854,7 @@ You can also specify <b>As of (date)</b> parameter as a UTC date time string (<i
     <div>
         <p>AzureDevOps Services and some of the TFS Servers (default depends of the version), does not accept clear password for the <strong>Basic</strong> authentication method. You should 
 <a href="https://docs.microsoft.com/en-us/azure/devops/integrate/get-started/authentication/pats?view=azdevops" target="_blank">create a Personal Access Token (PAT)</a>
- and use it instead of a password. <br/>
+ and use it instead of a password.<br/>
 Uploading Attachments in the &quot;Chunked&quot; mode when using NTLM authentication via proxied connection may fail if proxy server closes connection after a POST request without a response content.</p>
 
     </div>
