@@ -23,16 +23,6 @@
         <value/>
     </formElement>
     <formElement>
-        <documentation>ID of the existing query. Either this or "Query Text" should be specified.</documentation>
-        <htmlDocumentation>ID of the existing query. Either this or <b>Query Text</b> should be specified.
-        </htmlDocumentation>
-        <label>Query ID:</label>
-        <property>queryId</property>
-        <required>0</required>
-        <type>entry</type>
-        <value/>
-    </formElement>
-    <formElement>
         <documentation>The WIQL query string to run. Either this or "Query ID" should be specified.</documentation>
         <htmlDocumentation><a href="https://docs.microsoft.com/en-us/azure/devops/boards/queries/wiql-syntax?view=vsts">
             Query string in WIQL</a>. Either this or <b>Query ID</b> should be specified.
