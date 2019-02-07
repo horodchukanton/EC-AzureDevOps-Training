@@ -1,0 +1,69 @@
+<editor>
+    <help>/commander/pages/@PLUGIN_NAME@/help?s=Administration&amp;ss=Plugins#CollectReportingData</help>
+    <formElement>
+        <documentation>Previously defined plugin configuration.</documentation>
+        <label>Configuration:</label>
+        <configuration>1</configuration>
+        <property>config</property>
+        <propertyReference>/plugins/@PLUGIN_NAME@/project/ec_plugin_cfgs</propertyReference>
+        <required>1</required>
+        <type>entry</type>
+    </formElement>
+    <formElement>
+        <htmlDocumentation>Filter the results to this team project. If your query string uses the @project macro (e.g.
+            '[System.TeamProject] = @project'), you must specify the project.
+        </htmlDocumentation>
+        <documentation>Filter the results to this team project. If your query string uses the @project macro (e.g. <b>
+            '[System.TeamProject] = @project'</b>), you must specify the project.
+        </documentation>
+        <label>Project:</label>
+        <property>project</property>
+        <required>0</required>
+        <type>entry</type>
+        <value/>
+    </formElement>
+    <formElement>
+        <documentation>ID of the existing query. Either this or "Query Text" should be specified.</documentation>
+        <htmlDocumentation>ID of the existing query. Either this or <b>Query Text</b> should be specified.
+        </htmlDocumentation>
+        <label>Query ID:</label>
+        <property>queryId</property>
+        <required>0</required>
+        <type>entry</type>
+        <value/>
+    </formElement>
+    <formElement>
+        <documentation>The WIQL query string to run. Either this or "Query ID" should be specified.</documentation>
+        <htmlDocumentation><a href="https://docs.microsoft.com/en-us/azure/devops/boards/queries/wiql-syntax?view=vsts">
+            Query string in WIQL</a>. Either this or <b>Query ID</b> should be specified.
+        </htmlDocumentation>
+        <label>Query Text:</label>
+        <property>queryText</property>
+        <required>0</required>
+        <type>textarea</type>
+        <value/>
+    </formElement>
+    <formElement>
+        <type>checkbox</type>
+        <label>Preview:</label>
+        <property>preview</property>
+        <checkedValue>1</checkedValue>
+        <required>0</required>
+        <uncheckedValue>0</uncheckedValue>
+        <documentation>If checked, no data will be sent to the reporting system. Use this option to preview gathered
+            data.
+        </documentation>
+        <initiallyChecked>1</initiallyChecked>
+    </formElement>
+    <formElement>
+        <type>checkbox</type>
+        <label>Debug:</label>
+        <property>debug</property>
+        <checkedValue>1</checkedValue>
+        <required>0</required>
+        <uncheckedValue>0</uncheckedValue>
+        <documentation>If checked, the debug level will be set to "Debug".</documentation>
+        <initiallyChecked>0</initiallyChecked>
+    </formElement>
+
+</editor>
