@@ -25,6 +25,7 @@ def stepsWithAttachedCredentials = [
     [procedureName: 'UploadWorkItemAttachment', stepName: 'upload a work item attachment'],
     [procedureName: 'GetBuild', stepName: 'get a build'],
     [procedureName: 'TriggerBuild', stepName: 'trigger a build'],
+    [procedureName: 'CollectReportingData', stepName: 'collect reporting data'],
 ]
 // ** end steps with attached credentials
 

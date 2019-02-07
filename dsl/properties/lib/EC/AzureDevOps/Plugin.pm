@@ -714,6 +714,10 @@ sub step_get_build {
 
 }
 
+sub step_collect_reporting_data {
+
+}
+
 sub find_build_id_by_number {
     my ( $self, $config, $project, $definitionId, $build_number ) = @_;
     return unless $build_number;

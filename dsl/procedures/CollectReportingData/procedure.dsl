@@ -7,7 +7,7 @@ procedure procName, description: 'Queries specified work items ans sends it as a
         command: """
 \$[/myProject/scripts/preamble]
 use EC::AzureDevOps::Plugin;
-\$[/myProject/scripts/collectReportingData.pl]
+\$[/myProject/scripts/collectReportingData]
 """,
         errorHandling: 'failProcedure',
         exclusiveMode: 'none',
