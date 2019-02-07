@@ -1,0 +1,34 @@
+version: '3'
+services:
+  electric-flow:
+    image: "electricflow/efserver:9.0"
+    ports:
+      - "8000:8000"
+      - "8443:8443"
+      - "443:443"
+      - "80:80"
+    networks:
+      - internal
+    container_name: electricflow
+    hostname: "electricflow"
+    tty: true
+  dois:
+    image: electricflow/dois:9.0
+    ports:
+      - "9200:9200"
+      - "9300:9300"
+      - "9500:9500"
+      - "9600:9600"
+    networks:
+      - internal
+    container_name: dois
+    hostname: dois
+    tty: true
+    environment:
+      - HOSTNAME=dois
+      - EF_SERVER_HOST=electricflow
+      - EF_SERVER_ADMIN_USER=admin
+      - EF_SERVER_ADMIN_PASS=changeme
+networks:
+  internal:
+    driver: bridge
