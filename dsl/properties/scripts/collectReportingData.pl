@@ -115,39 +115,60 @@ sub get_report_entities {
         }
     );
 
+    # Note that items itself are in the 'value' key
     $plugin->logger->debug("WORK ITEMS RESULT", $work_items_result);
 
-    return $work_items_result;
+    return $work_items_result->{value};
 }
 
 sub analyze_items {
     my ($plugin, $params, $items) = @_;
 
-    # TODO: metadata
+    # Should be the same as the ec_devops_insight/feature/source property value
+    my $sourceName = 'AzureDevOps';
+
+    # TODO: metadata and timestamp check
     # my $metadata_property = $params->{metadataPropertyPath} || calculate_the_metadata_property_path($plugin);
     # my $metadata = $plugin->ec->get_property($metadata_property);
 
+    # TODO: get a releaseName
+    my $releaseName = 'AzureDevOpsRelease';
+    my $releaseProjectName = 'AzureDevOps';
+
     my @payload = ();
-    # for my $item (@$items){
-        push @payload, {
-            "releaseName"         => "EC-AzureDevOps",
-            "source"              => "AzureDevOps",
-            "featureName"         => "Run Sanity, E2E and New Feature on ALL Windows",
-            "status"              => "Closed",
-            "pluginConfiguration" => "test",
-            "modifiedOn"          => "2018-11-08T14:59:53.000Z",
-            "key"                 => "ECJIRA-146",
-            "pluginName"          => "EC-JIRA",
-            "timestamp"           => "2018-11-08T14:59:53.000Z",
+    for my $item (@$items){
+        $plugin->logger->debug("Transforming the source item", $item);
+
+        # TODO: move to a separate procedure
+        # This is mappings part
+        my $feature_name = $item->{fields}->{'System.Title'};
+        my $modified_time= $item->{fields}->{'Microsoft.VSTS.Common.StateChangeDate'};
+        my $created_time = $item->{fields}->{'System.CreatedDate'};
+        my $type         = $item->{fields}->{'System.WorkItemType'};
+        my $source_url   = $item->{url};
+        my $status       = ( $item->{fields}->{'System.State'} eq 'Active' ) ? "Open" : "Closed";
+
+        # TODO: Check if this is a correct resolution
+        my $resolution   = ( $item->{fields}->{'System.State'} eq 'Active' ) ? "Fixed" : "Open";
+
+        push (@payload, {
+            "releaseName"         => $releaseName,
+            "source"              => $sourceName,
+            "featureName"         => $feature_name,
+            "status"              => $status,
+            "pluginConfiguration" => $params->{config},
+            "modifiedOn"          => $modified_time,
+            "key"                 => $item->{id},
+            "pluginName"          => '@PLUGIN_NAME',
+            "timestamp"           => $modified_time,
             "releaseUri"          => "",
-            "releaseProjectName"  => "Default",
-            "resolution"          => "Fixed",
-            "baseDrilldownUrl"    => "http://jira.electric-cloud.com/issues/?jql=issuetype%20=%20Story%20AND%20project%20=%20ECJIRA",
-            "type"                => "Story",
-            "createdOn"           => "2018-10-29T16:15:50.000Z",
-            "sourceUrl"           => "http://jira.electric-cloud.com/browse/ECJIRA-146"
-        };
-    # }
+            "releaseProjectName"  => $releaseProjectName,
+            "resolution"          => $resolution,
+            "type"                => $type,
+            "createdOn"           => $created_time,
+            "sourceUrl"           => $source_url
+        });
+    }
 
     return \@payload;
 }
@@ -159,6 +180,10 @@ sub main {
 
     # Get the job parameters.
     my $params = get_step_parameters($plugin);
+
+    if ($params->{debug} && $plugin->logger->level < 1) {
+        $plugin->logger->level(1);
+    }
 
     # Checking the parameters
     check_parameters($plugin, $params)
@@ -174,24 +199,28 @@ sub main {
     ## TODO: we can specify a timestamp in the query (add a parameter?)
 
     # Transform the raw data to the standardized one.
-    my $report_payload = analyze_items($plugin, $entities);
+    my $report_payload = analyze_items($plugin, $params, $entities);
     my $report_object_type = 'feature';
 
-    if ($params->{preview}){
-        my $beautified_payload = JSON->new->pretty->utf8()->encode($report_payload);
-        $plugin->logger->info("Preview of the payload", $beautified_payload);
-        $plugin->logger->info("[PREVIEW MODE] Exit without the payload sending");
+    # Send the data to EC.
+    my $payloads_sent_count = 0;
+    for my $payload (@$report_payload){
 
-        return 1;
+        # Show pretty in logs
+        my $beautified_payload = JSON->new->pretty->utf8()->encode($payload);
+        $plugin->logger->info("Preview of the payload", $beautified_payload);
+        next if $params->{preview};
+
+        # Send compact
+        $plugin->ec->sendReportingData({
+            payload              => JSON->new->encode($payload),
+            reportObjectTypeName => $report_object_type
+        });
+
+        $payloads_sent_count++;
     }
 
-    $plugin->logger->debug($report_payload);
-
-    # Send the data to EC.
-    $plugin->ec->sendReportingData({
-        payload              => JSON->new->encode($report_payload),
-        reportObjectTypeName => $report_object_type
-    });
+    $plugin->success("$payloads_sent_count payloads sent.");
 
     return 1;
 }
