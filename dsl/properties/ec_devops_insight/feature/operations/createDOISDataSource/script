@@ -1,0 +1,207 @@
+/**
+ * Expected input arguments to the script:
+ * releaseName: Name of the ElectricFlow release
+ * projectName: The name of the ElectricFlow project that the release belongs to.
+ * reportObjectTypeName: The name of the report object type, e.g, 'feature', 'build'.
+ * scheduleName: The name of the schedule and procedure if the plugin needs to create them.
+ * scheduleProjectName: The name of the project that the schedule belongs to.
+ * pluginParameters: Map of parameter name-value pairs for the plugin parameters defined in the form XML.
+ */
+
+import com.electriccloud.domain.DevOpsInsightDataSourceResult;
+import com.electriccloud.errors.EcException;
+import com.electriccloud.errors.ErrorCodes;
+
+
+if (args.releaseName == null) {
+    throw EcException
+        .code(ErrorCodes.MissingArgument)
+        .message("releaseName is required for dsl script")
+        .build();
+}
+if (args.projectName == null) {
+    throw EcException
+        .code(ErrorCodes.MissingArgument)
+        .message("projectName is required for dsl script")
+        .build();
+}
+if (args.reportObjectTypeName == null) {
+    throw EcException
+        .code(ErrorCodes.MissingArgument)
+        .message("reportObjectTypeName is required for dsl script")
+        .build();
+}
+if (args.scheduleName == null) {
+    throw EcException
+        .code(ErrorCodes.MissingArgument)
+        .message("scheduleName is required for dsl script")
+        .build();
+}
+if (args.scheduleProjectName == null) {
+    throw EcException
+        .code(ErrorCodes.MissingArgument)
+        .message("scheduleProjectName is required for dsl script")
+        .build();
+}
+
+
+if (args.pluginParameters == null) {
+    throw EcException
+        .code(ErrorCodes.InvalidParameterValue)
+        .message("pluginParameters are required for dsl script")
+        .build();
+}
+
+def releaseName          = args.releaseName;
+def projectName          = args.projectName;
+def reportObjectTypeName = args.reportObjectTypeName;
+def scheduleName         = args.scheduleName;
+def scheduleProjectName  = args.scheduleProjectName;
+
+def procedureExists(String prjct, String prcdr) {
+    def projects = getProjects();
+
+    def proj = false;
+    projects.each {
+        if (it.projectName == prjct) {
+            proj = true;
+        }
+    }
+
+    if (!proj) {
+        return false
+    }
+
+    def procedures = getProcedures(projectName: prjct);
+
+    def proc = false;
+    procedures.each {
+        if (it.procedureName == prcdr) {
+            proc = true;
+        }
+    }
+
+    if (!proc) {
+        return false;
+    }
+
+    return true;
+}
+
+if (procedureExists(scheduleProjectName, scheduleName)) {
+    throw EcException
+        .code(ErrorCodes.ScriptError)
+        .message("Procedure '${scheduleName}' already exists in project '${scheduleProjectName}'")
+        .build();
+}
+
+// Plugin form params
+def pluginParameters     = args.pluginParameters;
+// After this line code will be plugin-specific.
+
+// Plugins metadata
+
+def pluginName = '@PLUGIN_NAME@'
+def reportObjectType = 'feature';
+
+// Extract the parameters expected through the form XML
+// EC-AzureDevOps param:
+// configName
+// queryId
+// queryText
+// frequency
+
+def configName = pluginParameters.config
+def frequency = pluginParameters.frequency
+
+if (!((frequency?:"").isInteger()) || Integer.parseInt(frequency) <= 0) {
+    throw EcException.code(ErrorCodes.InvalidArgument)
+        .message("'Polling Frequency' must be a positive integer.")
+        .build();
+}
+
+project scheduleProjectName, {
+    resourceName = null
+    workspaceName = null
+
+    procedure scheduleName, {
+        description = ''
+        jobNameTemplate = ''
+        resourceName = ''
+        timeLimit = ''
+        timeLimitUnits = 'minutes'
+        workspaceName = ''
+
+        step 'collect', {
+            description = ''
+            alwaysRun = '0'
+            broadcast = '0'
+            command = null
+            condition = ''
+            errorHandling = 'failProcedure'
+            exclusiveMode = 'none'
+            logFileName = null
+            parallel = '0'
+            postProcessor = null
+            precondition = ''
+            releaseMode = 'none'
+            resourceName = ''
+            shell = null
+            subprocedure = 'CollectReportingData'
+            subproject = "/plugins/${pluginName}/project"
+            timeLimit = ''
+            timeLimitUnits = 'minutes'
+            workingDirectory = null
+            workspaceName = ''
+            actualParameter 'config', pluginParameters.config
+            actualParameter 'debug', '0'
+            actualParameter 'queryId', pluginParameters.queryId
+            actualParameter 'queryText', pluginParameters.queryText
+            actualParameter 'metadataPropertyPath', ''
+            actualParameter 'preview', '0'
+        }
+    }
+
+    schedule scheduleName, {
+        description = ''
+        applicationName = null
+        applicationProjectName = null
+        beginDate = ''
+        endDate = ''
+        environmentName = null
+        environmentProjectName = null
+        environmentTemplateName = null
+        environmentTemplateProjectName = null
+        environmentTemplateTierMapName = null
+        interval = pluginParameters.frequency
+        intervalUnits = 'minutes'
+        misfirePolicy = 'ignore'
+        monthDays = ''
+        pipelineName = null
+        priority = 'normal'
+        procedureName = scheduleName
+        processName = null
+        releaseName = null
+        rollingDeployEnabled = null
+        rollingDeployManualStepAssignees = null
+        rollingDeployManualStepCondition = null
+        rollingDeployPhases = null
+        scheduleDisabled = '0'
+        snapshotName = null
+        startTime = ''
+        startingStage = null
+        startingStateName = null
+        stopTime = ''
+        timeZone = ''
+        weekDays = ''
+        workflowName = null
+    }
+}
+
+def retval = new DevOpsInsightDataSourceResult();
+retval.connectionInfo      = getProperty("/plugins/@PLUGIN_KEY@/project/ec_plugin_cfgs/${configName}/url", suppressNoSuchPropertyException: true)?.value;
+retval.sourceDetails       = pluginParameters.queryId ?: pluginParameters.queryText;
+retval.scheduleName        = scheduleName;
+retval.scheduleProjectName = scheduleProjectName;
+
+retval;

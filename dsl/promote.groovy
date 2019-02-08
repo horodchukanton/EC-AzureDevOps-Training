@@ -25,7 +25,7 @@ def stepsWithAttachedCredentials = [
     [procedureName: 'UploadWorkItemAttachment', stepName: 'upload a work item attachment'],
     [procedureName: 'GetBuild', stepName: 'get a build'],
     [procedureName: 'TriggerBuild', stepName: 'trigger a build'],
-    [procedureName: 'CollectReportingData', stepName: 'collect reporting data'],
+    [procedureName: 'CollectReportingData', stepName: 'collect reporting data']
 ]
 // ** end steps with attached credentials
 
@@ -84,6 +84,23 @@ project pluginName, {
         property 'Feature', value: 'Feature'
         property 'Issue', value: 'Issue'
         property 'User Story', value: 'User Story'
+    }
+
+    // Improvements for RCC for EF 9.0 release.
+    // Starting from 9.0 we deprecating OOB procedures and replacing them with DSL scripts.
+    property 'ec_devops_insight', {
+        property 'feature', {
+            property 'source', value: 'AzureDevOps'
+            property 'operations', {
+                property 'createDOISDataSource', {
+                    property 'procedureName', value: 'ValidateCRDParams'
+                }
+                property 'modifyDOISDataSource', {
+                    property 'procedureName', value: 'ValidateCRDParams'
+                    property 'ec_parameterForm', value: "/projects/${pluginName}/procedures/CollectReportingData/ec_parameterForm"
+                }
+            }
+        }
     }
 }
 

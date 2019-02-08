@@ -36,39 +36,63 @@ sub get_step_parameters {
 }
 
 sub check_parameters {
-    my ($plugin, $parameters) = @_;
+    my ($plugin, $params) = @_;
 
-    my @required = qw/config queryText project/;
+    # Checking required parameters value
+    # This is controlled by UI but we also have DSL and special values, like '$[]'
+    my @required = qw/config/;
     for my $parameter_name (@required){
-        if (! $parameters->{$parameter_name}){
-            $plugin->bail_out("No value for required parameter '$parameter_name'");
+        if (! $params->{$parameter_name}){
+            $plugin->bail_out("No value for the required parameter '$parameter_name'.");
             return 0;
         }
+    }
+
+    if ( !($params->{queryId} || $params->{queryText})
+       || ($params->{queryId} && $params->{queryText})
+    ){
+        $plugin->bail_out("Either the 'Query Id' or 'Query Text' should be specified.");
     }
 
     return 1;
 }
 
+## Query by ID reference
+# https://docs.microsoft.com/uk-ua/rest/api/azure/devops/wit/wiql/query%20by%20id?view=azure-devops-rest-4.1
+## Query by WIQL reference
 # https://docs.microsoft.com/uk-ua/rest/api/azure/devops/wit/wiql/query%20by%20wiql?view=azure-devops-rest-4.1
+## Query Work Items by IDs
+# https://docs.microsoft.com/uk-ua/rest/api/azure/devops/wit/work%20items/list?view=azure-devops-rest-4.1
 sub get_report_entities {
     my ($plugin, $config, $params) = @_;
 
     my $microrest = $plugin->get_microrest_client($config, 'application/json');
 
     # Defining where request should go
-    my $api_path = $params->{project} . '/_apis/wit/wiql',
-
     # AzureDevOps specific! Hardcoded api-version
     my $api_version = '4.1';
 
-    my $response = $microrest->post(
-        $api_path,
-        {
-            'timePrecision' => 'true',
-            'api-version' => $api_version
-        },
-        { query => $params->{queryText} }
-    );
+    # The request differs for the Query ID and Query Text
+    my $response = undef;
+    if ($params->{queryText}) {
+        $response = $microrest->post(
+            '/_apis/wit/wiql',
+            {
+                'timePrecision' => 'true',
+                'api-version'   => $api_version
+            },
+            { query => $params->{queryText} }
+        );
+    }
+    elsif ($params->{queryId}) {
+        $response = $microrest->get(
+            '_apis/wit/wiql/' . $params->{queryId},
+            {
+                'timePrecision' => 'true',
+                'api-version'   => $api_version
+            }
+        );
+    }
 
     $plugin->logger->debug("RESPONSE", $response);
 
@@ -82,19 +106,50 @@ sub get_report_entities {
 
     # So now we can request the items itself
     # I'm using plugin method
-    my $work_items_result = $plugin->get_work_items(\@ids, {
-        config => $params->{config}
-    });
+    my $work_items_result = $microrest->get(
+        '/_apis/wit/workitems',
+        {
+            'api-version' => '4.1',
+            ids           => join(',', @ids),
+            errorPolicy   => 'Fail'
+        }
+    );
 
     $plugin->logger->debug("WORK ITEMS RESULT", $work_items_result);
 
     return $work_items_result;
 }
 
-sub transform_items {
-    my ($plugin, $items) = @_;
+sub analyze_items {
+    my ($plugin, $params, $items) = @_;
 
-    return $items;
+    # TODO: metadata
+    # my $metadata_property = $params->{metadataPropertyPath} || calculate_the_metadata_property_path($plugin);
+    # my $metadata = $plugin->ec->get_property($metadata_property);
+
+    my @payload = ();
+    # for my $item (@$items){
+        push @payload, {
+            "releaseName"         => "EC-AzureDevOps",
+            "source"              => "AzureDevOps",
+            "featureName"         => "Run Sanity, E2E and New Feature on ALL Windows",
+            "status"              => "Closed",
+            "pluginConfiguration" => "test",
+            "modifiedOn"          => "2018-11-08T14:59:53.000Z",
+            "key"                 => "ECJIRA-146",
+            "pluginName"          => "EC-JIRA",
+            "timestamp"           => "2018-11-08T14:59:53.000Z",
+            "releaseUri"          => "",
+            "releaseProjectName"  => "Default",
+            "resolution"          => "Fixed",
+            "baseDrilldownUrl"    => "http://jira.electric-cloud.com/issues/?jql=issuetype%20=%20Story%20AND%20project%20=%20ECJIRA",
+            "type"                => "Story",
+            "createdOn"           => "2018-10-29T16:15:50.000Z",
+            "sourceUrl"           => "http://jira.electric-cloud.com/browse/ECJIRA-146"
+        };
+    # }
+
+    return \@payload;
 }
 
 sub main {
@@ -118,24 +173,25 @@ sub main {
     # If necessary, filter the results to exclude the duplicate items.
     ## TODO: we can specify a timestamp in the query (add a parameter?)
 
-    # Perform additional requests to get the item fields that are not included into the first result.
-    ## TODO: no need for this plugin, because we can specify the fields in a query
-
     # Transform the raw data to the standardized one.
-    my $json_payload = transform_items($plugin, $entities);
-
+    my $report_payload = analyze_items($plugin, $entities);
     my $report_object_type = 'feature';
 
     if ($params->{preview}){
-        my $beautified_payload = JSON->new->pretty->utf8()->encode($json_payload);
+        my $beautified_payload = JSON->new->pretty->utf8()->encode($report_payload);
         $plugin->logger->info("Preview of the payload", $beautified_payload);
         $plugin->logger->info("[PREVIEW MODE] Exit without the payload sending");
 
         return 1;
     }
 
+    $plugin->logger->debug($report_payload);
+
     # Send the data to EC.
-    $plugin->ec->sendReportingData({payload => $json_payload, reportObjectTypeName => $report_object_type});
+    $plugin->ec->sendReportingData({
+        payload              => JSON->new->encode($report_payload),
+        reportObjectTypeName => $report_object_type
+    });
 
     return 1;
 }
