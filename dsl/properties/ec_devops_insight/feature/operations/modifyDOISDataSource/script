@@ -173,7 +173,6 @@ project scheduleProjectName, {
             actualParameter 'debug', '0'
             actualParameter 'queryId', pluginParameters.queryId
             actualParameter 'queryText', pluginParameters.queryText
-            actualParameter 'metadataPropertyPath', ''
             actualParameter 'preview', '0'
         }
     }
@@ -197,7 +196,7 @@ project scheduleProjectName, {
         priority = 'normal'
         procedureName = scheduleName
         processName = null
-        releaseName = null
+        releaseName = releaseName
         rollingDeployEnabled = null
         rollingDeployManualStepAssignees = null
         rollingDeployManualStepCondition = null

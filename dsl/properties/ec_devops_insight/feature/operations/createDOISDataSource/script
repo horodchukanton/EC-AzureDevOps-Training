@@ -181,7 +181,7 @@ project scheduleProjectName, {
         priority = 'normal'
         procedureName = scheduleName
         processName = null
-        releaseName = null
+        releaseName = releaseName
         rollingDeployEnabled = null
         rollingDeployManualStepAssignees = null
         rollingDeployManualStepCondition = null
