@@ -3,6 +3,7 @@ use warnings FATAL => 'all';
 
 use ElectricCommander;
 use EC::AzureDevOps::Plugin;
+use DateTime;
 use JSON;
 
 main();
@@ -57,6 +58,27 @@ sub check_parameters {
     return 1;
 }
 
+sub iso_date_to_timestamp {
+    my ($self, $date) = @_;
+
+    my ($year, $month, $day, $hour, $min, $sec, $time_zone) =
+        $date =~ m/(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})\.\d{3}([+-]\d{4})/;
+
+    unless($year && $month && $day && $hour && $min && $sec && $time_zone) {
+        die "Wrong date format: $date";
+    }
+
+    return DateTime->new(
+        year      => $year,
+        month     => $month,
+        day       => $day,
+        hour      => $hour,
+        minute    => $min,
+        second    => $sec,
+        time_zone => $time_zone
+    )->epoch;
+}
+
 ## Query by ID reference
 # https://docs.microsoft.com/uk-ua/rest/api/azure/devops/wit/wiql/query%20by%20id?view=azure-devops-rest-4.1
 ## Query by WIQL reference
@@ -105,7 +127,6 @@ sub get_report_entities {
     $plugin->logger->info("IDs of the found work items: " . join(', ', @ids));
 
     # So now we can request the items itself
-    # I'm using plugin method
     my $work_items_result = $microrest->get(
         '/_apis/wit/workitems',
         {
@@ -124,12 +145,8 @@ sub get_report_entities {
 sub analyze_items {
     my ($plugin, $params, $items) = @_;
 
-    # Should be the same as the ec_devops_insight/feature/source property value
+    # Should be the same as the 'ec_devops_insight/feature/source' property value
     my $sourceName = 'AzureDevOps';
-
-    # TODO: metadata and timestamp check
-    # my $metadata_property = $params->{metadataPropertyPath} || calculate_the_metadata_property_path($plugin);
-    # my $metadata = $plugin->ec->get_property($metadata_property);
 
     # TODO: get a releaseName
     my $releaseName = 'AzureDevOpsRelease';
@@ -176,7 +193,7 @@ sub analyze_items {
 sub main {
     # Initialize the plugin object instance
     my $plugin = EC::AzureDevOps::Plugin->new();
-    $plugin->logger->info("Hello, world");
+    my $report_object_type = 'feature';
 
     # Get the job parameters.
     my $params = get_step_parameters($plugin);
@@ -192,15 +209,39 @@ sub main {
     # Get configuration values
     my $config = $plugin->get_config_values($params->{config});
 
+    my $metadata_location = $plugin->build_metadata_location($params->{queryId} || $params->{queryText}, $report_object_type);
+    my $metadata = $plugin->get_metadata($metadata_location);
+    my $last_report_timestamp = 0;
+    if ($metadata && $metadata->{last_report_timestamp}) {
+        if ($metadata->{last_report_timestamp} =~ /^\d+$/) {
+            $plugin->logger->debug('Last run:', $metadata->{last_report_timestamp});
+            $last_report_timestamp = $metadata->{last_report_timestamp};
+        }
+        else {
+            $plugin->bail_out("Corrupted metadata (last_report_timestamp must be a number)", $metadata->{last_report_timestamp});
+        }
+    }
+
     # Request the entities
     my $entities = get_report_entities($plugin, $config, $params);
 
-    # If necessary, filter the results to exclude the duplicate items.
-    ## TODO: we can specify a timestamp in the query (add a parameter?)
+    # Updating metadata right after the requests
+    $metadata->{last_report_timestamp} = DateTime->now->epoch();
+    $plugin->set_metadata($metadata_location, $metadata);
+
+    my @filtered_items = ();
+    # Filter the results to exclude the duplicate items.
+    for my $item (@$entities){
+        # Time in a ISO format, should change to a timestamp for comparing
+        my $modified_time = $item->{fields}->{'Microsoft.VSTS.Common.StateChangeDate'};
+
+        if (iso_date_to_timestamp($modified_time) > $last_report_timestamp){
+            push (@filtered_items, $item);
+        }
+    }
 
     # Transform the raw data to the standardized one.
-    my $report_payload = analyze_items($plugin, $params, $entities);
-    my $report_object_type = 'feature';
+    my $report_payload = analyze_items($plugin, $params, \@filtered_items);
 
     # Send the data to EC.
     my $payloads_sent_count = 0;
