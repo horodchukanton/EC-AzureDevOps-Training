@@ -89,7 +89,7 @@ sub get_dois_ds_parameters {
     # my $xpath = $plugin->ec->getProperty($propertyPath);
     # my $releaseName = $xpath->findvalue('//value')->string_value;
 
-    # TODO: filter by a state 'PLANNING'
+    ## TODO: filter by a state 'PLANNING'
     my $xpath = $plugin->ec->getReleases($projectName);
     my $releaseName = $xpath->findvalue('//releaseName')->string_value;
 
@@ -98,7 +98,7 @@ sub get_dois_ds_parameters {
     }
 
     $parameters{releaseName} = $releaseName;
-    $plugin->logger->debug("Release name value", $releaseName);
+    $plugin->logger->debug("Release name value: " .  $releaseName);
 
     return \%parameters;
 }
@@ -297,10 +297,16 @@ sub main {
         # Time in a ISO format, should change to a timestamp for comparing
         my $modified_time = $item->{fields}->{'Microsoft.VSTS.Common.StateChangeDate'};
 
-        if ($last_report_timestamp && iso_date_to_timestamp($modified_time) > $last_report_timestamp) {
-            $plugin->logger->debug("Adding $item->{fields}->{'System.Title'}");
-            push(@filtered_items, $item);
+        if ($last_report_timestamp && iso_date_to_timestamp($modified_time) < $last_report_timestamp) {
+            next;
         }
+
+        $plugin->logger->debug("Adding $item->{fields}->{'System.Title'}");
+        push(@filtered_items, $item);
+    }
+
+    if (!@filtered_items){
+        $plugin->logger->info("No items to sent");
     }
 
     # Transform the raw data to the standardized one.
