@@ -1,3 +1,4 @@
 !ecpluginbuilder.exe
 .idea
 *.iml
+/build/

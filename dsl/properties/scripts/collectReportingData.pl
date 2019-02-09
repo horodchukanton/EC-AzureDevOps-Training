@@ -144,7 +144,7 @@ sub analyze_items {
         my $feature_name = $item->{fields}->{'System.Title'};
         my $modified_time= $item->{fields}->{'Microsoft.VSTS.Common.StateChangeDate'};
         my $created_time = $item->{fields}->{'System.CreatedDate'};
-        my $type         = $item->{fields}->{'System.WorkItemType'};
+        my $type         = ($item->{fields}->{'System.WorkItemType'} =~ /Story|Epic/) ? 'Story' : 'Feature';
         my $source_url   = $item->{url};
         my $status       = ( $item->{fields}->{'System.State'} eq 'Active' ) ? "Open" : "Closed";
 
