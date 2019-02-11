@@ -1,4 +1,4 @@
-# EC-AzureDevOps
+# EC-AzureDevOps-Training
 
 This plugin allows to work with REST API of AzureDevOps Server/Services (former TFS/VSTS).
 
@@ -42,17 +42,17 @@ Get information about a build.
 To attach a file to a work item, upload the attachment to the attachment store, then attach it to the work item.
 
 # Building the plugin
-1. Download or clone the EC-AzureDevOps repository.
+1. Download or clone the EC-AzureDevOps-Training repository.
 
     ```
-    git clone https://github.com/electric-cloud/EC-AzureDevOps.git
+    git clone https://github.com/electric-cloud/EC-AzureDevOps-Training.git
     ```
 
 5. Use the [ecpluginbuilder](https://github.com/electric-cloud/ecpluginbuilder) to format and build the plugin.
 
     ```
-     cd EC-AzureDevOps
-     ecpluginbuilder --plugin-version 1.0.0 --plugin-name EC-AzureDevOps --folder dsl,htdocs,pages,META-INF
+     cd EC-AzureDevOps-Training
+     ecpluginbuilder --plugin-version 1.0.0 --plugin-name EC-AzureDevOps-Training --folder dsl,htdocs,pages,META-INF
     ```
 
 6. Import the plugin zip file into your ElectricFlow server and promote it.

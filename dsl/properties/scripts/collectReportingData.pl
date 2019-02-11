@@ -234,13 +234,13 @@ sub get_mapped_values {
     my ( $plugin, $item, $mappings ) = @_;
 
     my $modified_time = $item->{fields}->{'Microsoft.VSTS.Common.StateChangeDate'};
-    my $feature_name = $item->{fields}->{'System.Title'};
-    my $item_key = $item->{id};
-    my $created_time = $item->{fields}->{'System.CreatedDate'};
-    my $type = ( $item->{fields}->{'System.WorkItemType'} =~ /Story|Epic/ ) ? 'Story' : 'Feature';
-    my $source_url = $item->{url};
-    my $status = ( $item->{fields}->{'System.State'} eq 'Active' ) ? "Open" : "Closed";
-    my $story_points = ( $item->{fields}->{'System.BusinessValue'} ) || '1';
+    my $feature_name  = $item->{fields}->{'System.Title'};
+    my $item_key      = $item->{id};
+    my $created_time  = $item->{fields}->{'System.CreatedDate'};
+    my $type          = ( $item->{fields}->{'System.WorkItemType'} =~ /Story|Epic/ ) ? 'Story' : 'Feature';
+    my $source_url    = $item->{url};
+    my $status        = ( $item->{fields}->{'System.State'} eq 'Active' ) ? "Open" : "Closed";
+    my $story_points  = ( $item->{fields}->{'System.BusinessValue'} ) || '1';
 
     # TODO: Check if this is a correct resolution
     my $resolution = ( $item->{fields}->{'System.State'} eq 'Active' ) ? "Fixed" : "Open";
@@ -275,8 +275,8 @@ sub transform_items {
         if ($last_report_timestamp && iso_date_to_timestamp($modified_time) < $last_report_timestamp) {
             $plugin->logger->trace(
                 "Skipping the '$feature_name': "
-                . "Changed time( " . (iso_date_to_timestamp($modified_time))
-                . ") is less than last report time ($last_report_timestamp)"
+                . "Changed time(" . (iso_date_to_timestamp($modified_time))
+                . ") is less than last report time($last_report_timestamp)"
             );
             next;
         }

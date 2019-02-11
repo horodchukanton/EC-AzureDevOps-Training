@@ -58,7 +58,7 @@
 </li>
 </ul>
 <h3>ElectricFlow Integration to Azure DevOps</h3>
-<p>The EC-AzureDevOps plugin allows users to manage the Work Items, queue Builds and configure automations regarding on the build status. <br/>
+<p>The EC-AzureDevOps-Training plugin allows users to manage the Work Items, queue Builds and configure automations regarding on the build status. <br/>
 There's also a separate 
 <a href="https://azuremarketplace.microsoft.com/uk-ua/marketplace/apps/electric-cloud.electricflowce?tab=Overview" target="_blank">Electric Flow CE extension at the Azure Marketplace</a>
  for the reverse management.</p>

@@ -19,8 +19,8 @@ project projName, {
         step procName, {
             description = ''
             subprocedure = procName
-            subproject = '/plugins/EC-AzureDevOps/project'
-            subpluginKey = 'EC-AzureDevOps'
+            subproject = '/plugins/EC-AzureDevOps-Training/project'
+            subpluginKey = 'EC-AzureDevOps-Training'
             projectName = projName
 
             parameters.each { k, v ->

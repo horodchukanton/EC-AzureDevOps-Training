@@ -108,7 +108,7 @@ class QueryWorkItems extends PluginTestHelper {
                 tfsClient.deleteWorkItemQuery(parameters['ref']['id'])
         }
 
-        deleteConfiguration('EC-AzureDevOps', configName)
+        deleteConfiguration('EC-AzureDevOps-Training', configName)
         conditionallyDeleteProject(projectName)
     }
 

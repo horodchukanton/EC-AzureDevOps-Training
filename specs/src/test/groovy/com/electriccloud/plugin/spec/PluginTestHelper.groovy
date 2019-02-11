@@ -24,7 +24,7 @@ import com.electriccloud.spec.*
 
 class PluginTestHelper extends PluginSpockTestSupport {
 
-    static String PLUGIN_NAME = 'EC-AzureDevOps'
+    static String PLUGIN_NAME = 'EC-AzureDevOps-Training'
     static String automationTestsContextRun = System.getenv('AUTOMATION_TESTS_CONTEXT_RUN') ?: ''
     static String pluginVersion = System.getenv('PLUGIN_VESION') ?: ''
 
@@ -62,7 +62,7 @@ class PluginTestHelper extends PluginSpockTestSupport {
 
         if (!isProxyAvailable){
             createPluginConfiguration(
-                'EC-AzureDevOps',
+                'EC-AzureDevOps-Training',
                 configName,
                 [
                     desc      : 'Spec Tests Config',
@@ -163,7 +163,7 @@ class PluginTestHelper extends PluginSpockTestSupport {
         def propertyLogName = parentProperty + '/debug_logs'
         dsl """
             setProperty(
-                propertyName: "/plugins/EC-AzureDevOps/project/ec_debug_logToProperty",
+                propertyName: "/plugins/EC-AzureDevOps-Training/project/ec_debug_logToProperty",
                 value: "$propertyLogName"
             )
         """
@@ -174,7 +174,7 @@ class PluginTestHelper extends PluginSpockTestSupport {
         def propertyName = '/myPipelineRuntime/debugLogs'
         dsl """
             setProperty(
-                propertyName: "/plugins/EC-AzureDevOps/project/ec_debug_logToProperty",
+                propertyName: "/plugins/EC-AzureDevOps-Training/project/ec_debug_logToProperty",
                 value: "$propertyName"
             )
         """
@@ -357,7 +357,7 @@ class PluginTestHelper extends PluginSpockTestSupport {
 
         def result = dsl """
             runProcedure(
-                projectName: '/plugins/EC-AzureDevOps/project',
+                projectName: '/plugins/EC-AzureDevOps-Training/project',
                 procedureName: 'CreateConfiguration',
                 credential: [
                     [

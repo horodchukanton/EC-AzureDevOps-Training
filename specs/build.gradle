@@ -3,7 +3,7 @@ apply plugin: "groovy"
 apply plugin: 'idea'
 
 version = "1.0"
-description = "EC-AzureDevOps Specs"
+description = "EC-AzureDevOps-Training Specs"
 
 sourceCompatibility = 1.8
 

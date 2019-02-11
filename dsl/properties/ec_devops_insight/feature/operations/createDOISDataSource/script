@@ -101,11 +101,11 @@ def pluginParameters     = args.pluginParameters;
 
 // Plugins metadata
 
-def pluginName = '@PLUGIN_NAME@'
+def pluginName = 'EC-AzureDevOps-Training'
 def reportObjectType = 'feature';
 
 // Extract the parameters expected through the form XML
-// EC-AzureDevOps param:
+// EC-AzureDevOps-Training param:
 // configName
 // queryId
 // queryText

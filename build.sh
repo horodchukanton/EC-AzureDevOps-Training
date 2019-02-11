@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 SERVER=nick
-PLUGIN_NAME=EC-AzureDevOps
+PLUGIN_NAME=EC-AzureDevOps-Training
 PLUGIN_VERSION=1.0.0
 
 echo "Building $PLUGIN_NAME-$PLUGIN_VERSION"

@@ -57,7 +57,7 @@ dryRun=true'''
     }
 
     def doCleanupSpec() {
-        deleteConfiguration('EC-AzureDevOps', configName)
+        deleteConfiguration('EC-AzureDevOps-Training', configName)
         conditionallyDeleteProject(projectName)
     }
 
