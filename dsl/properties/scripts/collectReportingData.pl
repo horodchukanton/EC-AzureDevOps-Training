@@ -103,6 +103,36 @@ sub get_dois_ds_parameters {
     return \%parameters;
 }
 
+sub get_last_timestamp {
+    my ($plugin, $metadata_location) = @_;
+
+    my $metadata = $plugin->get_metadata($metadata_location);
+    my $last_report_timestamp = 0;
+    if ($metadata && $metadata->{last_report_timestamp}) {
+        if ($metadata->{last_report_timestamp} =~ /^\d+$/) {
+            $plugin->logger->debug('Last run:', $metadata->{last_report_timestamp});
+            $last_report_timestamp = $metadata->{last_report_timestamp};
+        }
+        else {
+            $plugin->bail_out("Corrupted metadata (last_report_timestamp must be a number)", $metadata->{last_report_timestamp});
+        }
+    }
+
+    return $last_report_timestamp;
+}
+
+sub save_new_timestamp {
+    my ($plugin, $metadata_location) = @_;
+
+    my $metadata = $plugin->get_metadata($metadata_location);
+    $metadata->{last_report_timestamp} = DateTime->now->epoch();
+
+    $plugin->logger->debug('Saving new last run time:', $metadata->{last_report_timestamp});
+    $plugin->set_metadata($metadata_location, $metadata);
+
+    return 1;
+}
+
 sub iso_date_to_timestamp {
     my ( $iso_date ) = @_;
 
@@ -182,7 +212,7 @@ sub get_report_entities {
     # (**Captain Jack Sparrow with a drawing of a key goes here**)
 
     my @ids = map {$_->{id}} @{$response->{workItems}};
-    $plugin->logger->info("IDs of the found work items: " . join(', ', @ids));
+    $plugin->logger->info("IDs of the work items found: " . join(', ', @ids));
 
     # So now we can request the items itself
     my $work_items_result = $microrest->get(
@@ -200,48 +230,72 @@ sub get_report_entities {
     return $work_items_result->{value};
 }
 
+sub get_mapped_values {
+    my ( $plugin, $item, $mappings ) = @_;
+
+    my $modified_time = $item->{fields}->{'Microsoft.VSTS.Common.StateChangeDate'};
+    my $feature_name = $item->{fields}->{'System.Title'};
+    my $item_key = $item->{id};
+    my $created_time = $item->{fields}->{'System.CreatedDate'};
+    my $type = ( $item->{fields}->{'System.WorkItemType'} =~ /Story|Epic/ ) ? 'Story' : 'Feature';
+    my $source_url = $item->{url};
+    my $status = ( $item->{fields}->{'System.State'} eq 'Active' ) ? "Open" : "Closed";
+    my $story_points = ( $item->{fields}->{'System.BusinessValue'} ) || '1';
+
+    # TODO: Check if this is a correct resolution
+    my $resolution = ( $item->{fields}->{'System.State'} eq 'Active' ) ? "Fixed" : "Open";
+
+    return {
+        featureName => $feature_name,
+        status      => $status,
+        modifiedOn  => $modified_time,
+        key         => $item_key,
+        timestamp   => $modified_time,
+        releaseUri  => $source_url,
+        resolution  => $resolution,
+        storyPoints => $story_points,
+        type        => $type,
+        createdOn   => $created_time,
+        sourceUrl   => $source_url
+    };
+}
+
 sub transform_items {
-    my ( $plugin, $params, $items ) = @_;
+    my ( $plugin, $params, $items, $last_report_timestamp ) = @_;
 
     # Should be the same as the 'ec_devops_insight/feature/source' property value
     my $sourceName = 'AzureDevOps';
 
     my @payload = ();
     for my $item (@$items) {
+
+        my $modified_time = $item->{fields}->{'Microsoft.VSTS.Common.StateChangeDate'};
+        my $feature_name = $item->{fields}->{'System.Title'};
+
+        if ($last_report_timestamp && iso_date_to_timestamp($modified_time) < $last_report_timestamp) {
+            $plugin->logger->trace(
+                "Skipping the '$feature_name': "
+                . "Changed time( " . (iso_date_to_timestamp($modified_time))
+                . ") is less than last report time ($last_report_timestamp)"
+            );
+            next;
+        }
+
+        $plugin->logger->debug("Adding '$feature_name'");
         $plugin->logger->debug("Transforming the source item", $item);
 
-        # TODO: move to a separate procedure
-        # This is mappings part
-        my $feature_name = $item->{fields}->{'System.Title'};
-        my $modified_time = $item->{fields}->{'Microsoft.VSTS.Common.StateChangeDate'};
-        my $created_time = $item->{fields}->{'System.CreatedDate'};
-        my $type = ( $item->{fields}->{'System.WorkItemType'} =~ /Story|Epic/ ) ? 'Story' : 'Feature';
-        my $source_url = $item->{url};
-        my $status = ( $item->{fields}->{'System.State'} eq 'Active' ) ? "Open" : "Closed";
-
-        # TODO: Check if this is a correct resolution
-        my $resolution = ( $item->{fields}->{'System.State'} eq 'Active' ) ? "Fixed" : "Open";
-
+        my $item_report_fields = get_mapped_values($plugin, $item);
         my $result = {
-            "source"              => $sourceName,
-            "featureName"         => $feature_name,
-            "status"              => $status,
-            "pluginConfiguration" => $params->{config},
-            "modifiedOn"          => $modified_time,
-            "key"                 => $item->{id},
-            "pluginName"          => 'EC-AzureDevOps-Training',
-            "timestamp"           => $modified_time,
-            "releaseUri"          => "",
-            "resolution"          => $resolution,
-            "type"                => $type,
-            "createdOn"           => $created_time,
-            "sourceUrl"           => $source_url
+            pluginConfiguration => $params->{config},
+            pluginName          => 'EC-AzureDevOps-Training',
+            source              => $sourceName,
+
+            %$item_report_fields
         };
 
         push(@payload, $result);
 
         $plugin->logger->debug("Transformation result", $result);
-
     }
 
     return \@payload;
@@ -270,47 +324,21 @@ sub main {
     my $config = $plugin->get_config_values($params->{config});
 
     my $metadata_location = $plugin->build_metadata_location($params->{queryId} || $params->{queryText}, $report_object_type);
-    my $metadata = $plugin->get_metadata($metadata_location);
-    my $last_report_timestamp = 0;
-    if ($metadata && $metadata->{last_report_timestamp}) {
-        if ($metadata->{last_report_timestamp} =~ /^\d+$/) {
-            $plugin->logger->debug('Last run:', $metadata->{last_report_timestamp});
-            $last_report_timestamp = $metadata->{last_report_timestamp};
-        }
-        else {
-            $plugin->bail_out("Corrupted metadata (last_report_timestamp must be a number)", $metadata->{last_report_timestamp});
-        }
-    }
+    my $last_report_timestamp = get_last_timestamp($plugin, $metadata_location);
 
     # Request the entities
     my $entities = get_report_entities($plugin, $config, $params);
 
     # Updating metadata right after the requests
     if (! $params->{preview}) {
-        $metadata->{last_report_timestamp} = DateTime->now->epoch();
-        $plugin->set_metadata($metadata_location, $metadata);
-    }
-
-    my @filtered_items = ();
-    # Filter the results to exclude the duplicate items.
-    for my $item (@$entities) {
-        # Time in a ISO format, should change to a timestamp for comparing
-        my $modified_time = $item->{fields}->{'Microsoft.VSTS.Common.StateChangeDate'};
-
-        if ($last_report_timestamp && iso_date_to_timestamp($modified_time) < $last_report_timestamp) {
-            next;
-        }
-
-        $plugin->logger->debug("Adding $item->{fields}->{'System.Title'}");
-        push(@filtered_items, $item);
-    }
-
-    if (!@filtered_items){
-        $plugin->logger->info("No items to sent");
+        save_new_timestamp($plugin, $metadata_location);
     }
 
     # Transform the raw data to the standardized one.
-    my $report_payload = transform_items($plugin, $params, \@filtered_items);
+    my $report_payload = transform_items($plugin, $params, \@$entities, $last_report_timestamp);
+    if (!@$report_payload){
+        $plugin->logger->info("No items to sent");
+    }
 
     # Send the data to EC.
     my $payloads_sent_count = 0;
