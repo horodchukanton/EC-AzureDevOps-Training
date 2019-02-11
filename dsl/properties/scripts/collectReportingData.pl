@@ -250,7 +250,7 @@ sub get_mapped_values {
         status      => $status,
         modifiedOn  => $modified_time,
         key         => $item_key,
-        timestamp   => $modified_time,
+        timestamp   => DateTime->now->epoch,
         releaseUri  => $source_url,
         resolution  => $resolution,
         storyPoints => $story_points,
