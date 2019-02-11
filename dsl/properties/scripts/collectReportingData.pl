@@ -237,13 +237,13 @@ sub get_mapped_values {
     my $feature_name  = $item->{fields}->{'System.Title'};
     my $item_key      = $item->{id};
     my $created_time  = $item->{fields}->{'System.CreatedDate'};
-    my $type          = ( $item->{fields}->{'System.WorkItemType'} =~ /Story|Epic/ ) ? 'Story' : 'Feature';
+    my $type          = ( $item->{fields}->{'System.WorkItemType'} =~ /Story/ ) ? 'Story' : 'Feature';
     my $source_url    = $item->{url};
     my $status        = ( $item->{fields}->{'System.State'} eq 'Active' ) ? "Open" : "Closed";
-    my $story_points  = ( $item->{fields}->{'System.BusinessValue'} ) || '1';
+    my $story_points  = ( $item->{fields}->{'Microsoft.VSTS.Scheduling.StoryPoints'} ) || 1;
 
     # TODO: Check if this is a correct resolution
-    my $resolution = ( $item->{fields}->{'System.State'} eq 'Active' ) ? "Fixed" : "Open";
+    my $resolution = ( $item->{fields}->{'System.State'} eq 'Active' ) ? "Open" : "Fixed";
 
     return {
         featureName => $feature_name,
@@ -271,6 +271,13 @@ sub transform_items {
 
         my $modified_time = $item->{fields}->{'Microsoft.VSTS.Common.StateChangeDate'};
         my $feature_name = $item->{fields}->{'System.Title'};
+        my $item_type = $item->{fields}->{'System.WorkItemType'};
+
+        # RELATED to the reportObjectType 'feature'
+        if ($item_type ne 'User Story'){
+            $plugin->logger->trace("Skipping item $feature_name $item->{id} with type: '$item_type'");
+            next;
+        }
 
         if ($last_report_timestamp && iso_date_to_timestamp($modified_time) < $last_report_timestamp) {
             $plugin->logger->trace(
@@ -289,7 +296,6 @@ sub transform_items {
             pluginConfiguration => $params->{config},
             pluginName          => 'EC-AzureDevOps-Training',
             source              => $sourceName,
-
             %$item_report_fields
         };
 
@@ -361,7 +367,9 @@ sub main {
         $payloads_sent_count ++;
     }
 
-    $plugin->success("$payloads_sent_count payloads sent.");
+    my $summary = "$payloads_sent_count payload(s) sent.";
+    $plugin->logger->info($summary);
+    $plugin->success($summary);
 
     return 1;
 }
