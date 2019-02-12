@@ -97,7 +97,6 @@ project pluginName, {
                 }
                 property 'modifyDOISDataSource', {
                     property 'procedureName', value: 'ValidateCRDParams'
-                    property 'ec_parameterForm', value: "/projects/${pluginName}/procedures/CollectReportingData/ec_parameterForm"
                 }
             }
         }
