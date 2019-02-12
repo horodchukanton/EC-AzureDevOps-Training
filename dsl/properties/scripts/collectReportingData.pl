@@ -239,10 +239,10 @@ sub get_mapped_values {
     my $created_time  = $item->{fields}->{'System.CreatedDate'};
     my $type          = ( $item->{fields}->{'System.WorkItemType'} =~ /Story/ ) ? 'Story' : 'Feature';
     my $source_url    = $item->{url};
-    my $status        = ( $item->{fields}->{'System.State'} eq 'Active' ) ? "Open" : "Closed";
-    my $story_points  = ( $item->{fields}->{'Microsoft.VSTS.Scheduling.StoryPoints'} ) || 1;
+    my $status        = ( $item->{fields}->{'System.State'} =~ /Active|New/i ) ? "Open" : "Closed";
+    my $story_points  = ( $item->{fields}->{'Microsoft.VSTS.Scheduling.StoryPoints'} ) || 0;
 
-    # TODO: Check if this is a correct resolution
+    # TODO: Don't found any widget using this value
     my $resolution = ( $item->{fields}->{'System.State'} eq 'Active' ) ? "Open" : "Fixed";
 
     return {
